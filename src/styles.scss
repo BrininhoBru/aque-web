@@ -1,1 +1,76 @@
-/* You can add global styles to this file, and also import other style files */
+// Tailwind v4 — CSS-first, sem tailwind.config.js
+@use 'tailwindcss';
+
+// Tokens de design (substitui o tailwind.config.js)
+@theme {
+  --color-primary: #6366f1;
+  --color-primary-dark: #4f46e5;
+  --color-primary-light: #818cf8;
+  --color-success: #22c55e;
+  --color-danger: #ef4444;
+  --color-warning: #f59e0b;
+  --color-pending: #94a3b8;
+  --color-bg: #0f172a;
+  --color-bg-surface: #1e293b;
+  --color-bg-surface2: #334155;
+  --font-sans: 'Inter', sans-serif;
+}
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+html,
+body {
+  height: 100%;
+  @apply font-sans bg-bg text-slate-100;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  @apply bg-bg-surface;
+}
+::-webkit-scrollbar-thumb {
+  @apply bg-bg-surface2 rounded;
+}
+
+@layer components {
+  .card {
+    @apply bg-bg-surface rounded-lg p-6 shadow-md border border-bg-surface2;
+  }
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2 rounded-md
+           font-medium text-sm transition-colors duration-200 disabled:opacity-50
+           disabled:cursor-not-allowed;
+  }
+  .btn-primary {
+    @apply btn bg-primary hover:bg-primary-dark text-white;
+  }
+  .btn-ghost {
+    @apply btn bg-transparent hover:bg-bg-surface2 text-slate-300;
+  }
+  .btn-danger {
+    @apply btn bg-danger/10 hover:bg-danger/20 text-danger;
+  }
+  .input {
+    @apply w-full bg-bg-surface2 border border-bg-surface2 rounded-md px-3 py-2
+           text-sm text-slate-100 placeholder-slate-500
+           focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent
+           transition-all duration-200;
+  }
+  .label {
+    @apply block text-xs font-medium text-slate-400 mb-1;
+  }
+  .badge-pago {
+    @apply inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-success/10 text-success;
+  }
+  .badge-pendente {
+    @apply inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-pending/10 text-pending;
+  }
+  .badge-receita {
+    @apply inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary-light;
+  }
+  .badge-despesa {
+    @apply inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-danger/10 text-danger;
+  }
+}

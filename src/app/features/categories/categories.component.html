@@ -1,0 +1,127 @@
+<div class="flex flex-col gap-6">
+
+  <!-- Header da página -->
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="page-title">Categorias</h1>
+      <p class="text-sm mt-0.5" style="color: #64748b;">
+        Gerencie as categorias dos seus lançamentos
+      </p>
+    </div>
+    <button class="btn-primary" (click)="openCreate()">
+      <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+        <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+      </svg>
+      Nova Categoria
+    </button>
+  </div>
+
+  <!-- Filtros -->
+  <div class="flex gap-2">
+    @for (opt of [['TODOS','Todas'], ['RECEITA','Receitas'], ['DESPESA','Despesas']]; track opt[0]) {
+      <button
+        class="btn text-sm px-4 py-1.5"
+        [class]="filter() === opt[0] ? 'btn-primary' : 'btn-ghost'"
+        (click)="setFilter(opt[0])"
+      >
+        {{ opt[1] }}
+      </button>
+    }
+  </div>
+
+  <!-- Loading -->
+  @if (loading()) {
+    <div class="flex items-center justify-center py-16">
+      <div class="w-8 h-8 rounded-full border-2 border-t-transparent animate-spin"
+           style="border-color: var(--color-primary); border-top-color: transparent;"></div>
+    </div>
+  }
+
+  @if (!loading()) {
+
+    <!-- Categorias pré-definidas -->
+    <div class="card">
+      <div class="flex items-center gap-2 mb-4">
+        <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24" style="color: #64748b;">
+          <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/>
+        </svg>
+        <h2 class="text-sm font-semibold" style="color: #94a3b8;">Pré-definidas</h2>
+        <span class="badge-pendente ml-auto">{{ predefined().length }}</span>
+      </div>
+
+      @if (predefined().length === 0) {
+        <p class="text-sm text-center py-4" style="color: #475569;">Nenhuma categoria neste filtro.</p>
+      } @else {
+        <div class="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
+          @for (cat of predefined(); track cat.id) {
+            <div class="flex items-center justify-between px-3 py-2 rounded-lg"
+                 style="background: var(--color-surface2); border: 1px solid var(--color-border);">
+              <div class="flex items-center gap-2 min-w-0">
+                <span [class]="cat.type === 'RECEITA' ? 'badge-receita' : 'badge-despesa'">
+                  {{ cat.type === 'RECEITA' ? 'R' : 'D' }}
+                </span>
+                <span class="text-sm font-medium truncate" style="color: #cbd5e1;">{{ cat.name }}</span>
+              </div>
+              <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"
+                   class="shrink-0 ml-2" style="color: #334155;" title="Pré-definida">
+                <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/>
+              </svg>
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+    <!-- Categorias customizadas -->
+    <div class="card">
+      <div class="flex items-center gap-2 mb-4">
+        <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24" style="color: #64748b;">
+          <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+        </svg>
+        <h2 class="text-sm font-semibold" style="color: #94a3b8;">Customizadas</h2>
+        <span class="badge-pendente ml-auto">{{ custom().length }}</span>
+      </div>
+
+      @if (custom().length === 0) {
+        <div class="flex flex-col items-center justify-center py-8 gap-2">
+          <p class="text-sm" style="color: #475569;">Nenhuma categoria customizada ainda.</p>
+          <button class="btn-ghost text-sm" (click)="openCreate()">+ Criar primeira</button>
+        </div>
+      } @else {
+        <div class="flex flex-col gap-2">
+          @for (cat of custom(); track cat.id) {
+            <div class="flex items-center justify-between px-4 py-3 rounded-lg transition-colors"
+                 style="background: var(--color-surface2); border: 1px solid var(--color-border);">
+              <div class="flex items-center gap-3">
+                <span [class]="cat.type === 'RECEITA' ? 'badge-receita' : 'badge-despesa'">
+                  {{ cat.type }}
+                </span>
+                <span class="text-sm font-medium" style="color: #e2e8f0;">{{ cat.name }}</span>
+              </div>
+              <div class="flex items-center gap-1">
+                <button class="btn-ghost px-2 py-1.5" (click)="openEdit(cat)" title="Editar">
+                  <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+                  </svg>
+                </button>
+                <button class="btn-danger px-2 py-1.5" (click)="askDelete(cat.id)" title="Excluir">
+                  <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M6 19c0 1.1.9 2 2 2h8a2 2 0 002-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+  }
+</div>
+
+<!-- Modal: Formulário -->
+@if (showForm()) {
+  <div class="fixed inset-0 z-40 flex items-center justify-center p-4"
+       style="background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);"
+       (click)="closeForm()">
+    <div class="w-full max-w-sm card-glass p-6 flex flex-col gap-4"

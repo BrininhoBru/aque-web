@@ -89,13 +89,12 @@ export class RecurringComponent implements OnInit {
     });
   }
 
-  setFilter(f: FilterActive): void {
-    this.filterActive.set(f);
+  setFilter(f: string): void {
+    this.filterActive.set(f as FilterActive);
   }
 
-  setType(type: 'RECEITA' | 'DESPESA'): void {
-    this.recurringForm.type().value.set(type);
-    // Limpa categoria ao trocar tipo
+  setType(type: string): void {
+    this.recurringForm.type().value.set(type as 'RECEITA' | 'DESPESA');
     this.recurringForm.categoryId().value.set('');
   }
 

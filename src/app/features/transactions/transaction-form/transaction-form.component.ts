@@ -131,8 +131,8 @@ export class TransactionFormComponent implements OnInit {
     });
   }
 
-  setType(type: 'RECEITA' | 'DESPESA'): void {
-    this.transactionForm.type().value.set(type);
+  setType(type: string): void {
+    this.transactionForm.type().value.set(type as 'RECEITA' | 'DESPESA');
     this.transactionForm.categoryId().value.set('');
   }
 

@@ -298,10 +298,11 @@ export class DashboardComponent {
     });
   }
 
-  setPieFilter(f: PieFilter): void {
-    this.pieFilter.set(f);
+  setPieFilter(f: string): void {
+    this.pieFilter.set(f as PieFilter);
   }
-  setLineFilter(f: LineFilter): void {
-    this.lineFilter.set(f);
+  
+  setLineFilter(f: string): void {
+    this.lineFilter.set(f as LineFilter);
   }
 }

@@ -87,9 +87,8 @@ export class CategoriesComponent implements OnInit {
     this.editingId.set(null);
   }
 
-  setType(type: 'RECEITA' | 'DESPESA'): void {
-    // Signal Forms: atualiza valor programaticamente via .value.set()
-    this.categoryForm.type().value.set(type);
+  setType(type: string): void {
+    this.categoryForm.type().value.set(type as 'RECEITA' | 'DESPESA');
   }
 
   save(): void {

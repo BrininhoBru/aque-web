@@ -88,7 +88,11 @@
       <div class="grid grid-cols-2 gap-4">
         <div>
           <label class="label">Mês de referência *</label>
-          <select class="input" [formField]="transactionForm.referenceMonth">
+          <select
+            class="input"
+            [value]="transactionForm.referenceMonth().value()"
+            (change)="transactionForm.referenceMonth().value.set(+$any($event.target).value)"
+          >
             @for (m of months; track m.value) {
               <option [value]="m.value">{{ m.label }}</option>
             }
@@ -101,8 +105,6 @@
             type="number"
             [formField]="transactionForm.referenceYear"
             placeholder="2026"
-            min="2000"
-            max="2100"
           />
           @if (
             transactionForm.referenceYear().touched() && transactionForm.referenceYear().invalid()
@@ -123,7 +125,6 @@
             class="input"
             type="number"
             step="0.01"
-            min="0.01"
             [formField]="transactionForm.amountExpected"
             placeholder="0,00"
           />
@@ -147,7 +148,6 @@
               class="input pr-8"
               type="number"
               step="0.01"
-              min="0.01"
               [formField]="transactionForm.amountPaid"
               placeholder="0,00"
             />

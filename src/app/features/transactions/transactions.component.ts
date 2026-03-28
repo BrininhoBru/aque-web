@@ -104,15 +104,18 @@ export class TransactionsComponent implements OnInit {
       .reduce((acc, t) => acc + (t.amountPaid ?? 0), 0),
   );
 
-  setFilterType(v: FilterType): void {
-    this.filterType.set(v);
+  setFilterType(v: string): void {
+    this.filterType.set(v as FilterType);
   }
-  setFilterStatus(v: FilterStatus): void {
-    this.filterStatus.set(v);
+
+  setFilterStatus(v: string): void {
+    this.filterStatus.set(v as FilterStatus);
   }
+
   setFilterCategory(id: string): void {
     this.filterCategoryId.set(id);
   }
+
   clearFilters(): void {
     this.filterType.set('TODOS');
     this.filterStatus.set('TODOS');

@@ -22,26 +22,24 @@
   @if (!loading() && summary()) {
     <!-- Cards de saldo -->
     <div class="grid grid-cols-2 gap-4 lg:grid-cols-3">
-      <!-- Receitas previstas -->
       <div class="card flex flex-col gap-1">
         <div class="flex items-center gap-2 mb-1">
           <div class="w-2 h-2 rounded-full" style="background: var(--color-primary-light)"></div>
-          <span class="text-xs font-semibold uppercase tracking-wider" style="color: #64748b">
-            Receitas previstas
-          </span>
+          <span class="text-xs font-semibold uppercase tracking-wider" style="color: #64748b"
+            >Receitas previstas</span
+          >
         </div>
         <span class="text-2xl font-bold" style="font-family: var(--font-display); color: #f1f5f9">
           {{ summary()!.totalIncomeExpected | brlCurrency }}
         </span>
       </div>
 
-      <!-- Receitas recebidas -->
       <div class="card flex flex-col gap-1">
         <div class="flex items-center gap-2 mb-1">
           <div class="w-2 h-2 rounded-full" style="background: var(--color-success)"></div>
-          <span class="text-xs font-semibold uppercase tracking-wider" style="color: #64748b">
-            Receitas recebidas
-          </span>
+          <span class="text-xs font-semibold uppercase tracking-wider" style="color: #64748b"
+            >Receitas recebidas</span
+          >
         </div>
         <span
           class="text-2xl font-bold"
@@ -51,7 +49,6 @@
         </span>
       </div>
 
-      <!-- Saldo previsto -->
       <div
         class="card flex flex-col gap-1"
         [style.border-color]="
@@ -65,9 +62,9 @@
               balanceExpectedPositive() ? 'var(--color-primary)' : 'var(--color-danger)'
             "
           ></div>
-          <span class="text-xs font-semibold uppercase tracking-wider" style="color: #64748b">
-            Saldo previsto
-          </span>
+          <span class="text-xs font-semibold uppercase tracking-wider" style="color: #64748b"
+            >Saldo previsto</span
+          >
         </div>
         <span
           class="text-2xl font-bold"
@@ -78,26 +75,24 @@
         </span>
       </div>
 
-      <!-- Despesas previstas -->
       <div class="card flex flex-col gap-1">
         <div class="flex items-center gap-2 mb-1">
           <div class="w-2 h-2 rounded-full" style="background: var(--color-danger)"></div>
-          <span class="text-xs font-semibold uppercase tracking-wider" style="color: #64748b">
-            Despesas previstas
-          </span>
+          <span class="text-xs font-semibold uppercase tracking-wider" style="color: #64748b"
+            >Despesas previstas</span
+          >
         </div>
         <span class="text-2xl font-bold" style="font-family: var(--font-display); color: #f1f5f9">
           {{ summary()!.totalExpenseExpected | brlCurrency }}
         </span>
       </div>
 
-      <!-- Despesas pagas -->
       <div class="card flex flex-col gap-1">
         <div class="flex items-center gap-2 mb-1">
           <div class="w-2 h-2 rounded-full" style="background: var(--color-warning)"></div>
-          <span class="text-xs font-semibold uppercase tracking-wider" style="color: #64748b">
-            Despesas pagas
-          </span>
+          <span class="text-xs font-semibold uppercase tracking-wider" style="color: #64748b"
+            >Despesas pagas</span
+          >
         </div>
         <span
           class="text-2xl font-bold"
@@ -107,7 +102,6 @@
         </span>
       </div>
 
-      <!-- Saldo pago -->
       <div
         class="card flex flex-col gap-1"
         [style.border-color]="balancePaidPositive() ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)'"
@@ -119,9 +113,9 @@
               balancePaidPositive() ? 'var(--color-success)' : 'var(--color-danger)'
             "
           ></div>
-          <span class="text-xs font-semibold uppercase tracking-wider" style="color: #64748b">
-            Saldo pago
-          </span>
+          <span class="text-xs font-semibold uppercase tracking-wider" style="color: #64748b"
+            >Saldo pago</span
+          >
         </div>
         <span
           class="text-2xl font-bold"
@@ -133,49 +127,58 @@
       </div>
     </div>
 
-    <!-- Linha 2: By Category + Split -->
+    <!-- Linha 2: Gráfico de pizza + Divisão -->
     <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
-      <!-- Totais por categoria (placeholder TASK-12) -->
+      <!-- Gráfico de pizza por categoria -->
       <div class="card flex flex-col gap-4">
-        <h2
-          style="
-            font-family: var(--font-display);
-            font-size: 1rem;
-            font-weight: 700;
-            color: #f1f5f9;
-          "
-        >
-          Por categoria
-        </h2>
-        @if (byCategory().length === 0) {
-          <p class="text-sm text-center py-6" style="color: #475569">
-            Sem dados para o mês selecionado.
-          </p>
-        } @else {
-          <div class="flex flex-col gap-3">
-            @for (item of byCategory(); track item.category.id) {
-              <div class="flex items-center justify-between gap-3">
-                <div class="flex items-center gap-2 min-w-0">
-                  <span class="badge-despesa shrink-0">D</span>
-                  <span class="text-sm truncate" style="color: #cbd5e1">{{
-                    item.category.name
-                  }}</span>
-                </div>
-                <div class="flex flex-col items-end shrink-0">
-                  <span class="text-sm font-semibold" style="color: #e2e8f0">
-                    {{ item.totalExpected | brlCurrency }}
-                  </span>
-                  @if (item.totalPaid > 0) {
-                    <span class="text-xs" style="color: var(--color-success)">
-                      pago: {{ item.totalPaid | brlCurrency }}
-                    </span>
-                  }
-                </div>
-              </div>
+        <div class="flex items-center justify-between">
+          <h2
+            style="
+              font-family: var(--font-display);
+              font-size: 1rem;
+              font-weight: 700;
+              color: #f1f5f9;
+            "
+          >
+            Por categoria
+          </h2>
+          <div class="flex gap-1">
+            @for (
+              opt of [
+                ['DESPESA', 'Despesas'],
+                ['RECEITA', 'Receitas'],
+              ];
+              track opt[0]
+            ) {
+              <button
+                class="btn text-xs px-3 py-1.5"
+                [class]="pieFilter() === opt[0] ? 'btn-primary' : 'btn-ghost'"
+                (click)="setPieFilter(opt[0])"
+              >
+                {{ opt[1] }}
+              </button>
             }
           </div>
+        </div>
+
+        @if (filteredByCategory().length === 0) {
+          <div class="flex flex-col items-center justify-center py-10 gap-2">
+            <p class="text-sm" style="color: #475569">
+              Sem {{ pieFilter() === 'DESPESA' ? 'despesas' : 'receitas' }} no mês selecionado.
+            </p>
+          </div>
+        } @else {
+          <apx-chart
+            [series]="pieChartOptions().series"
+            [chart]="pieChartOptions().chart"
+            [labels]="pieChartOptions().labels"
+            [legend]="pieChartOptions().legend"
+            [tooltip]="pieChartOptions().tooltip"
+            [dataLabels]="pieChartOptions().dataLabels"
+            [plotOptions]="pieChartOptions().plotOptions"
+            [colors]="pieChartOptions().colors"
+          />
         }
-        <!-- Gráfico de pizza — TASK-12 -->
       </div>
 
       <!-- Divisão por pessoa -->
@@ -221,9 +224,9 @@
           </div>
         } @else {
           <div class="flex flex-col gap-1 mb-2">
-            <span class="text-xs uppercase tracking-wider" style="color: #475569">
-              Total de despesas previstas
-            </span>
+            <span class="text-xs uppercase tracking-wider" style="color: #475569"
+              >Total de despesas previstas</span
+            >
             <span
               class="text-xl font-bold"
               style="font-family: var(--font-display); color: #f1f5f9"
@@ -231,7 +234,6 @@
               {{ split()!.totalExpenseExpected | brlCurrency }}
             </span>
           </div>
-
           <div class="flex flex-col gap-3">
             @for (item of split()!.items; track item.person.id) {
               <div class="flex flex-col gap-1.5">
@@ -256,7 +258,6 @@
                     {{ item.amount | brlCurrency }}
                   </span>
                 </div>
-                <!-- Barra de progresso -->
                 <div
                   class="w-full h-1.5 rounded-full overflow-hidden"
                   style="background: var(--color-surface2)"
@@ -281,7 +282,6 @@
       >
         Evolução {{ monthYear.year() }}
       </h2>
-      <!-- Gráfico de linha — TASK-13 -->
       <div class="flex items-center justify-center py-8" style="color: #334155">
         <p class="text-sm">Gráfico de evolução será adicionado na TASK-13</p>
       </div>

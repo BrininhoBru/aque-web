@@ -1,33 +1,19 @@
-import { Component, signal, computed } from '@angular/core';
-import { Router } from '@angular/router';
-
-const MONTHS = [
-  'Janeiro',
-  'Fevereiro',
-  'Março',
-  'Abril',
-  'Maio',
-  'Junho',
-  'Julho',
-  'Agosto',
-  'Setembro',
-  'Outubro',
-  'Novembro',
-  'Dezembro',
-];
+import { Component, inject, computed } from '@angular/core';
+import { MonthYearService } from '../../core/services/month-year.service';
+import { MonthYearPipe } from '../../shared/pipes/month-year.pipe';
+import { AuthService } from '../../core/auth/auth.service';
 
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [],
+  imports: [MonthYearPipe],
   template: `
     <header
       class="flex items-center justify-between px-6 h-14 shrink-0"
       style="background: var(--color-surface); border-bottom: 1px solid var(--color-border);"
     >
-      <!-- Seletor de mês/ano -->
       <div class="flex items-center gap-1">
-        <button class="btn-nav" (click)="prevMonth()">
+        <button class="btn-nav" (click)="monthYear.previousMonth()">
           <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24">
             <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z" />
           </svg>
@@ -41,33 +27,29 @@ const MONTHS = [
             style="font-family: var(--font-display); font-size: 0.9rem; font-weight: 700;
                        color: #f1f5f9; letter-spacing: -0.01em;"
           >
-            {{ monthLabel() }}
+            {{ monthYear.selected() | monthYear }}
           </span>
         </div>
 
-        <button class="btn-nav" (click)="nextMonth()">
+        <button class="btn-nav" (click)="monthYear.nextMonth()">
           <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24">
             <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" />
           </svg>
         </button>
       </div>
 
-      <!-- Ações -->
-      <div class="flex items-center gap-2">
-        <button
-          class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm transition-all"
-          style="color: #64748b; font-weight: 500;"
-          (click)="logout()"
-          title="Sair"
-        >
-          <svg width="15" height="15" fill="currentColor" viewBox="0 0 24 24">
-            <path
-              d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"
-            />
-          </svg>
-          Sair
-        </button>
-      </div>
+      <button
+        class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm transition-all"
+        style="color: #64748b; font-weight: 500; background: transparent; border: none; cursor: pointer;"
+        (click)="auth.logout()"
+      >
+        <svg width="15" height="15" fill="currentColor" viewBox="0 0 24 24">
+          <path
+            d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"
+          />
+        </svg>
+        Sair
+      </button>
     </header>
 
     <style>
@@ -92,36 +74,6 @@ const MONTHS = [
   `,
 })
 export class HeaderComponent {
-  private readonly router = inject(Router);
-
-  // Placeholder — será substituído pelo MonthYearService na TASK-04
-  private readonly month = signal(new Date().getMonth());
-  private readonly year = signal(new Date().getFullYear());
-
-  readonly monthLabel = computed(() => `${MONTHS[this.month()]} ${this.year()}`);
-
-  prevMonth(): void {
-    if (this.month() === 0) {
-      this.month.set(11);
-      this.year.update((y) => y - 1);
-    } else {
-      this.month.update((m) => m - 1);
-    }
-  }
-
-  nextMonth(): void {
-    if (this.month() === 11) {
-      this.month.set(0);
-      this.year.update((y) => y + 1);
-    } else {
-      this.month.update((m) => m + 1);
-    }
-  }
-
-  logout(): void {
-    localStorage.removeItem('token');
-    this.router.navigate(['/login']);
-  }
+  readonly monthYear = inject(MonthYearService);
+  readonly auth = inject(AuthService);
 }
-
-import { inject } from '@angular/core';

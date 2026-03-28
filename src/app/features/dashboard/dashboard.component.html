@@ -1,0 +1,290 @@
+<div class="flex flex-col gap-6">
+  <!-- Header -->
+  <div>
+    <h1 class="page-title">Dashboard</h1>
+    <p class="text-sm mt-0.5" style="color: #64748b">
+      Resumo financeiro de {{ monthYear.selected() | monthYear }}
+    </p>
+  </div>
+
+  <!-- Skeleton loading -->
+  @if (loading()) {
+    <div class="grid grid-cols-2 gap-4 lg:grid-cols-3">
+      @for (i of [1, 2, 3, 4, 5, 6]; track i) {
+        <div class="card animate-pulse">
+          <div class="h-3 w-24 rounded mb-3" style="background: var(--color-surface2)"></div>
+          <div class="h-7 w-32 rounded" style="background: var(--color-surface2)"></div>
+        </div>
+      }
+    </div>
+  }
+
+  @if (!loading() && summary()) {
+    <!-- Cards de saldo -->
+    <div class="grid grid-cols-2 gap-4 lg:grid-cols-3">
+      <!-- Receitas previstas -->
+      <div class="card flex flex-col gap-1">
+        <div class="flex items-center gap-2 mb-1">
+          <div class="w-2 h-2 rounded-full" style="background: var(--color-primary-light)"></div>
+          <span class="text-xs font-semibold uppercase tracking-wider" style="color: #64748b">
+            Receitas previstas
+          </span>
+        </div>
+        <span class="text-2xl font-bold" style="font-family: var(--font-display); color: #f1f5f9">
+          {{ summary()!.totalIncomeExpected | brlCurrency }}
+        </span>
+      </div>
+
+      <!-- Receitas recebidas -->
+      <div class="card flex flex-col gap-1">
+        <div class="flex items-center gap-2 mb-1">
+          <div class="w-2 h-2 rounded-full" style="background: var(--color-success)"></div>
+          <span class="text-xs font-semibold uppercase tracking-wider" style="color: #64748b">
+            Receitas recebidas
+          </span>
+        </div>
+        <span
+          class="text-2xl font-bold"
+          style="font-family: var(--font-display); color: var(--color-success)"
+        >
+          {{ summary()!.totalIncomePaid | brlCurrency }}
+        </span>
+      </div>
+
+      <!-- Saldo previsto -->
+      <div
+        class="card flex flex-col gap-1"
+        [style.border-color]="
+          balanceExpectedPositive() ? 'rgba(99,102,241,0.3)' : 'rgba(239,68,68,0.3)'
+        "
+      >
+        <div class="flex items-center gap-2 mb-1">
+          <div
+            class="w-2 h-2 rounded-full"
+            [style.background]="
+              balanceExpectedPositive() ? 'var(--color-primary)' : 'var(--color-danger)'
+            "
+          ></div>
+          <span class="text-xs font-semibold uppercase tracking-wider" style="color: #64748b">
+            Saldo previsto
+          </span>
+        </div>
+        <span
+          class="text-2xl font-bold"
+          style="font-family: var(--font-display)"
+          [style.color]="balanceExpectedPositive() ? '#f1f5f9' : 'var(--color-danger)'"
+        >
+          {{ summary()!.balanceExpected | brlCurrency }}
+        </span>
+      </div>
+
+      <!-- Despesas previstas -->
+      <div class="card flex flex-col gap-1">
+        <div class="flex items-center gap-2 mb-1">
+          <div class="w-2 h-2 rounded-full" style="background: var(--color-danger)"></div>
+          <span class="text-xs font-semibold uppercase tracking-wider" style="color: #64748b">
+            Despesas previstas
+          </span>
+        </div>
+        <span class="text-2xl font-bold" style="font-family: var(--font-display); color: #f1f5f9">
+          {{ summary()!.totalExpenseExpected | brlCurrency }}
+        </span>
+      </div>
+
+      <!-- Despesas pagas -->
+      <div class="card flex flex-col gap-1">
+        <div class="flex items-center gap-2 mb-1">
+          <div class="w-2 h-2 rounded-full" style="background: var(--color-warning)"></div>
+          <span class="text-xs font-semibold uppercase tracking-wider" style="color: #64748b">
+            Despesas pagas
+          </span>
+        </div>
+        <span
+          class="text-2xl font-bold"
+          style="font-family: var(--font-display); color: var(--color-warning)"
+        >
+          {{ summary()!.totalExpensePaid | brlCurrency }}
+        </span>
+      </div>
+
+      <!-- Saldo pago -->
+      <div
+        class="card flex flex-col gap-1"
+        [style.border-color]="balancePaidPositive() ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)'"
+      >
+        <div class="flex items-center gap-2 mb-1">
+          <div
+            class="w-2 h-2 rounded-full"
+            [style.background]="
+              balancePaidPositive() ? 'var(--color-success)' : 'var(--color-danger)'
+            "
+          ></div>
+          <span class="text-xs font-semibold uppercase tracking-wider" style="color: #64748b">
+            Saldo pago
+          </span>
+        </div>
+        <span
+          class="text-2xl font-bold"
+          style="font-family: var(--font-display)"
+          [style.color]="balancePaidPositive() ? 'var(--color-success)' : 'var(--color-danger)'"
+        >
+          {{ summary()!.balancePaid | brlCurrency }}
+        </span>
+      </div>
+    </div>
+
+    <!-- Linha 2: By Category + Split -->
+    <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+      <!-- Totais por categoria (placeholder TASK-12) -->
+      <div class="card flex flex-col gap-4">
+        <h2
+          style="
+            font-family: var(--font-display);
+            font-size: 1rem;
+            font-weight: 700;
+            color: #f1f5f9;
+          "
+        >
+          Por categoria
+        </h2>
+        @if (byCategory().length === 0) {
+          <p class="text-sm text-center py-6" style="color: #475569">
+            Sem dados para o mês selecionado.
+          </p>
+        } @else {
+          <div class="flex flex-col gap-3">
+            @for (item of byCategory(); track item.category.id) {
+              <div class="flex items-center justify-between gap-3">
+                <div class="flex items-center gap-2 min-w-0">
+                  <span class="badge-despesa shrink-0">D</span>
+                  <span class="text-sm truncate" style="color: #cbd5e1">{{
+                    item.category.name
+                  }}</span>
+                </div>
+                <div class="flex flex-col items-end shrink-0">
+                  <span class="text-sm font-semibold" style="color: #e2e8f0">
+                    {{ item.totalExpected | brlCurrency }}
+                  </span>
+                  @if (item.totalPaid > 0) {
+                    <span class="text-xs" style="color: var(--color-success)">
+                      pago: {{ item.totalPaid | brlCurrency }}
+                    </span>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        }
+        <!-- Gráfico de pizza — TASK-12 -->
+      </div>
+
+      <!-- Divisão por pessoa -->
+      <div class="card flex flex-col gap-4">
+        <div class="flex items-center justify-between">
+          <h2
+            style="
+              font-family: var(--font-display);
+              font-size: 1rem;
+              font-weight: 700;
+              color: #f1f5f9;
+            "
+          >
+            Divisão do mês
+          </h2>
+          <a routerLink="/split" class="text-xs" style="color: var(--color-primary-light)">
+            Configurar →
+          </a>
+        </div>
+
+        @if (splitError() || !split()) {
+          <div class="flex flex-col items-center justify-center py-8 gap-3">
+            <div
+              class="w-10 h-10 rounded-full flex items-center justify-center"
+              style="background: var(--color-surface2)"
+            >
+              <svg
+                width="18"
+                height="18"
+                fill="currentColor"
+                viewBox="0 0 24 24"
+                style="color: #475569"
+              >
+                <path
+                  d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19a2 2 0 002 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"
+                />
+              </svg>
+            </div>
+            <p class="text-sm text-center" style="color: #475569">
+              Regra de divisão não configurada para este mês.
+            </p>
+            <a routerLink="/split" class="btn-ghost text-sm">Configurar agora</a>
+          </div>
+        } @else {
+          <div class="flex flex-col gap-1 mb-2">
+            <span class="text-xs uppercase tracking-wider" style="color: #475569">
+              Total de despesas previstas
+            </span>
+            <span
+              class="text-xl font-bold"
+              style="font-family: var(--font-display); color: #f1f5f9"
+            >
+              {{ split()!.totalExpenseExpected | brlCurrency }}
+            </span>
+          </div>
+
+          <div class="flex flex-col gap-3">
+            @for (item of split()!.items; track item.person.id) {
+              <div class="flex flex-col gap-1.5">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <div
+                      class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold"
+                      style="
+                        background: rgba(99, 102, 241, 0.15);
+                        color: var(--color-primary-light);
+                        font-family: var(--font-display);
+                      "
+                    >
+                      {{ item.person.name.charAt(0).toUpperCase() }}
+                    </div>
+                    <span class="text-sm font-medium" style="color: #cbd5e1">{{
+                      item.person.name
+                    }}</span>
+                    <span class="text-xs" style="color: #475569">{{ item.percentage }}%</span>
+                  </div>
+                  <span class="text-sm font-bold" style="color: #f1f5f9">
+                    {{ item.amount | brlCurrency }}
+                  </span>
+                </div>
+                <!-- Barra de progresso -->
+                <div
+                  class="w-full h-1.5 rounded-full overflow-hidden"
+                  style="background: var(--color-surface2)"
+                >
+                  <div
+                    class="h-full rounded-full transition-all duration-500"
+                    style="background: var(--color-primary)"
+                    [style.width.%]="item.percentage"
+                  ></div>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Linha 3: Evolução anual (placeholder TASK-13) -->
+    <div class="card flex flex-col gap-4">
+      <h2
+        style="font-family: var(--font-display); font-size: 1rem; font-weight: 700; color: #f1f5f9"
+      >
+        Evolução {{ monthYear.year() }}
+      </h2>
+      <!-- Gráfico de linha — TASK-13 -->
+      <div class="flex items-center justify-center py-8" style="color: #334155">
+        <p class="text-sm">Gráfico de evolução será adicionado na TASK-13</p>
+      </div>
+    </div>
+  }
+</div>

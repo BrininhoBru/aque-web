@@ -5,11 +5,17 @@ import { forkJoin } from 'rxjs';
 import {
   NgApexchartsModule,
   ApexNonAxisChartSeries,
+  ApexAxisChartSeries,
   ApexChart,
   ApexLegend,
   ApexTooltip,
   ApexDataLabels,
   ApexPlotOptions,
+  ApexXAxis,
+  ApexYAxis,
+  ApexStroke,
+  ApexGrid,
+  ApexMarkers,
 } from 'ng-apexcharts';
 import { DashboardService } from '../../core/services/dashboard.service';
 import { MonthYearService } from '../../core/services/month-year.service';
@@ -29,7 +35,37 @@ export type PieChartOptions = {
   colors: string[];
 };
 
+export type LineChartOptions = {
+  series: ApexAxisChartSeries;
+  chart: ApexChart;
+  xaxis: ApexXAxis;
+  yaxis: ApexYAxis;
+  stroke: ApexStroke;
+  legend: ApexLegend;
+  tooltip: ApexTooltip;
+  dataLabels: ApexDataLabels;
+  grid: ApexGrid;
+  markers: ApexMarkers;
+  colors: string[];
+};
+
 type PieFilter = 'DESPESA' | 'RECEITA';
+type LineFilter = 'EXPECTED' | 'PAID';
+
+const MONTH_LABELS = [
+  'Jan',
+  'Fev',
+  'Mar',
+  'Abr',
+  'Mai',
+  'Jun',
+  'Jul',
+  'Ago',
+  'Set',
+  'Out',
+  'Nov',
+  'Dez',
+];
 
 @Component({
   selector: 'app-dashboard',
@@ -49,17 +85,17 @@ export class DashboardComponent {
   readonly split = signal<SplitResult | null>(null);
   readonly splitError = signal(false);
   readonly pieFilter = signal<PieFilter>('DESPESA');
+  readonly lineFilter = signal<LineFilter>('EXPECTED');
 
   readonly balanceExpectedPositive = computed(() => (this.summary()?.balanceExpected ?? 0) >= 0);
 
   readonly balancePaidPositive = computed(() => (this.summary()?.balancePaid ?? 0) >= 0);
 
-  // Dados filtrados para o gráfico
   readonly filteredByCategory = computed(() =>
     this.byCategory().filter((c) => c.category.type === this.pieFilter()),
   );
 
-  // Opções do gráfico de donut — recalcula quando filtro muda
+  // Opções do gráfico de donut
   readonly pieChartOptions = computed<PieChartOptions>(() => {
     const items = this.filteredByCategory();
     const series = items.map((i) => i.totalExpected);
@@ -131,6 +167,82 @@ export class DashboardComponent {
     };
   });
 
+  // Opções do gráfico de linha
+  readonly lineChartOptions = computed<LineChartOptions>(() => {
+    const evo = this.evolution();
+    const isPaid = this.lineFilter() === 'PAID';
+    const currentMonth = this.monthYear.month();
+
+    const incomeData = evo.map((e) => (isPaid ? e.totalIncomePaid : e.totalIncomeExpected));
+    const expenseData = evo.map((e) => (isPaid ? e.totalExpensePaid : e.totalExpenseExpected));
+
+    return {
+      series: [
+        { name: 'Receitas', data: incomeData },
+        { name: 'Despesas', data: expenseData },
+      ],
+      chart: {
+        type: 'line',
+        height: 280,
+        background: 'transparent',
+        foreColor: '#94a3b8',
+        fontFamily: 'DM Sans, sans-serif',
+        toolbar: { show: false },
+        animations: { enabled: true, speed: 400 },
+      },
+      colors: ['#6366f1', '#ef4444'],
+      stroke: {
+        curve: 'smooth',
+        width: 2.5,
+      },
+      markers: {
+        size: 4,
+        strokeWidth: 0,
+        hover: { size: 6 },
+      },
+      xaxis: {
+        categories: MONTH_LABELS,
+        labels: {
+          style: { colors: '#64748b', fontSize: '11px' },
+        },
+        axisBorder: { show: false },
+        axisTicks: { show: false },
+        // Destaca mês atual
+        crosshairs: { show: true },
+      },
+      yaxis: {
+        labels: {
+          style: { colors: '#64748b', fontSize: '11px' },
+          formatter: (val: number) =>
+            'R$ ' +
+            val.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 }),
+        },
+      },
+      grid: {
+        borderColor: '#1e2d45',
+        strokeDashArray: 4,
+        xaxis: { lines: { show: false } },
+        yaxis: { lines: { show: true } },
+      },
+      dataLabels: { enabled: false },
+      legend: {
+        position: 'top',
+        fontSize: '12px',
+        fontFamily: 'DM Sans, sans-serif',
+        labels: { colors: '#94a3b8' },
+        markers: { size: 6 },
+      },
+      tooltip: {
+        theme: 'dark',
+        x: { show: true },
+        y: {
+          formatter: (val: number) =>
+            'R$ ' + val.toLocaleString('pt-BR', { minimumFractionDigits: 2 }),
+        },
+      },
+    };
+  });
+
   constructor() {
     effect(() => {
       const { month, year } = this.monthYear.selected();
@@ -188,5 +300,8 @@ export class DashboardComponent {
 
   setPieFilter(f: PieFilter): void {
     this.pieFilter.set(f);
+  }
+  setLineFilter(f: LineFilter): void {
+    this.lineFilter.set(f);
   }
 }

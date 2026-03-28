@@ -1,6 +1,6 @@
 import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormGroup, FormControl, Validators } from '@angular/forms';
+import { form, FormField, required, minLength } from '@angular/forms/signals';
 import { CategoryService } from '../../core/services/category.service';
 import { ToastService } from '../../shared/services/toast.service';
 import { Category } from '../../core/models';
@@ -10,7 +10,7 @@ type FilterType = 'TODOS' | 'RECEITA' | 'DESPESA';
 @Component({
   selector: 'app-categories',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormField],
   templateUrl: './categories.component.html',
 })
 export class CategoriesComponent implements OnInit {
@@ -25,10 +25,20 @@ export class CategoriesComponent implements OnInit {
   readonly editingId = signal<string | null>(null);
   readonly confirmDeleteId = signal<string | null>(null);
 
-  readonly form = new FormGroup({
-    name: new FormControl('', { validators: [Validators.required, Validators.minLength(2)] }),
-    type: new FormControl<'RECEITA' | 'DESPESA'>('DESPESA', { validators: [Validators.required] }),
+  // Model signal — fonte de verdade do formulário
+  private readonly model = signal<{ name: string; type: 'RECEITA' | 'DESPESA' }>({
+    name: '',
+    type: 'DESPESA',
   });
+
+  // Field tree com validações
+  readonly categoryForm = form(this.model, (f) => {
+    required(f.name, { message: 'Nome obrigatório' });
+    minLength(f.name, 2, { message: 'Mínimo 2 caracteres' });
+  });
+
+  // Validade geral do form
+  readonly formValid = computed(() => this.categoryForm.name().valid());
 
   readonly predefined = computed(() =>
     this.categories().filter((c) => c.predefined && this.matchFilter(c)),
@@ -62,13 +72,13 @@ export class CategoriesComponent implements OnInit {
 
   openCreate(): void {
     this.editingId.set(null);
-    this.form.reset({ name: '', type: 'DESPESA' });
+    this.model.set({ name: '', type: 'DESPESA' });
     this.showForm.set(true);
   }
 
   openEdit(cat: Category): void {
     this.editingId.set(cat.id);
-    this.form.reset({ name: cat.name, type: cat.type });
+    this.model.set({ name: cat.name, type: cat.type });
     this.showForm.set(true);
   }
 
@@ -77,16 +87,21 @@ export class CategoriesComponent implements OnInit {
     this.editingId.set(null);
   }
 
+  setType(type: 'RECEITA' | 'DESPESA'): void {
+    // Signal Forms: atualiza valor programaticamente via .value.set()
+    this.categoryForm.type().value.set(type);
+  }
+
   save(): void {
-    if (this.form.invalid || this.saving()) return;
+    if (!this.formValid() || this.saving()) return;
     this.saving.set(true);
 
-    const { name, type } = this.form.value;
+    const { name, type } = this.model();
     const id = this.editingId();
 
     const request$ = id
-      ? this.categoryService.update(id, { name: name! })
-      : this.categoryService.create({ name: name!, type: type as 'RECEITA' | 'DESPESA' });
+      ? this.categoryService.update(id, { name })
+      : this.categoryService.create({ name, type });
 
     request$.subscribe({
       next: () => {
@@ -105,7 +120,6 @@ export class CategoriesComponent implements OnInit {
   askDelete(id: string): void {
     this.confirmDeleteId.set(id);
   }
-
   cancelDelete(): void {
     this.confirmDeleteId.set(null);
   }
@@ -113,7 +127,6 @@ export class CategoriesComponent implements OnInit {
   confirmDelete(): void {
     const id = this.confirmDeleteId();
     if (!id) return;
-
     this.categoryService.delete(id).subscribe({
       next: () => {
         this.toast.success('Categoria excluída.');

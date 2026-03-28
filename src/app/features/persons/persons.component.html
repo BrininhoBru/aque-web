@@ -1,0 +1,194 @@
+<div class="flex flex-col gap-6">
+  <!-- Header -->
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="page-title">Pessoas</h1>
+      <p class="text-sm mt-0.5" style="color: #64748b">
+        Gerencie os rótulos usados na divisão de custos
+      </p>
+    </div>
+    <button class="btn-primary" (click)="openCreate()">
+      <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+        <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
+      </svg>
+      Nova Pessoa
+    </button>
+  </div>
+
+  <!-- Loading -->
+  @if (loading()) {
+    <div class="flex items-center justify-center py-16">
+      <div
+        class="w-8 h-8 rounded-full border-2 animate-spin"
+        style="border-color: var(--color-primary); border-top-color: transparent"
+      ></div>
+    </div>
+  }
+
+  <!-- Lista -->
+  @if (!loading()) {
+    <div class="card">
+      @if (persons().length === 0) {
+        <div class="flex flex-col items-center justify-center py-12 gap-3">
+          <div
+            class="w-12 h-12 rounded-full flex items-center justify-center"
+            style="background: var(--color-surface2)"
+          >
+            <svg
+              width="22"
+              height="22"
+              fill="currentColor"
+              viewBox="0 0 24 24"
+              style="color: #475569"
+            >
+              <path
+                d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"
+              />
+            </svg>
+          </div>
+          <p class="text-sm" style="color: #475569">Nenhuma pessoa cadastrada.</p>
+          <button class="btn-ghost text-sm" (click)="openCreate()">+ Adicionar primeira</button>
+        </div>
+      }
+
+      @if (persons().length > 0) {
+        <div class="flex flex-col gap-2">
+          @for (person of persons(); track person.id) {
+            <div
+              class="flex items-center justify-between px-4 py-3 rounded-lg"
+              style="background: var(--color-surface2); border: 1px solid var(--color-border)"
+            >
+              <!-- Avatar + nome -->
+              <div class="flex items-center gap-3">
+                <div
+                  class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0"
+                  style="
+                    background: rgba(99, 102, 241, 0.15);
+                    color: var(--color-primary-light);
+                    font-family: var(--font-display);
+                  "
+                >
+                  {{ person.name.charAt(0).toUpperCase() }}
+                </div>
+                <span class="text-sm font-medium" style="color: #e2e8f0">{{ person.name }}</span>
+              </div>
+
+              <!-- Ações -->
+              <div class="flex items-center gap-1">
+                <button class="btn-ghost px-2 py-1.5" (click)="openEdit(person)" title="Editar">
+                  <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24">
+                    <path
+                      d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"
+                    />
+                  </svg>
+                </button>
+                <button
+                  class="btn-danger px-2 py-1.5"
+                  (click)="askDelete(person.id)"
+                  title="Excluir"
+                >
+                  <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24">
+                    <path
+                      d="M6 19c0 1.1.9 2 2 2h8a2 2 0 002-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
+                    />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+</div>
+
+<!-- Modal: Formulário -->
+@if (showForm()) {
+  <div
+    class="fixed inset-0 z-40 flex items-center justify-center p-4"
+    style="background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px)"
+    (click)="closeForm()"
+  >
+    <div
+      class="w-full max-w-sm card-glass p-6 flex flex-col gap-4"
+      (click)="$event.stopPropagation()"
+    >
+      <div class="flex items-center justify-between">
+        <h3
+          style="
+            font-family: var(--font-display);
+            font-size: 1rem;
+            font-weight: 700;
+            color: #f1f5f9;
+          "
+        >
+          {{ editingId() ? 'Editar Pessoa' : 'Nova Pessoa' }}
+        </h3>
+        <button class="btn-ghost px-2 py-1" (click)="closeForm()">✕</button>
+      </div>
+
+      <form (ngSubmit)="save()" class="flex flex-col gap-4">
+        <div>
+          <label class="label">Nome</label>
+          <input
+            class="input"
+            type="text"
+            [formField]="personForm.name"
+            placeholder="Ex: Eu, Esposa, Filho..."
+            autofocus
+          />
+          @if (personForm.name().touched() && personForm.name().invalid()) {
+            <p class="text-xs mt-1" style="color: var(--color-danger)">
+              {{ personForm.name().errors()[0]?.message }}
+            </p>
+          }
+        </div>
+
+        <div class="flex gap-2 pt-2">
+          <button type="button" class="btn-ghost flex-1" (click)="closeForm()">Cancelar</button>
+          <button type="submit" class="btn-primary flex-1" [disabled]="!formValid() || saving()">
+            {{ saving() ? 'Salvando...' : 'Salvar' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+<!-- Modal: Confirmação de exclusão -->
+@if (confirmDeleteId()) {
+  <div
+    class="fixed inset-0 z-40 flex items-center justify-center p-4"
+    style="background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px)"
+  >
+    <div class="w-full max-w-xs card-glass p-6 flex flex-col gap-4">
+      <div class="flex flex-col items-center gap-3 text-center">
+        <div
+          class="w-12 h-12 rounded-full flex items-center justify-center"
+          style="background: rgba(239, 68, 68, 0.1)"
+        >
+          <svg
+            width="22"
+            height="22"
+            fill="currentColor"
+            viewBox="0 0 24 24"
+            style="color: var(--color-danger)"
+          >
+            <path d="M6 19c0 1.1.9 2 2 2h8a2 2 0 002-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" />
+          </svg>
+        </div>
+        <div>
+          <p class="font-semibold" style="color: #f1f5f9">Excluir pessoa?</p>
+          <p class="text-sm mt-1" style="color: #64748b">
+            Se vinculada a uma regra de divisão, a exclusão será bloqueada.
+          </p>
+        </div>
+      </div>
+
+      <div class="flex gap-2">
+        <button class="btn-ghost flex-1" (click)="cancelDelete()">Cancelar</button>
+        <button class="btn-danger flex-1" (click)="confirmDelete()">Excluir</button>
+      </div>
+    </div>
+  </div>
+}

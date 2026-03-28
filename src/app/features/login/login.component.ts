@@ -1,18 +1,17 @@
-import { Component, inject, signal } from '@angular/core';
-import { FormGroup, FormControl, Validators } from '@angular/forms';
+import { Component, inject, signal, computed } from '@angular/core';
 import { Router } from '@angular/router';
+import { form, FormField, required } from '@angular/forms/signals';
 import { AuthService } from '../../core/auth/auth.service';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [],
+  imports: [FormField],
   template: `
     <div
       class="min-h-screen flex items-center justify-center p-4"
       style="background: var(--color-bg);"
     >
-      <!-- Glow de fundo -->
       <div class="absolute inset-0 overflow-hidden pointer-events-none">
         <div
           class="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2
@@ -22,7 +21,6 @@ import { AuthService } from '../../core/auth/auth.service';
       </div>
 
       <div class="relative w-full max-w-sm">
-        <!-- Logo -->
         <div class="text-center mb-8">
           <div
             class="inline-flex items-center justify-center w-12 h-12 rounded-xl mb-4"
@@ -43,7 +41,6 @@ import { AuthService } from '../../core/auth/auth.service';
           <p style="color: #475569; font-size: 0.875rem; margin-top: 0.35rem;">finanças pessoais</p>
         </div>
 
-        <!-- Card -->
         <div class="card-glass p-8">
           <h2
             style="font-family: var(--font-display); font-size: 1.1rem; font-weight: 700;
@@ -52,18 +49,20 @@ import { AuthService } from '../../core/auth/auth.service';
             Entrar na conta
           </h2>
 
-          <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-4">
+          <form (ngSubmit)="onSubmit()" class="flex flex-col gap-4">
             <div>
               <label class="label">Usuário</label>
               <input
                 class="input"
                 type="text"
-                formControlName="username"
+                [formField]="loginForm.username"
                 placeholder="seu usuário"
                 autocomplete="username"
               />
-              @if (form.get('username')?.invalid && form.get('username')?.touched) {
-                <p class="text-xs mt-1" style="color: var(--color-danger);">Usuário obrigatório</p>
+              @if (loginForm.username().touched() && loginForm.username().invalid()) {
+                <p class="text-xs mt-1" style="color: var(--color-danger);">
+                  {{ loginForm.username().errors()[0]?.message }}
+                </p>
               }
             </div>
 
@@ -72,16 +71,17 @@ import { AuthService } from '../../core/auth/auth.service';
               <input
                 class="input"
                 type="password"
-                formControlName="password"
+                [formField]="loginForm.password"
                 placeholder="••••••••"
                 autocomplete="current-password"
               />
-              @if (form.get('password')?.invalid && form.get('password')?.touched) {
-                <p class="text-xs mt-1" style="color: var(--color-danger);">Senha obrigatória</p>
+              @if (loginForm.password().touched() && loginForm.password().invalid()) {
+                <p class="text-xs mt-1" style="color: var(--color-danger);">
+                  {{ loginForm.password().errors()[0]?.message }}
+                </p>
               }
             </div>
 
-            <!-- Erro de login -->
             @if (errorMessage()) {
               <div
                 class="flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm"
@@ -96,7 +96,7 @@ import { AuthService } from '../../core/auth/auth.service';
             <button
               class="btn-primary w-full mt-2 py-2.5"
               type="submit"
-              [disabled]="form.invalid || loading()"
+              [disabled]="!formValid() || loading()"
             >
               @if (loading()) {
                 <span class="loader"></span>
@@ -134,23 +134,30 @@ export class LoginComponent {
   readonly loading = signal(false);
   readonly errorMessage = signal('');
 
-  readonly form = new FormGroup({
-    username: new FormControl('', { validators: [Validators.required] }),
-    password: new FormControl('', { validators: [Validators.required] }),
+  // Model signal — fonte de verdade do formulário
+  private readonly model = signal({ username: '', password: '' });
+
+  // Field tree com validações
+  readonly loginForm = form(this.model, (f: { username: any; password: any; }) => {
+    required(f.username, { message: 'Usuário obrigatório' });
+    required(f.password, { message: 'Senha obrigatória' });
   });
 
+  // Validade geral do form
+  readonly formValid = computed(
+    () => this.loginForm.username().valid() && this.loginForm.password().valid(),
+  );
+
   onSubmit(): void {
-    if (this.form.invalid || this.loading()) return;
+    if (!this.formValid() || this.loading()) return;
 
     this.loading.set(true);
     this.errorMessage.set('');
 
-    const { username, password } = this.form.value;
+    const { username, password } = this.model();
 
-    this.auth.login(username!, password!).subscribe({
-      next: () => {
-        this.router.navigate(['/dashboard']);
-      },
+    this.auth.login(username, password).subscribe({
+      next: () => this.router.navigate(['/dashboard']),
       error: () => {
         this.errorMessage.set('Usuário ou senha inválidos.');
         this.loading.set(false);

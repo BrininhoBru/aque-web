@@ -26,6 +26,20 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'transactions/form',
+        loadComponent: () =>
+          import('./features/transactions/transaction-form/transaction-form.component').then(
+            (m) => m.TransactionFormComponent,
+          ),
+      },
+      {
+        path: 'transactions/form/:id',
+        loadComponent: () =>
+          import('./features/transactions/transaction-form/transaction-form.component').then(
+            (m) => m.TransactionFormComponent,
+          ),
+      },
+      {
         path: 'recurring',
         loadComponent: () =>
           import('./features/recurring/recurring.component').then((m) => m.RecurringComponent),

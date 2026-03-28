@@ -1,0 +1,311 @@
+<div class="flex flex-col gap-6">
+  <!-- Header -->
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="page-title">Lançamentos</h1>
+      <p class="text-sm mt-0.5" style="color: #64748b">Receitas e despesas do mês selecionado</p>
+    </div>
+    <button class="btn-primary" (click)="goToCreate()">
+      <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+        <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
+      </svg>
+      Novo Lançamento
+    </button>
+  </div>
+
+  <!-- Filtros -->
+  <div class="card flex flex-col gap-4">
+    <div class="flex flex-wrap gap-3 items-end">
+      <!-- Categoria -->
+      <div class="flex flex-col gap-1 min-w-40">
+        <label class="label">Categoria</label>
+        <select
+          class="input"
+          [value]="filterCategoryId()"
+          (change)="setFilterCategory($any($event.target).value)"
+        >
+          <option value="">Todas</option>
+          @for (cat of categories(); track cat.id) {
+            <option [value]="cat.id">{{ cat.name }}</option>
+          }
+        </select>
+      </div>
+
+      <!-- Tipo -->
+      <div class="flex flex-col gap-1">
+        <label class="label">Tipo</label>
+        <div class="flex gap-1">
+          @for (
+            opt of [
+              ['TODOS', 'Todos'],
+              ['RECEITA', 'Receitas'],
+              ['DESPESA', 'Despesas'],
+            ];
+            track opt[0]
+          ) {
+            <button
+              class="btn text-xs px-3 py-2"
+              [class]="filterType() === opt[0] ? 'btn-primary' : 'btn-ghost'"
+              (click)="setFilterType(opt[0])"
+            >
+              {{ opt[1] }}
+            </button>
+          }
+        </div>
+      </div>
+
+      <!-- Status -->
+      <div class="flex flex-col gap-1">
+        <label class="label">Status</label>
+        <div class="flex gap-1">
+          @for (
+            opt of [
+              ['TODOS', 'Todos'],
+              ['PENDENTE', 'Pendentes'],
+              ['PAGO', 'Pagos'],
+            ];
+            track opt[0]
+          ) {
+            <button
+              class="btn text-xs px-3 py-2"
+              [class]="filterStatus() === opt[0] ? 'btn-primary' : 'btn-ghost'"
+              (click)="setFilterStatus(opt[0])"
+            >
+              {{ opt[1] }}
+            </button>
+          }
+        </div>
+      </div>
+
+      <!-- Limpar -->
+      <button class="btn-ghost text-xs px-3 py-2 self-end" (click)="clearFilters()">
+        Limpar filtros
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  @if (loading()) {
+    <div class="flex items-center justify-center py-16">
+      <div
+        class="w-8 h-8 rounded-full border-2 animate-spin"
+        style="border-color: var(--color-primary); border-top-color: transparent"
+      ></div>
+    </div>
+  }
+
+  <!-- Tabela -->
+  @if (!loading()) {
+    <div class="card flex flex-col gap-0 overflow-hidden p-0">
+      <!-- Cabeçalho -->
+      <div
+        class="grid gap-3 px-5 py-3 text-xs font-semibold uppercase tracking-wider"
+        style="
+          grid-template-columns: 1fr 130px 80px 110px 110px 90px 90px;
+          color: #475569;
+          border-bottom: 1px solid var(--color-border);
+          background: var(--color-surface2);
+        "
+      >
+        <span>Descrição</span>
+        <span>Categoria</span>
+        <span>Tipo</span>
+        <span class="text-right">Previsto</span>
+        <span class="text-right">Pago</span>
+        <span class="text-center">Status</span>
+        <span class="text-right">Ações</span>
+      </div>
+
+      <!-- Vazio -->
+      @if (filtered().length === 0) {
+        <div class="flex flex-col items-center justify-center py-14 gap-3">
+          <div
+            class="w-12 h-12 rounded-full flex items-center justify-center"
+            style="background: var(--color-surface2)"
+          >
+            <svg
+              width="22"
+              height="22"
+              fill="currentColor"
+              viewBox="0 0 24 24"
+              style="color: #475569"
+            >
+              <path
+                d="M19 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2zm-7 14l-5-5 1.41-1.41L12 14.17l7.59-7.59L21 8l-9 9z"
+              />
+            </svg>
+          </div>
+          <p class="text-sm" style="color: #475569">Nenhum lançamento encontrado.</p>
+          <button class="btn-ghost text-sm" (click)="goToCreate()">+ Criar primeiro</button>
+        </div>
+      }
+
+      <!-- Linhas -->
+      @for (t of filtered(); track t.id) {
+        <div
+          class="grid gap-3 px-5 py-3.5 items-center transition-colors"
+          style="
+            grid-template-columns: 1fr 130px 80px 110px 110px 90px 90px;
+            border-bottom: 1px solid var(--color-border);
+          "
+          [style.background]="t.status === 'PAGO' ? 'rgba(34,197,94,0.03)' : 'transparent'"
+        >
+          <!-- Descrição -->
+          <div class="flex items-center gap-2 min-w-0">
+            @if (t.recurringId) {
+              <svg
+                width="11"
+                height="11"
+                fill="currentColor"
+                viewBox="0 0 24 24"
+                class="shrink-0"
+                style="color: #475569"
+                title="Gerado por recorrente"
+              >
+                <path
+                  d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"
+                />
+              </svg>
+            }
+            <span
+              class="text-sm font-medium truncate"
+              [style.color]="t.status === 'PAGO' ? '#94a3b8' : '#e2e8f0'"
+            >
+              {{ t.description }}
+            </span>
+          </div>
+
+          <!-- Categoria -->
+          <span class="text-xs truncate" style="color: #64748b">{{ t.category.name }}</span>
+
+          <!-- Tipo -->
+          <span [class]="t.type === 'RECEITA' ? 'badge-receita' : 'badge-despesa'">
+            {{ t.type }}
+          </span>
+
+          <!-- Previsto -->
+          <span class="text-sm text-right font-medium" style="color: #94a3b8">
+            {{ t.amountExpected | brlCurrency }}
+          </span>
+
+          <!-- Pago -->
+          <span
+            class="text-sm text-right font-semibold"
+            [style.color]="t.amountPaid ? 'var(--color-success)' : '#334155'"
+          >
+            {{ t.amountPaid != null ? (t.amountPaid | brlCurrency) : '—' }}
+          </span>
+
+          <!-- Status -->
+          <div class="flex justify-center">
+            <span [class]="t.status === 'PAGO' ? 'badge-pago' : 'badge-pendente'">
+              {{ t.status }}
+            </span>
+          </div>
+
+          <!-- Ações -->
+          <div class="flex items-center justify-end gap-1">
+            <button class="btn-ghost px-2 py-1.5" (click)="goToEdit(t.id)" title="Editar">
+              <svg width="13" height="13" fill="currentColor" viewBox="0 0 24 24">
+                <path
+                  d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"
+                />
+              </svg>
+            </button>
+            <button class="btn-danger px-2 py-1.5" (click)="askDelete(t.id)" title="Excluir">
+              <svg width="13" height="13" fill="currentColor" viewBox="0 0 24 24">
+                <path
+                  d="M6 19c0 1.1.9 2 2 2h8a2 2 0 002-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
+                />
+              </svg>
+            </button>
+          </div>
+        </div>
+      }
+
+      <!-- Rodapé com totalizadores -->
+      @if (filtered().length > 0) {
+        <div
+          class="grid gap-3 px-5 py-4"
+          style="
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+            border-top: 1px solid var(--color-border);
+            background: var(--color-surface2);
+          "
+        >
+          <div class="flex flex-col gap-0.5">
+            <span class="text-xs uppercase tracking-wider" style="color: #475569"
+              >Despesas previstas</span
+            >
+            <span class="text-sm font-semibold" style="color: #e2e8f0">
+              {{ totalExpected() | brlCurrency }}
+            </span>
+          </div>
+
+          <div class="flex flex-col gap-0.5">
+            <span class="text-xs uppercase tracking-wider" style="color: #475569"
+              >Despesas pagas</span
+            >
+            <span class="text-sm font-semibold" style="color: var(--color-success)">
+              {{ totalPaid() | brlCurrency }}
+            </span>
+          </div>
+
+          <div class="flex flex-col gap-0.5">
+            <span class="text-xs uppercase tracking-wider" style="color: #475569"
+              >Receitas previstas</span
+            >
+            <span class="text-sm font-semibold" style="color: var(--color-primary-light)">
+              {{ totalIncomeExpected() | brlCurrency }}
+            </span>
+          </div>
+
+          <div class="flex flex-col gap-0.5">
+            <span class="text-xs uppercase tracking-wider" style="color: #475569"
+              >Receitas recebidas</span
+            >
+            <span class="text-sm font-semibold" style="color: var(--color-success)">
+              {{ totalIncomePaid() | brlCurrency }}
+            </span>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>
+
+<!-- Modal: Confirmação de exclusão -->
+@if (confirmDeleteId()) {
+  <div
+    class="fixed inset-0 z-40 flex items-center justify-center p-4"
+    style="background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px)"
+  >
+    <div class="w-full max-w-xs card-glass p-6 flex flex-col gap-4">
+      <div class="flex flex-col items-center gap-3 text-center">
+        <div
+          class="w-12 h-12 rounded-full flex items-center justify-center"
+          style="background: rgba(239, 68, 68, 0.1)"
+        >
+          <svg
+            width="22"
+            height="22"
+            fill="currentColor"
+            viewBox="0 0 24 24"
+            style="color: var(--color-danger)"
+          >
+            <path d="M6 19c0 1.1.9 2 2 2h8a2 2 0 002-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" />
+          </svg>
+        </div>
+        <div>
+          <p class="font-semibold" style="color: #f1f5f9">Excluir lançamento?</p>
+          <p class="text-sm mt-1" style="color: #64748b">Esta ação não pode ser desfeita.</p>
+        </div>
+      </div>
+
+      <div class="flex gap-2">
+        <button class="btn-ghost flex-1" (click)="cancelDelete()">Cancelar</button>
+        <button class="btn-danger flex-1" (click)="confirmDelete()">Excluir</button>
+      </div>
+    </div>
+  </div>
+}

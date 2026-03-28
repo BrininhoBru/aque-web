@@ -1,12 +1,12 @@
 import { Component, inject, signal } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormGroup, FormControl, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../core/auth/auth.service';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [ReactiveFormsModule],
+  imports: [],
   template: `
     <div
       class="min-h-screen flex items-center justify-center p-4"
@@ -128,16 +128,15 @@ import { AuthService } from '../../core/auth/auth.service';
   `,
 })
 export class LoginComponent {
-  private readonly fb = inject(FormBuilder);
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
 
   readonly loading = signal(false);
   readonly errorMessage = signal('');
 
-  readonly form = this.fb.group({
-    username: ['', Validators.required],
-    password: ['', Validators.required],
+  readonly form = new FormGroup({
+    username: new FormControl('', { validators: [Validators.required] }),
+    password: new FormControl('', { validators: [Validators.required] }),
   });
 
   onSubmit(): void {

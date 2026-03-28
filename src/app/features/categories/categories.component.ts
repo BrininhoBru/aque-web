@@ -1,6 +1,6 @@
 import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormGroup, FormControl, Validators } from '@angular/forms';
 import { CategoryService } from '../../core/services/category.service';
 import { ToastService } from '../../shared/services/toast.service';
 import { Category } from '../../core/models';
@@ -10,13 +10,12 @@ type FilterType = 'TODOS' | 'RECEITA' | 'DESPESA';
 @Component({
   selector: 'app-categories',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule],
   templateUrl: './categories.component.html',
 })
 export class CategoriesComponent implements OnInit {
   private readonly categoryService = inject(CategoryService);
   private readonly toast = inject(ToastService);
-  private readonly fb = inject(FormBuilder);
 
   readonly categories = signal<Category[]>([]);
   readonly loading = signal(false);
@@ -26,9 +25,9 @@ export class CategoriesComponent implements OnInit {
   readonly editingId = signal<string | null>(null);
   readonly confirmDeleteId = signal<string | null>(null);
 
-  readonly form = this.fb.group({
-    name: ['', [Validators.required, Validators.minLength(2)]],
-    type: ['DESPESA' as 'RECEITA' | 'DESPESA', Validators.required],
+  readonly form = new FormGroup({
+    name: new FormControl('', { validators: [Validators.required, Validators.minLength(2)] }),
+    type: new FormControl<'RECEITA' | 'DESPESA'>('DESPESA', { validators: [Validators.required] }),
   });
 
   readonly predefined = computed(() =>

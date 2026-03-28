@@ -1,0 +1,217 @@
+<div class="flex flex-col gap-6 max-w-2xl">
+  <!-- Header -->
+  <div class="flex items-center gap-4">
+    <button class="btn-ghost px-2 py-2" (click)="goBack()" title="Voltar">
+      <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24">
+        <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" />
+      </svg>
+    </button>
+    <div>
+      <h1 class="page-title">
+        {{ editingId() ? 'Editar Lançamento' : 'Novo Lançamento' }}
+      </h1>
+      <p class="text-sm mt-0.5" style="color: #64748b">
+        {{ editingId() ? 'Altere os dados do lançamento' : 'Preencha os dados do novo lançamento' }}
+      </p>
+    </div>
+  </div>
+
+  <!-- Loading (modo edição) -->
+  @if (loading()) {
+    <div class="flex items-center justify-center py-16">
+      <div
+        class="w-8 h-8 rounded-full border-2 animate-spin"
+        style="border-color: var(--color-primary); border-top-color: transparent"
+      ></div>
+    </div>
+  }
+
+  @if (!loading()) {
+    <form (ngSubmit)="save()" class="card flex flex-col gap-6">
+      <!-- Descrição -->
+      <div>
+        <label class="label">Descrição *</label>
+        <input
+          class="input"
+          type="text"
+          [formField]="transactionForm.description"
+          placeholder="Ex: Aluguel, Supermercado, Salário..."
+          autofocus
+        />
+        @if (transactionForm.description().touched() && transactionForm.description().invalid()) {
+          <p class="text-xs mt-1" style="color: var(--color-danger)">
+            {{ transactionForm.description().errors()[0]?.message }}
+          </p>
+        }
+      </div>
+
+      <!-- Tipo -->
+      <div>
+        <label class="label">Tipo *</label>
+        <div class="flex gap-2">
+          @for (
+            opt of [
+              ['DESPESA', '💸 Despesa'],
+              ['RECEITA', '💰 Receita'],
+            ];
+            track opt[0]
+          ) {
+            <button
+              type="button"
+              class="btn flex-1 py-2.5"
+              [class]="transactionForm.type().value() === opt[0] ? 'btn-primary' : 'btn-ghost'"
+              (click)="setType(opt[0])"
+            >
+              {{ opt[1] }}
+            </button>
+          }
+        </div>
+      </div>
+
+      <!-- Categoria -->
+      <div>
+        <label class="label">Categoria *</label>
+        <select class="input" [formField]="transactionForm.categoryId">
+          <option value="">Selecione uma categoria...</option>
+          @for (cat of categoriesByType(); track cat.id) {
+            <option [value]="cat.id">{{ cat.name }}</option>
+          }
+        </select>
+        @if (transactionForm.categoryId().touched() && transactionForm.categoryId().invalid()) {
+          <p class="text-xs mt-1" style="color: var(--color-danger)">
+            {{ transactionForm.categoryId().errors()[0]?.message }}
+          </p>
+        }
+      </div>
+
+      <!-- Mês / Ano de referência -->
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="label">Mês de referência *</label>
+          <select class="input" [formField]="transactionForm.referenceMonth">
+            @for (m of months; track m.value) {
+              <option [value]="m.value">{{ m.label }}</option>
+            }
+          </select>
+        </div>
+        <div>
+          <label class="label">Ano de referência *</label>
+          <input
+            class="input"
+            type="number"
+            [formField]="transactionForm.referenceYear"
+            placeholder="2026"
+            min="2000"
+            max="2100"
+          />
+          @if (
+            transactionForm.referenceYear().touched() && transactionForm.referenceYear().invalid()
+          ) {
+            <p class="text-xs mt-1" style="color: var(--color-danger)">
+              {{ transactionForm.referenceYear().errors()[0]?.message }}
+            </p>
+          }
+        </div>
+      </div>
+
+      <!-- Valores -->
+      <div class="grid grid-cols-2 gap-4">
+        <!-- Valor previsto -->
+        <div>
+          <label class="label">Valor previsto (R$) *</label>
+          <input
+            class="input"
+            type="number"
+            step="0.01"
+            min="0.01"
+            [formField]="transactionForm.amountExpected"
+            placeholder="0,00"
+          />
+          @if (
+            transactionForm.amountExpected().touched() && transactionForm.amountExpected().invalid()
+          ) {
+            <p class="text-xs mt-1" style="color: var(--color-danger)">
+              {{ transactionForm.amountExpected().errors()[0]?.message }}
+            </p>
+          }
+        </div>
+
+        <!-- Valor pago -->
+        <div>
+          <label class="label">
+            Valor pago (R$)
+            <span class="ml-1 normal-case font-normal" style="color: #475569">— opcional</span>
+          </label>
+          <div class="relative">
+            <input
+              class="input pr-8"
+              type="number"
+              step="0.01"
+              min="0.01"
+              [formField]="transactionForm.amountPaid"
+              placeholder="0,00"
+            />
+            @if (transactionForm.amountPaid().value() != null) {
+              <button
+                type="button"
+                class="absolute right-2 top-1/2 -translate-y-1/2 text-sm"
+                style="color: #475569"
+                (click)="clearAmountPaid()"
+                title="Limpar valor pago"
+              >
+                ✕
+              </button>
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- Status derivado -->
+      <div
+        class="flex items-center gap-3 px-4 py-3 rounded-lg"
+        style="background: var(--color-surface2); border: 1px solid var(--color-border)"
+      >
+        <span class="text-sm" style="color: #64748b">Status resultante:</span>
+        <span [class]="statusLabel() === 'PAGO' ? 'badge-pago' : 'badge-pendente'">
+          {{ statusLabel() }}
+        </span>
+        @if (statusLabel() === 'PENDENTE') {
+          <span class="text-xs" style="color: #475569">
+            — preencha o valor pago para marcar como PAGO
+          </span>
+        }
+      </div>
+
+      <!-- Ações -->
+      <div class="flex gap-3 pt-2">
+        <button type="button" class="btn-ghost flex-1" (click)="goBack()" [disabled]="saving()">
+          Cancelar
+        </button>
+        <button type="submit" class="btn-primary flex-1" [disabled]="!formValid() || saving()">
+          @if (saving()) {
+            <span class="loader"></span>
+            Salvando...
+          } @else {
+            {{ editingId() ? 'Salvar alterações' : 'Criar lançamento' }}
+          }
+        </button>
+      </div>
+    </form>
+  }
+</div>
+
+<style>
+  .loader {
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+  }
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+</style>

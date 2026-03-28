@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { SidebarComponent } from '../sidebar/sidebar';
-import { HeaderComponent } from '../header/header';
+import { SidebarComponent } from '../sidebar/sidebar.component';
+import { HeaderComponent } from '../header/header.component';
 import { ToastComponent } from '../../shared/components/toast/toast.component';
 
 @Component({

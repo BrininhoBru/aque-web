@@ -99,7 +99,7 @@ export class CategoriesComponent implements OnInit {
     const id = this.editingId();
 
     const request$ = id
-      ? this.categoryService.update(id, { name })
+      ? this.categoryService.update(id, { name, type })
       : this.categoryService.create({ name, type });
 
     request$.subscribe({

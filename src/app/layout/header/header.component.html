@@ -1,0 +1,28 @@
+<header class="app-header">
+  <div class="header-month">
+    <button class="btn-nav" (click)="monthYear.previousMonth()">
+      <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24">
+        <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z" />
+      </svg>
+    </button>
+
+    <div class="header-month-display">
+      <span class="header-month-label">{{ monthYear.selected() | monthYear }}</span>
+    </div>
+
+    <button class="btn-nav" (click)="monthYear.nextMonth()">
+      <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24">
+        <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" />
+      </svg>
+    </button>
+  </div>
+
+  <button class="header-logout" (click)="auth.logout()">
+    <svg width="15" height="15" fill="currentColor" viewBox="0 0 24 24">
+      <path
+        d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"
+      />
+    </svg>
+    Sair
+  </button>
+</header>

@@ -103,6 +103,7 @@ export class SplitComponent implements OnInit {
       next: (persons) => {
         this.items.set(persons.map((p) => ({ person: p, percentage: 0 })));
       },
+      error: () => this.toast.error('Erro ao carregar pessoas.'),
     });
   }
 

@@ -1,6 +1,6 @@
-<div class="flex flex-col gap-6">
+<div class="page-content">
   <!-- Header -->
-  <div class="flex items-center justify-between">
+  <div class="page-header">
     <div>
       <h1 class="page-title">Recorrentes</h1>
       <p class="text-sm mt-0.5" style="color: #64748b">
@@ -16,7 +16,7 @@
   </div>
 
   <!-- Filtros -->
-  <div class="flex gap-2">
+  <div class="btn-row">
     @for (
       opt of [
         ['ATIVOS', 'Ativos'],
@@ -26,8 +26,10 @@
       track opt[0]
     ) {
       <button
-        class="btn text-sm px-4 py-1.5"
-        [class]="filterActive() === opt[0] ? 'btn-primary' : 'btn-ghost'"
+        class="btn"
+        style="font-size: 0.875rem; padding: 0.375rem 1rem;"
+        [class.btn-primary]="filterActive() === opt[0]"
+        [class.btn-ghost]="filterActive() !== opt[0]"
         (click)="setFilter(opt[0])"
       >
         {{ opt[1] }}
@@ -37,7 +39,7 @@
 
   <!-- Loading -->
   @if (loading()) {
-    <div class="flex items-center justify-center py-16">
+    <div style="display: flex; align-items: center; justify-content: center; padding: 4rem 0;">
       <div
         class="w-8 h-8 rounded-full border-2 animate-spin"
         style="border-color: var(--color-primary); border-top-color: transparent"
@@ -49,10 +51,10 @@
   @if (!loading()) {
     <div class="card">
       @if (filtered().length === 0) {
-        <div class="flex flex-col items-center justify-center py-12 gap-3">
+        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 3rem 0; gap: 0.75rem;">
           <div
-            class="w-12 h-12 rounded-full flex items-center justify-center"
-            style="background: var(--color-surface2)"
+            class="w-12 h-12 rounded-full"
+            style="background: var(--color-surface2); display: flex; align-items: center; justify-content: center;"
           >
             <svg
               width="22"
@@ -74,36 +76,45 @@
       @if (filtered().length > 0) {
         <!-- Cabeçalho da tabela -->
         <div
-          class="grid gap-3 px-4 pb-2 mb-1 text-xs font-semibold uppercase tracking-wider"
           style="
+            display: grid;
             grid-template-columns: 1fr 140px 80px 100px 80px;
-            color: #475569;
+            gap: 0.75rem;
+            padding: 0 1rem 0.5rem;
+            margin-bottom: 0.25rem;
             border-bottom: 1px solid var(--color-border);
+            color: #475569;
           "
         >
-          <span>Descrição</span>
-          <span>Categoria</span>
-          <span>Tipo</span>
-          <span class="text-right">Valor padrão</span>
-          <span class="text-right">Ações</span>
+          <span class="text-xs font-semibold uppercase tracking-wider">Descrição</span>
+          <span class="text-xs font-semibold uppercase tracking-wider">Categoria</span>
+          <span class="text-xs font-semibold uppercase tracking-wider">Tipo</span>
+          <span class="text-xs font-semibold uppercase tracking-wider text-right">Valor padrão</span>
+          <span class="text-xs font-semibold uppercase tracking-wider text-right">Ações</span>
         </div>
 
-        <div class="flex flex-col gap-1">
+        <div style="display: flex; flex-direction: column; gap: 0.25rem;">
           @for (r of filtered(); track r.id) {
             <div
-              class="grid items-center gap-3 px-4 py-3 rounded-lg transition-all"
-              style="grid-template-columns: 1fr 140px 80px 100px 80px"
+              style="
+                display: grid;
+                grid-template-columns: 1fr 140px 80px 100px 80px;
+                align-items: center;
+                gap: 0.75rem;
+                padding: 0.75rem 1rem;
+                border-radius: 8px;
+                background: var(--color-surface2);
+              "
               [style.opacity]="r.active ? '1' : '0.45'"
-              [style.background]="'var(--color-surface2)'"
             >
               <!-- Descrição -->
-              <div class="flex items-center gap-2 min-w-0">
+              <div style="display: flex; align-items: center; gap: 0.5rem; min-width: 0;">
                 <svg
                   width="13"
                   height="13"
                   fill="currentColor"
                   viewBox="0 0 24 24"
-                  style="color: #475569; shrink: 0"
+                  style="color: #475569; flex-shrink: 0;"
                 >
                   <path
                     d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"
@@ -134,8 +145,8 @@
               </span>
 
               <!-- Ações -->
-              <div class="flex items-center justify-end gap-1">
-                <button class="btn-ghost px-2 py-1.5" (click)="openEdit(r)" title="Editar">
+              <div style="display: flex; align-items: center; justify-content: flex-end; gap: 0.25rem;">
+                <button class="btn-ghost" style="padding: 0.375rem 0.5rem;" (click)="openEdit(r)" title="Editar">
                   <svg width="13" height="13" fill="currentColor" viewBox="0 0 24 24">
                     <path
                       d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"
@@ -144,7 +155,8 @@
                 </button>
                 @if (r.active) {
                   <button
-                    class="btn-danger px-2 py-1.5"
+                    class="btn-danger"
+                    style="padding: 0.375rem 0.5rem;"
                     (click)="askDeactivate(r.id)"
                     title="Desativar"
                   >
@@ -172,10 +184,11 @@
     (click)="closeForm()"
   >
     <div
-      class="w-full max-w-md card-glass p-6 flex flex-col gap-4"
+      class="w-full max-w-md card-glass p-6"
+      style="display: flex; flex-direction: column; gap: 1rem;"
       (click)="$event.stopPropagation()"
     >
-      <div class="flex items-center justify-between">
+      <div style="display: flex; align-items: center; justify-content: space-between;">
         <h3
           style="
             font-family: var(--font-display);
@@ -186,10 +199,10 @@
         >
           {{ editingId() ? 'Editar Recorrente' : 'Novo Recorrente' }}
         </h3>
-        <button class="btn-ghost px-2 py-1" (click)="closeForm()">✕</button>
+        <button class="btn-ghost" style="padding: 0.25rem 0.5rem;" (click)="closeForm()">✕</button>
       </div>
 
-      <form (ngSubmit)="save()" class="flex flex-col gap-4">
+      <form (submit)="$event.preventDefault(); save()" style="display: flex; flex-direction: column; gap: 1rem;">
         <!-- Descrição -->
         <div>
           <label class="label">Descrição</label>
@@ -209,7 +222,7 @@
         <!-- Tipo -->
         <div>
           <label class="label">Tipo</label>
-          <div class="flex gap-2">
+          <div class="btn-row">
             @for (
               opt of [
                 ['DESPESA', 'Despesa'],
@@ -219,8 +232,10 @@
             ) {
               <button
                 type="button"
-                class="btn flex-1"
-                [class]="recurringForm.type().value() === opt[0] ? 'btn-primary' : 'btn-ghost'"
+                class="btn"
+                style="flex: 1;"
+                [class.btn-primary]="recurringForm.type().value() === opt[0]"
+                [class.btn-ghost]="recurringForm.type().value() !== opt[0]"
                 (click)="setType(opt[0])"
               >
                 {{ opt[1] }}
@@ -262,9 +277,9 @@
           }
         </div>
 
-        <div class="flex gap-2 pt-2">
-          <button type="button" class="btn-ghost flex-1" (click)="closeForm()">Cancelar</button>
-          <button type="submit" class="btn-primary flex-1" [disabled]="!formValid() || saving()">
+        <div style="display: flex; gap: 0.5rem; padding-top: 0.5rem;">
+          <button type="button" class="btn-ghost" style="flex: 1;" (click)="closeForm()">Cancelar</button>
+          <button type="submit" class="btn-primary" style="flex: 1;" [disabled]="!formValid() || saving()">
             {{ saving() ? 'Salvando...' : 'Salvar' }}
           </button>
         </div>
@@ -279,11 +294,11 @@
     class="fixed inset-0 z-40 flex items-center justify-center p-4"
     style="background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px)"
   >
-    <div class="w-full max-w-xs card-glass p-6 flex flex-col gap-4">
-      <div class="flex flex-col items-center gap-3 text-center">
+    <div class="w-full max-w-xs card-glass p-6" style="display: flex; flex-direction: column; gap: 1rem;">
+      <div style="display: flex; flex-direction: column; align-items: center; gap: 0.75rem; text-align: center;">
         <div
-          class="w-12 h-12 rounded-full flex items-center justify-center"
-          style="background: rgba(245, 158, 11, 0.1)"
+          class="w-12 h-12 rounded-full"
+          style="background: rgba(245, 158, 11, 0.1); display: flex; align-items: center; justify-content: center;"
         >
           <svg
             width="22"
@@ -305,9 +320,9 @@
         </div>
       </div>
 
-      <div class="flex gap-2">
-        <button class="btn-ghost flex-1" (click)="cancelDeactivate()">Cancelar</button>
-        <button class="btn-danger flex-1" (click)="confirmDeactivate()">Desativar</button>
+      <div style="display: flex; gap: 0.5rem;">
+        <button class="btn-ghost" style="flex: 1;" (click)="cancelDeactivate()">Cancelar</button>
+        <button class="btn-danger" style="flex: 1;" (click)="confirmDeactivate()">Desativar</button>
       </div>
     </div>
   </div>

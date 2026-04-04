@@ -1,4 +1,4 @@
-<div class="flex flex-col gap-6">
+<div class="page-content">
   <!-- Header -->
   <div>
     <h1 class="page-title">Dashboard</h1>
@@ -9,7 +9,7 @@
 
   <!-- Skeleton loading -->
   @if (loading()) {
-    <div class="grid grid-cols-2 gap-4 lg:grid-cols-3">
+    <div class="cards-grid">
       @for (i of [1, 2, 3, 4, 5, 6]; track i) {
         <div class="card animate-pulse">
           <div class="h-3 w-24 rounded mb-3" style="background: var(--color-surface2)"></div>
@@ -21,9 +21,9 @@
 
   @if (!loading() && summary()) {
     <!-- Cards de saldo -->
-    <div class="grid grid-cols-2 gap-4 lg:grid-cols-3">
-      <div class="card flex flex-col gap-1">
-        <div class="flex items-center gap-2 mb-1">
+    <div class="cards-grid">
+      <div class="card" style="display: flex; flex-direction: column; gap: 0.25rem;">
+        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
           <div class="w-2 h-2 rounded-full" style="background: var(--color-primary-light)"></div>
           <span class="text-xs font-semibold uppercase tracking-wider" style="color: #64748b"
             >Receitas previstas</span
@@ -34,8 +34,8 @@
         </span>
       </div>
 
-      <div class="card flex flex-col gap-1">
-        <div class="flex items-center gap-2 mb-1">
+      <div class="card" style="display: flex; flex-direction: column; gap: 0.25rem;">
+        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
           <div class="w-2 h-2 rounded-full" style="background: var(--color-success)"></div>
           <span class="text-xs font-semibold uppercase tracking-wider" style="color: #64748b"
             >Receitas recebidas</span
@@ -50,12 +50,13 @@
       </div>
 
       <div
-        class="card flex flex-col gap-1"
+        class="card"
+        style="display: flex; flex-direction: column; gap: 0.25rem;"
         [style.border-color]="
           balanceExpectedPositive() ? 'rgba(99,102,241,0.3)' : 'rgba(239,68,68,0.3)'
         "
       >
-        <div class="flex items-center gap-2 mb-1">
+        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
           <div
             class="w-2 h-2 rounded-full"
             [style.background]="
@@ -75,8 +76,8 @@
         </span>
       </div>
 
-      <div class="card flex flex-col gap-1">
-        <div class="flex items-center gap-2 mb-1">
+      <div class="card" style="display: flex; flex-direction: column; gap: 0.25rem;">
+        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
           <div class="w-2 h-2 rounded-full" style="background: var(--color-danger)"></div>
           <span class="text-xs font-semibold uppercase tracking-wider" style="color: #64748b"
             >Despesas previstas</span
@@ -87,8 +88,8 @@
         </span>
       </div>
 
-      <div class="card flex flex-col gap-1">
-        <div class="flex items-center gap-2 mb-1">
+      <div class="card" style="display: flex; flex-direction: column; gap: 0.25rem;">
+        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
           <div class="w-2 h-2 rounded-full" style="background: var(--color-warning)"></div>
           <span class="text-xs font-semibold uppercase tracking-wider" style="color: #64748b"
             >Despesas pagas</span
@@ -103,10 +104,11 @@
       </div>
 
       <div
-        class="card flex flex-col gap-1"
+        class="card"
+        style="display: flex; flex-direction: column; gap: 0.25rem;"
         [style.border-color]="balancePaidPositive() ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)'"
       >
-        <div class="flex items-center gap-2 mb-1">
+        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
           <div
             class="w-2 h-2 rounded-full"
             [style.background]="
@@ -128,10 +130,10 @@
     </div>
 
     <!-- Linha 2: Gráfico de pizza + Divisão -->
-    <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+    <div class="charts-grid">
       <!-- Gráfico de pizza por categoria -->
-      <div class="card flex flex-col gap-4">
-        <div class="flex items-center justify-between">
+      <div class="card" style="display: flex; flex-direction: column; gap: 1rem;">
+        <div style="display: flex; align-items: center; justify-content: space-between;">
           <h2
             style="
               font-family: var(--font-display);
@@ -142,7 +144,7 @@
           >
             Por categoria
           </h2>
-          <div class="flex gap-1">
+          <div class="btn-row">
             @for (
               opt of [
                 ['DESPESA', 'Despesas'],
@@ -151,8 +153,10 @@
               track opt[0]
             ) {
               <button
-                class="btn text-xs px-3 py-1.5"
-                [class]="pieFilter() === opt[0] ? 'btn-primary' : 'btn-ghost'"
+                class="btn"
+                style="font-size: 0.75rem; padding: 0.375rem 0.75rem;"
+                [class.btn-primary]="pieFilter() === opt[0]"
+                [class.btn-ghost]="pieFilter() !== opt[0]"
                 (click)="setPieFilter(opt[0])"
               >
                 {{ opt[1] }}
@@ -162,7 +166,7 @@
         </div>
 
         @if (filteredByCategory().length === 0) {
-          <div class="flex flex-col items-center justify-center py-10 gap-2">
+          <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2.5rem 0; gap: 0.5rem;">
             <p class="text-sm" style="color: #475569">
               Sem {{ pieFilter() === 'DESPESA' ? 'despesas' : 'receitas' }} no mês selecionado.
             </p>
@@ -182,8 +186,8 @@
       </div>
 
       <!-- Divisão por pessoa -->
-      <div class="card flex flex-col gap-4">
-        <div class="flex items-center justify-between">
+      <div class="card" style="display: flex; flex-direction: column; gap: 1rem;">
+        <div style="display: flex; align-items: center; justify-content: space-between;">
           <h2
             style="
               font-family: var(--font-display);
@@ -200,10 +204,10 @@
         </div>
 
         @if (splitError() || !split()) {
-          <div class="flex flex-col items-center justify-center py-8 gap-3">
+          <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem 0; gap: 0.75rem;">
             <div
-              class="w-10 h-10 rounded-full flex items-center justify-center"
-              style="background: var(--color-surface2)"
+              class="w-10 h-10 rounded-full"
+              style="background: var(--color-surface2); display: flex; align-items: center; justify-content: center;"
             >
               <svg
                 width="18"
@@ -223,7 +227,7 @@
             <a routerLink="/split" class="btn-ghost text-sm">Configurar agora</a>
           </div>
         } @else {
-          <div class="flex flex-col gap-1 mb-2">
+          <div style="display: flex; flex-direction: column; gap: 0.25rem; margin-bottom: 0.5rem;">
             <span class="text-xs uppercase tracking-wider" style="color: #475569"
               >Total de despesas previstas</span
             >
@@ -234,17 +238,19 @@
               {{ split()!.totalExpenseExpected | brlCurrency }}
             </span>
           </div>
-          <div class="flex flex-col gap-3">
+          <div style="display: flex; flex-direction: column; gap: 0.75rem;">
             @for (item of split()!.items; track item.person.id) {
-              <div class="flex flex-col gap-1.5">
-                <div class="flex items-center justify-between">
-                  <div class="flex items-center gap-2">
+              <div style="display: flex; flex-direction: column; gap: 0.375rem;">
+                <div style="display: flex; align-items: center; justify-content: space-between;">
+                  <div style="display: flex; align-items: center; gap: 0.5rem;">
                     <div
-                      class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold"
+                      class="w-7 h-7 rounded-full"
                       style="
                         background: rgba(99, 102, 241, 0.15);
                         color: var(--color-primary-light);
                         font-family: var(--font-display);
+                        display: flex; align-items: center; justify-content: center;
+                        font-size: 0.75rem; font-weight: 700;
                       "
                     >
                       {{ item.person.name.charAt(0).toUpperCase() }}
@@ -259,8 +265,8 @@
                   </span>
                 </div>
                 <div
-                  class="w-full h-1.5 rounded-full overflow-hidden"
-                  style="background: var(--color-surface2)"
+                  class="w-full rounded-full overflow-hidden"
+                  style="height: 6px; background: var(--color-surface2)"
                 >
                   <div
                     class="h-full rounded-full transition-all duration-500"
@@ -276,8 +282,8 @@
     </div>
 
     <!-- Linha 3: Evolução anual -->
-    <div class="card flex flex-col gap-4">
-      <div class="flex items-center justify-between">
+    <div class="card" style="display: flex; flex-direction: column; gap: 1rem;">
+      <div style="display: flex; align-items: center; justify-content: space-between;">
         <h2
           style="
             font-family: var(--font-display);
@@ -288,7 +294,7 @@
         >
           Evolução {{ monthYear.year() }}
         </h2>
-        <div class="flex gap-1">
+        <div class="btn-row">
           @for (
             opt of [
               ['EXPECTED', 'Previsto'],
@@ -297,8 +303,10 @@
             track opt[0]
           ) {
             <button
-              class="btn text-xs px-3 py-1.5"
-              [class]="lineFilter() === opt[0] ? 'btn-primary' : 'btn-ghost'"
+              class="btn"
+              style="font-size: 0.75rem; padding: 0.375rem 0.75rem;"
+              [class.btn-primary]="lineFilter() === opt[0]"
+              [class.btn-ghost]="lineFilter() !== opt[0]"
               (click)="setLineFilter(opt[0])"
             >
               {{ opt[1] }}
@@ -308,7 +316,7 @@
       </div>
 
       @if (evolution().length === 0) {
-        <div class="flex items-center justify-center py-10">
+        <div style="display: flex; align-items: center; justify-content: center; padding: 2.5rem 0;">
           <p class="text-sm" style="color: #475569">Sem dados de evolução para o ano.</p>
         </div>
       } @else {

@@ -17,7 +17,7 @@ export class CategoryService {
     return this.http.post<Category>(this.base, data);
   }
 
-  update(id: string, data: { name: string }): Observable<Category> {
+  update(id: string, data: { name: string; type?: 'RECEITA' | 'DESPESA' }): Observable<Category> {
     return this.http.put<Category>(`${this.base}/${id}`, data);
   }
 

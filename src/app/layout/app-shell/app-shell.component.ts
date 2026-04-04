@@ -8,20 +8,25 @@ import { ToastComponent } from '../../shared/components/toast/toast.component';
   selector: 'app-shell',
   standalone: true,
   imports: [RouterOutlet, SidebarComponent, HeaderComponent, ToastComponent],
-  template: `
-    <div class="flex h-screen overflow-hidden" style="background: var(--color-bg);">
-      <app-sidebar />
-
-      <div class="flex flex-col flex-1 min-w-0 overflow-hidden">
-        <app-header />
-
-        <main class="flex-1 overflow-y-auto p-6">
-          <router-outlet />
-        </main>
-      </div>
-    </div>
-
-    <app-toast />
-  `,
+  templateUrl: './app-shell.component.html',
+  styles: [`
+    .app-shell-layout {
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+    .app-shell-content {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+    }
+    .app-shell-main {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1.5rem;
+    }
+  `],
 })
 export class AppShellComponent {}

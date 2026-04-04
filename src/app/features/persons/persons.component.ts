@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
+import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { form, FormField, required, minLength } from '@angular/forms/signals';
 import { PersonService } from '../../core/services/person.service';
@@ -29,7 +29,7 @@ export class PersonsComponent implements OnInit {
     minLength(f.name, 2, { message: 'Mínimo 2 caracteres' });
   });
 
-  readonly formValid = () => this.personForm.name().valid();
+  readonly formValid = computed(() => this.personForm.name().valid());
 
   ngOnInit(): void {
     this.load();

@@ -49,7 +49,7 @@ import { AuthService } from '../../core/auth/auth.service';
             Entrar na conta
           </h2>
 
-          <form (ngSubmit)="onSubmit()" class="flex flex-col gap-4">
+          <form (submit)="$event.preventDefault(); onSubmit()" class="flex flex-col gap-4">
             <div>
               <label class="label">Usuário</label>
               <input

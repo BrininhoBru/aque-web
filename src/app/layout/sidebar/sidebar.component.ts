@@ -1,6 +1,5 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
-import { AuthService } from '../../core/auth/auth.service';
 
 interface NavItem {
   path: string;
@@ -12,111 +11,97 @@ interface NavItem {
   selector: 'app-sidebar',
   standalone: true,
   imports: [RouterLink, RouterLinkActive],
-  template: `
-    <aside
-      class="flex flex-col h-full w-60 shrink-0"
-      style="background: var(--color-surface); border-right: 1px solid var(--color-border);"
-    >
-      <!-- Logo -->
-      <div class="px-6 py-6 border-b" style="border-color: var(--color-border);">
-        <div class="flex items-center gap-2">
-          <div
-            class="w-8 h-8 rounded-lg flex items-center justify-center"
-            style="background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));"
-          >
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"
-                fill="white"
-                opacity="0.9"
-              />
-            </svg>
-          </div>
-          <span
-            style="font-family: var(--font-display); font-size: 1.25rem; font-weight: 700; color: #f1f5f9; letter-spacing: -0.03em;"
-          >
-            aque
-          </span>
-        </div>
-      </div>
-
-      <!-- Nav -->
-      <nav class="flex-1 px-3 py-4 flex flex-col gap-1 overflow-y-auto">
-        <p
-          class="px-3 mb-2 text-xs font-semibold uppercase tracking-widest"
-          style="color: var(--color-pending);"
-        >
-          Principal
-        </p>
-
-        @for (item of mainNav; track item.path) {
-          <a [routerLink]="item.path" routerLinkActive="nav-active" class="nav-link">
-            <span class="text-base" [innerHTML]="item.icon"></span>
-            <span>{{ item.label }}</span>
-          </a>
-        }
-
-        <p
-          class="px-3 mt-4 mb-2 text-xs font-semibold uppercase tracking-widest"
-          style="color: var(--color-pending);"
-        >
-          Cadastros
-        </p>
-
-        @for (item of secondaryNav; track item.path) {
-          <a [routerLink]="item.path" routerLinkActive="nav-active" class="nav-link">
-            <span class="text-base" [innerHTML]="item.icon"></span>
-            <span>{{ item.label }}</span>
-          </a>
-        }
-      </nav>
-
-      <!-- Footer -->
-      <div class="px-3 py-4 border-t" style="border-color: var(--color-border);">
-        <div
-          class="flex items-center gap-3 px-3 py-2 rounded-lg mb-2"
-          style="background: var(--color-surface2);"
-        >
-          <div
-            class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold"
-            style="background: var(--color-primary); color: white; font-family: var(--font-display);"
-          >
-            A
-          </div>
-          <span class="text-sm font-medium" style="color: #cbd5e1;">admin</span>
-        </div>
-      </div>
-    </aside>
-
-    <style>
-      .nav-link {
-        display: flex;
-        align-items: center;
-        gap: 0.65rem;
-        padding: 0.5rem 0.75rem;
-        border-radius: 8px;
-        font-size: 0.875rem;
-        font-weight: 500;
-        color: #64748b;
-        text-decoration: none;
-        transition: all 0.15s ease;
-      }
-      .nav-link:hover {
-        background: var(--color-surface2);
-        color: #cbd5e1;
-      }
-      .nav-active {
-        background: rgba(99, 102, 241, 0.12) !important;
-        color: var(--color-primary-light) !important;
-      }
-    </style>
-  `,
+  templateUrl: './sidebar.component.html',
+  styles: [`
+    .sidebar {
+      display: flex;
+      flex-direction: column;
+      width: 15rem;
+      height: 100%;
+      flex-shrink: 0;
+      background: var(--color-surface);
+      border-right: 1px solid var(--color-border);
+    }
+    .sidebar-logo {
+      padding: 1.5rem;
+      border-bottom: 1px solid var(--color-border);
+    }
+    .sidebar-brand {
+      font-family: var(--font-display);
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #f1f5f9;
+      letter-spacing: -0.03em;
+    }
+    .sidebar-nav {
+      flex: 1;
+      padding: 1rem 0.75rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      overflow-y: auto;
+    }
+    .sidebar-section-label {
+      padding: 0 0.75rem;
+      margin-bottom: 0.5rem;
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--color-pending);
+    }
+    .nav-link {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      padding: 0.5rem 0.75rem;
+      border-radius: 8px;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: #64748b;
+      text-decoration: none;
+      transition: all 0.15s ease;
+    }
+    .nav-link:hover {
+      background: var(--color-surface2);
+      color: #cbd5e1;
+    }
+    .nav-active {
+      background: rgba(99, 102, 241, 0.12) !important;
+      color: var(--color-primary-light) !important;
+    }
+    .sidebar-footer {
+      padding: 0.75rem;
+      border-top: 1px solid var(--color-border);
+    }
+    .sidebar-user {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.5rem 0.75rem;
+      border-radius: 8px;
+      background: var(--color-surface2);
+    }
+    .sidebar-avatar {
+      width: 1.75rem;
+      height: 1.75rem;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      font-weight: 700;
+      font-family: var(--font-display);
+      background: var(--color-primary);
+      color: white;
+      flex-shrink: 0;
+    }
+    .sidebar-username {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: #cbd5e1;
+    }
+  `],
 })
 export class SidebarComponent {
   readonly mainNav: NavItem[] = [

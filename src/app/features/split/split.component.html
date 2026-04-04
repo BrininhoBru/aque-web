@@ -1,6 +1,6 @@
-<div class="flex flex-col gap-6 max-w-2xl">
+<div class="page-content" style="max-width: 42rem; margin-inline: auto;">
   <!-- Header -->
-  <div class="flex items-center justify-between">
+  <div class="page-header">
     <div>
       <h1 class="page-title">Regra de Divisão</h1>
       <p class="text-sm mt-0.5" style="color: #64748b">
@@ -12,16 +12,22 @@
 
   <!-- Aviso informativo -->
   <div
-    class="flex items-start gap-3 px-4 py-3 rounded-lg"
-    style="background: rgba(99, 102, 241, 0.08); border: 1px solid rgba(99, 102, 241, 0.2)"
+    style="
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      background: rgba(99, 102, 241, 0.08);
+      border: 1px solid rgba(99, 102, 241, 0.2);
+    "
   >
     <svg
       width="16"
       height="16"
       fill="currentColor"
       viewBox="0 0 24 24"
-      class="shrink-0 mt-0.5"
-      style="color: var(--color-primary-light)"
+      style="color: var(--color-primary-light); flex-shrink: 0; margin-top: 2px;"
     >
       <path
         d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"
@@ -36,7 +42,7 @@
 
   <!-- Loading -->
   @if (loading()) {
-    <div class="flex items-center justify-center py-16">
+    <div style="display: flex; align-items: center; justify-content: center; padding: 4rem 0;">
       <div
         class="w-8 h-8 rounded-full border-2 animate-spin"
         style="border-color: var(--color-primary); border-top-color: transparent"
@@ -47,10 +53,10 @@
   @if (!loading()) {
     <!-- Sem pessoas cadastradas -->
     @if (items().length === 0) {
-      <div class="card flex flex-col items-center justify-center gap-4 py-12">
+      <div class="card" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1rem; padding: 3rem;">
         <div
-          class="w-12 h-12 rounded-full flex items-center justify-center"
-          style="background: var(--color-surface2)"
+          class="w-12 h-12 rounded-full"
+          style="background: var(--color-surface2); display: flex; align-items: center; justify-content: center;"
         >
           <svg
             width="22"
@@ -64,7 +70,7 @@
             />
           </svg>
         </div>
-        <div class="text-center">
+        <div style="text-align: center;">
           <p class="text-sm font-medium" style="color: #e2e8f0">Nenhuma pessoa cadastrada.</p>
           <p class="text-sm mt-1" style="color: #475569">
             Cadastre pessoas antes de configurar a divisão.
@@ -75,11 +81,18 @@
     }
 
     @if (items().length > 0) {
-      <div class="card flex flex-col gap-6">
+      <div class="card" style="display: flex; flex-direction: column; gap: 1.5rem;">
         <!-- Total de despesas do mês -->
         <div
-          class="flex items-center justify-between px-4 py-3 rounded-lg"
-          style="background: var(--color-surface2); border: 1px solid var(--color-border)"
+          style="
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            background: var(--color-surface2);
+            border: 1px solid var(--color-border);
+          "
         >
           <div>
             <p class="text-xs uppercase tracking-wider font-semibold" style="color: #64748b">
@@ -92,29 +105,32 @@
               {{ totalExpenseExpected() | brlCurrency }}
             </p>
           </div>
-          <button class="btn-ghost text-xs px-3 py-2" (click)="distributeEqually()">
+          <button class="btn-ghost" style="font-size: 0.75rem; padding: 0.5rem 0.75rem;" (click)="distributeEqually()">
             Dividir igualmente
           </button>
         </div>
 
         <!-- Inputs de percentual por pessoa -->
-        <div class="flex flex-col gap-3">
+        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
           @for (item of calculatedItems(); track item.person.id) {
-            <div class="flex flex-col gap-2">
-              <div class="flex items-center justify-between gap-4">
+            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+              <div style="display: flex; align-items: center; justify-content: space-between; gap: 1rem;">
                 <!-- Avatar + nome -->
-                <div class="flex items-center gap-3 flex-1 min-w-0">
+                <div style="display: flex; align-items: center; gap: 0.75rem; flex: 1; min-width: 0;">
                   <div
-                    class="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold shrink-0"
+                    class="w-9 h-9 rounded-full shrink-0"
                     style="
                       background: rgba(99, 102, 241, 0.15);
                       color: var(--color-primary-light);
                       font-family: var(--font-display);
+                      font-size: 0.875rem;
+                      font-weight: 700;
+                      display: flex; align-items: center; justify-content: center;
                     "
                   >
                     {{ item.person.name.charAt(0).toUpperCase() }}
                   </div>
-                  <div class="min-w-0">
+                  <div style="min-width: 0;">
                     <p class="text-sm font-medium truncate" style="color: #e2e8f0">
                       {{ item.person.name }}
                     </p>
@@ -125,21 +141,26 @@
                 </div>
 
                 <!-- Input de percentual -->
-                <div class="flex items-center gap-2 shrink-0">
-                  <div class="relative">
+                <div style="display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0;">
+                  <div style="position: relative;">
                     <input
                       type="number"
                       min="0"
                       max="100"
                       step="1"
-                      class="input text-right pr-6"
-                      style="width: 90px"
+                      class="input text-right"
+                      style="width: 90px; padding-right: 1.5rem;"
                       [value]="item.percentage"
                       (input)="updatePercentage(item.person.id, $any($event.target).value)"
                     />
                     <span
-                      class="absolute right-2 top-1/2 -translate-y-1/2 text-sm pointer-events-none"
-                      style="color: #64748b"
+                      style="
+                        position: absolute; right: 0.5rem; top: 50%;
+                        transform: translateY(-50%);
+                        font-size: 0.875rem;
+                        color: #64748b;
+                        pointer-events: none;
+                      "
                       >%</span
                     >
                   </div>
@@ -148,8 +169,8 @@
 
               <!-- Barra de progresso -->
               <div
-                class="w-full h-1.5 rounded-full overflow-hidden"
-                style="background: var(--color-surface2)"
+                class="w-full rounded-full overflow-hidden"
+                style="height: 6px; background: var(--color-surface2);"
               >
                 <div
                   class="h-full rounded-full transition-all duration-300"
@@ -165,7 +186,15 @@
 
         <!-- Indicador de soma em tempo real -->
         <div
-          class="flex items-center justify-between px-4 py-3 rounded-lg border transition-all"
+          style="
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            border: 1px solid;
+            transition: all 0.15s ease;
+          "
           [style.background]="
             totalValid()
               ? 'rgba(34,197,94,0.08)'
@@ -181,7 +210,7 @@
                 : 'rgba(245,158,11,0.25)'
           "
         >
-          <div class="flex items-center gap-2">
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
             @if (totalValid()) {
               <svg
                 width="16"
@@ -232,10 +261,11 @@
         </div>
 
         <!-- Ações -->
-        <div class="flex gap-3">
-          <a routerLink="/dashboard" class="btn-ghost flex-1 text-center"> Cancelar </a>
+        <div style="display: flex; gap: 0.75rem;">
+          <a routerLink="/dashboard" class="btn-ghost" style="flex: 1; text-align: center;"> Cancelar </a>
           <button
-            class="btn-primary flex-1"
+            class="btn-primary"
+            style="flex: 1;"
             [disabled]="!totalValid() || saving()"
             (click)="save()"
           >

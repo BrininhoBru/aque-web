@@ -28,7 +28,7 @@ interface NavItem {
     }
     .sidebar-brand {
       font-family: var(--font-display);
-      font-size: 1.25rem;
+      font-size: 1.5rem;
       font-weight: 700;
       color: #f1f5f9;
       letter-spacing: -0.03em;

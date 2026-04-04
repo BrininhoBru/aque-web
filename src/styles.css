@@ -39,10 +39,6 @@ app-shell {
   display: block;
   height: 100%;
 }
-app-sidebar {
-  display: flex;
-  flex-shrink: 0;
-}
 app-header {
   display: block;
 }

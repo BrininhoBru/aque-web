@@ -1,5 +1,6 @@
-import { Component } from '@angular/core';
+import { Component, HostBinding, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
+import { LayoutService } from '../layout.service';
 
 interface NavItem {
   path: string;
@@ -13,10 +14,21 @@ interface NavItem {
   imports: [RouterLink, RouterLinkActive],
   templateUrl: './sidebar.component.html',
   styles: [`
+    :host {
+      display: flex;
+      flex-shrink: 0;
+      overflow: hidden;
+      transition: width 0.25s ease;
+      width: 15rem;
+    }
+    :host.sidebar-closed {
+      width: 0;
+    }
     .sidebar {
       display: flex;
       flex-direction: column;
       width: 15rem;
+      min-width: 15rem;
       height: 100%;
       flex-shrink: 0;
       background: var(--color-surface);
@@ -104,6 +116,12 @@ interface NavItem {
   `],
 })
 export class SidebarComponent {
+  private readonly layout = inject(LayoutService);
+
+  @HostBinding('class.sidebar-closed') get isClosed() {
+    return !this.layout.sidebarOpen();
+  }
+
   readonly mainNav: NavItem[] = [
     {
       path: '/dashboard',

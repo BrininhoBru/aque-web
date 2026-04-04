@@ -2,6 +2,7 @@ import { Component, inject } from '@angular/core';
 import { MonthYearService } from '../../core/services/month-year.service';
 import { MonthYearPipe } from '../../shared/pipes/month-year.pipe';
 import { AuthService } from '../../core/auth/auth.service';
+import { LayoutService } from '../layout.service';
 
 @Component({
   selector: 'app-header',
@@ -76,4 +77,5 @@ import { AuthService } from '../../core/auth/auth.service';
 export class HeaderComponent {
   readonly monthYear = inject(MonthYearService);
   readonly auth = inject(AuthService);
+  readonly layout = inject(LayoutService);
 }

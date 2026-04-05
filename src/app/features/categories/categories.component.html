@@ -2,10 +2,8 @@
   <!-- Header -->
   <div class="page-header">
     <div>
-      <h1 class="page-title">Categorias</h1>
-      <p class="text-sm mt-0.5" style="color: #64748b">
-        Gerencie as categorias de receitas e despesas
-      </p>
+      <h1 class="ledger-h1">Categorias</h1>
+      <p class="text-body-sm mt-0.5" style="color: var(--color-ledger-ink-lt)">Gerencie as categorias de receitas e despesas</p>
     </div>
     <button class="btn-primary" (click)="openCreate()">
       <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
@@ -17,33 +15,20 @@
 
   <!-- Filtros -->
   <div class="btn-row">
-    @for (
-      opt of [
-        ['TODOS', 'Todas'],
-        ['DESPESA', 'Despesas'],
-        ['RECEITA', 'Receitas'],
-      ];
-      track opt[0]
-    ) {
+    @for (opt of [['TODOS', 'Todas'], ['DESPESA', 'Despesas'], ['RECEITA', 'Receitas']]; track opt[0]) {
       <button
-        class="btn"
-        style="font-size: 0.875rem; padding: 0.375rem 1rem;"
+        class="btn btn-sm"
         [class.btn-primary]="filter() === opt[0]"
-        [class.btn-ghost]="filter() !== opt[0]"
+        [class.btn-secondary]="filter() !== opt[0]"
         (click)="setFilter($any(opt[0]))"
-      >
-        {{ opt[1] }}
-      </button>
+      >{{ opt[1] }}</button>
     }
   </div>
 
   <!-- Loading -->
   @if (loading()) {
     <div style="display: flex; align-items: center; justify-content: center; padding: 4rem 0;">
-      <div
-        class="w-8 h-8 rounded-full border-2 animate-spin"
-        style="border-color: var(--color-primary); border-top-color: transparent"
-      ></div>
+      <div class="w-8 h-8 rounded-full border-2 animate-spin" style="border-color: var(--color-ledger-accent); border-top-color: transparent"></div>
     </div>
   }
 
@@ -51,28 +36,15 @@
     <!-- Predefinidas -->
     @if (predefined().length > 0) {
       <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-        <p class="text-xs font-semibold uppercase tracking-wider" style="color: #475569">
-          Predefinidas
-        </p>
-        <div class="card" style="display: flex; flex-direction: column; gap: 0.5rem; padding-top: 0.75rem; padding-bottom: 0.75rem;">
+        <p class="ledger-label">Predefinidas</p>
+        <div class="ledger-card" style="overflow: hidden;">
           @for (cat of predefined(); track cat.id) {
-            <div
-              style="
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                padding: 0.625rem 1rem;
-                border-radius: 8px;
-                background: var(--color-surface2);
-              "
-            >
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 1.25rem; border-bottom: 1px solid var(--color-ledger-border-lt);">
               <div style="display: flex; align-items: center; gap: 0.75rem;">
-                <span [class]="cat.type === 'RECEITA' ? 'badge-receita' : 'badge-despesa'">
-                  {{ cat.type }}
-                </span>
-                <span class="text-sm font-medium" style="color: #e2e8f0">{{ cat.name }}</span>
+                <span [class]="cat.type === 'RECEITA' ? 'badge-income' : 'badge-expense'">{{ cat.type }}</span>
+                <span class="font-medium" style="color: var(--color-ledger-ink)">{{ cat.name }}</span>
               </div>
-              <span class="text-xs" style="color: #475569">predefinida</span>
+              <span class="text-body-sm" style="color: var(--color-ledger-ink-lt)">predefinida</span>
             </div>
           }
         </div>
@@ -81,86 +53,44 @@
 
     <!-- Personalizadas -->
     <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-      <p class="text-xs font-semibold uppercase tracking-wider" style="color: #475569">
-        Personalizadas
-      </p>
-      <div class="card">
+      <p class="ledger-label">Personalizadas</p>
+      <div class="ledger-card" style="overflow: hidden;">
         @if (custom().length === 0) {
-          <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 3rem 0; gap: 0.75rem;">
-            <div
-              class="w-12 h-12 rounded-full"
-              style="background: var(--color-surface2); display: flex; align-items: center; justify-content: center;"
-            >
-              <svg width="22" height="22" fill="currentColor" viewBox="0 0 24 24" style="color: #475569">
-                <path
-                  d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11H7v-2h10v2z"
-                />
-              </svg>
-            </div>
-            <p class="text-sm" style="color: #475569">Nenhuma categoria personalizada.</p>
-            <button class="btn-ghost text-sm" (click)="openCreate()">+ Criar primeira</button>
+          <div class="ledger-empty">
+            <svg class="ledger-empty-icon" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11H7v-2h10v2z"/>
+            </svg>
+            <p class="ledger-empty-title">Nenhuma categoria personalizada</p>
+            <p class="ledger-empty-desc">Crie categorias personalizadas para organizar melhor seus lançamentos.</p>
+            <button class="btn-secondary btn-sm" (click)="openCreate()">+ Criar primeira</button>
           </div>
         }
 
         @if (custom().length > 0) {
-          <div
-            style="
-              display: grid;
-              grid-template-columns: 1fr 100px 80px;
-              gap: 0.75rem;
-              padding: 0 1rem 0.5rem;
-              margin-bottom: 0.25rem;
-              border-bottom: 1px solid var(--color-border);
-            "
-          >
-            <span class="text-xs font-semibold uppercase tracking-wider" style="color: #475569">Nome</span>
-            <span class="text-xs font-semibold uppercase tracking-wider" style="color: #475569">Tipo</span>
-            <span class="text-xs font-semibold uppercase tracking-wider text-right" style="color: #475569">Ações</span>
+          <div style="display: grid; grid-template-columns: 1fr 100px 80px; gap: 0.75rem; padding: 0.625rem 1.25rem; border-bottom: 2px solid var(--color-ledger-border-md); background: var(--color-ledger-surface);">
+            <span class="ledger-label" style="margin: 0;">Nome</span>
+            <span class="ledger-label" style="margin: 0;">Tipo</span>
+            <span class="ledger-label" style="margin: 0; text-align: right;">Ações</span>
           </div>
 
-          <div style="display: flex; flex-direction: column; gap: 0.25rem;">
-            @for (cat of custom(); track cat.id) {
-              <div
-                style="
-                  display: grid;
-                  grid-template-columns: 1fr 100px 80px;
-                  align-items: center;
-                  gap: 0.75rem;
-                  padding: 0.75rem 1rem;
-                  border-radius: 8px;
-                  background: var(--color-surface2);
-                "
-              >
-                <span class="text-sm font-medium truncate" style="color: #e2e8f0">{{ cat.name }}</span>
-
-                <span [class]="cat.type === 'RECEITA' ? 'badge-receita' : 'badge-despesa'">
-                  {{ cat.type }}
-                </span>
-
-                <div style="display: flex; align-items: center; justify-content: flex-end; gap: 0.25rem;">
-                  <button class="btn-ghost" style="padding: 0.375rem 0.5rem;" (click)="openEdit(cat)" title="Editar">
-                    <svg width="13" height="13" fill="currentColor" viewBox="0 0 24 24">
-                      <path
-                        d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"
-                      />
-                    </svg>
-                  </button>
-                  <button
-                    class="btn-danger"
-                    style="padding: 0.375rem 0.5rem;"
-                    (click)="askDelete(cat.id)"
-                    title="Excluir"
-                  >
-                    <svg width="13" height="13" fill="currentColor" viewBox="0 0 24 24">
-                      <path
-                        d="M6 19c0 1.1.9 2 2 2h8a2 2 0 002-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
-                      />
-                    </svg>
-                  </button>
-                </div>
+          @for (cat of custom(); track cat.id) {
+            <div style="display: grid; grid-template-columns: 1fr 100px 80px; align-items: center; gap: 0.75rem; padding: 0.75rem 1.25rem; border-bottom: 1px solid var(--color-ledger-border-lt);">
+              <span class="font-medium truncate" style="color: var(--color-ledger-ink)">{{ cat.name }}</span>
+              <span [class]="cat.type === 'RECEITA' ? 'badge-income' : 'badge-expense'">{{ cat.type }}</span>
+              <div style="display: flex; align-items: center; justify-content: flex-end; gap: 2px;">
+                <button class="btn-ghost btn-icon" (click)="openEdit(cat)" title="Editar">
+                  <svg width="13" height="13" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+                  </svg>
+                </button>
+                <button class="btn-danger btn-icon" (click)="askDelete(cat.id)" title="Excluir">
+                  <svg width="13" height="13" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M6 19c0 1.1.9 2 2 2h8a2 2 0 002-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+                  </svg>
+                </button>
               </div>
-            }
-          </div>
+            </div>
+          }
         }
       </div>
     </div>
@@ -169,118 +99,63 @@
 
 <!-- Modal: Formulário -->
 @if (showForm()) {
-  <div
-    class="fixed inset-0 z-40 flex items-center justify-center p-4"
-    style="background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px)"
-    (click)="closeForm()"
-  >
-    <div
-      class="w-full max-w-sm card-glass p-6"
-      style="display: flex; flex-direction: column; gap: 1rem;"
-      (click)="$event.stopPropagation()"
-    >
-      <div style="display: flex; align-items: center; justify-content: space-between;">
-        <h3
-          style="
-            font-family: var(--font-display);
-            font-size: 1rem;
-            font-weight: 700;
-            color: #f1f5f9;
-          "
-        >
-          {{ editingId() ? 'Editar Categoria' : 'Nova Categoria' }}
-        </h3>
-        <button class="btn-ghost" style="padding: 0.25rem 0.5rem;" (click)="closeForm()">✕</button>
+  <div class="fixed inset-0 z-40 flex items-center justify-center p-4" style="background: rgba(44, 36, 22, 0.5); backdrop-filter: blur(4px)" (click)="closeForm()">
+    <div class="ledger-card w-full max-w-sm" style="display: flex; flex-direction: column; gap: 0;" (click)="$event.stopPropagation()">
+      <div class="ledger-card-header">
+        <h3 class="ledger-h3">{{ editingId() ? 'Editar Categoria' : 'Nova Categoria' }}</h3>
+        <button class="btn-ghost btn-icon" (click)="closeForm()">✕</button>
       </div>
 
-      <form (submit)="$event.preventDefault(); save()" style="display: flex; flex-direction: column; gap: 1rem;">
-        <!-- Nome -->
-        <div>
-          <label class="label">Nome</label>
-          <input
-            class="input"
-            type="text"
-            [formField]="categoryForm.name"
-            placeholder="Ex: Academia, Freelance..."
-            autofocus
-          />
+      <form (submit)="$event.preventDefault(); save()" class="ledger-card-body" style="display: flex; flex-direction: column; gap: 1rem;">
+        <div class="ledger-form-group">
+          <label class="ledger-label">Nome</label>
+          <input class="ledger-input" type="text" [formField]="categoryForm.name" placeholder="Ex: Academia, Freelance..." autofocus />
           @if (categoryForm.name().touched() && categoryForm.name().invalid()) {
-            <p class="text-xs mt-1" style="color: var(--color-danger)">
-              {{ categoryForm.name().errors()[0]?.message }}
-            </p>
+            <p class="ledger-error">{{ categoryForm.name().errors()[0]?.message }}</p>
           }
         </div>
 
-        <!-- Tipo -->
-        <div>
-          <label class="label">Tipo</label>
+        <div class="ledger-form-group" style="margin-bottom: 0;">
+          <label class="ledger-label">Tipo</label>
           <div class="btn-row">
-            @for (
-              opt of [
-                ['DESPESA', 'Despesa'],
-                ['RECEITA', 'Receita'],
-              ];
-              track opt[0]
-            ) {
-              <button
-                type="button"
-                class="btn"
-                style="flex: 1;"
+            @for (opt of [['DESPESA', 'Despesa'], ['RECEITA', 'Receita']]; track opt[0]) {
+              <button type="button" class="btn" style="flex: 1;"
                 [class.btn-primary]="categoryForm.type().value() === opt[0]"
-                [class.btn-ghost]="categoryForm.type().value() !== opt[0]"
+                [class.btn-secondary]="categoryForm.type().value() !== opt[0]"
                 (click)="setType(opt[0])"
-              >
-                {{ opt[1] }}
-              </button>
+              >{{ opt[1] }}</button>
             }
           </div>
         </div>
-
-        <div style="display: flex; gap: 0.5rem; padding-top: 0.5rem;">
-          <button type="button" class="btn-ghost" style="flex: 1;" (click)="closeForm()">Cancelar</button>
-          <button type="submit" class="btn-primary" style="flex: 1;" [disabled]="!formValid() || saving()">
-            {{ saving() ? 'Salvando...' : 'Salvar' }}
-          </button>
-        </div>
       </form>
+
+      <div class="ledger-card-footer">
+        <button class="btn-secondary" (click)="closeForm()">Cancelar</button>
+        <button class="btn-primary" (click)="save()" [disabled]="!formValid() || saving()">
+          {{ saving() ? 'Salvando...' : 'Salvar' }}
+        </button>
+      </div>
     </div>
   </div>
 }
 
 <!-- Modal: Confirmação de exclusão -->
 @if (confirmDeleteId()) {
-  <div
-    class="fixed inset-0 z-40 flex items-center justify-center p-4"
-    style="background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px)"
-  >
-    <div class="w-full max-w-xs card-glass p-6" style="display: flex; flex-direction: column; gap: 1rem;">
+  <div class="fixed inset-0 z-40 flex items-center justify-center p-4" style="background: rgba(44, 36, 22, 0.5); backdrop-filter: blur(4px)">
+    <div class="ledger-card w-full max-w-xs" style="display: flex; flex-direction: column; gap: 1.25rem; padding: 1.5rem;">
       <div style="display: flex; flex-direction: column; align-items: center; gap: 0.75rem; text-align: center;">
-        <div
-          class="w-12 h-12 rounded-full"
-          style="background: rgba(239, 68, 68, 0.1); display: flex; align-items: center; justify-content: center;"
-        >
-          <svg
-            width="22"
-            height="22"
-            fill="currentColor"
-            viewBox="0 0 24 24"
-            style="color: var(--color-danger)"
-          >
-            <path
-              d="M6 19c0 1.1.9 2 2 2h8a2 2 0 002-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
-            />
+        <div style="width: 48px; height: 48px; border-radius: 50%; background: var(--color-ledger-negative-bg); border: 1px solid var(--color-ledger-negative-bd); display: flex; align-items: center; justify-content: center;">
+          <svg width="22" height="22" fill="currentColor" viewBox="0 0 24 24" style="color: var(--color-ledger-negative)">
+            <path d="M6 19c0 1.1.9 2 2 2h8a2 2 0 002-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
           </svg>
         </div>
         <div>
-          <p class="font-semibold" style="color: #f1f5f9">Excluir categoria?</p>
-          <p class="text-sm mt-1" style="color: #64748b">
-            Esta ação não pode ser desfeita.
-          </p>
+          <p class="ledger-h3">Excluir categoria?</p>
+          <p class="text-body-sm mt-1" style="color: var(--color-ledger-ink-lt)">Esta ação não pode ser desfeita.</p>
         </div>
       </div>
-
       <div style="display: flex; gap: 0.5rem;">
-        <button class="btn-ghost" style="flex: 1;" (click)="cancelDelete()">Cancelar</button>
+        <button class="btn-secondary" style="flex: 1;" (click)="cancelDelete()">Cancelar</button>
         <button class="btn-danger" style="flex: 1;" (click)="confirmDelete()">Excluir</button>
       </div>
     </div>

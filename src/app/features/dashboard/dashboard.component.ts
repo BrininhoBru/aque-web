@@ -108,20 +108,20 @@ export class DashboardComponent {
         type: 'donut',
         height: 280,
         background: 'transparent',
-        foreColor: '#94a3b8',
-        fontFamily: 'DM Sans, sans-serif',
+        foreColor: '#8A7A62',
+        fontFamily: 'system-ui, sans-serif',
         toolbar: { show: false },
         animations: { enabled: true, speed: 400 },
       },
       colors: [
-        '#6366f1',
-        '#8b5cf6',
-        '#ec4899',
-        '#f59e0b',
-        '#10b981',
-        '#3b82f6',
-        '#ef4444',
-        '#14b8a6',
+        '#2C6B3D',
+        '#8B3122',
+        '#7A5C1E',
+        '#3D5A7A',
+        '#5C3D5C',
+        '#2A6B5C',
+        '#7A4A1E',
+        '#3D4A6B',
       ],
       plotOptions: {
         pie: {
@@ -132,7 +132,7 @@ export class DashboardComponent {
               total: {
                 show: true,
                 label: 'Total',
-                color: '#94a3b8',
+                color: '#8A7A62',
                 fontSize: '12px',
                 formatter: (w: any) => {
                   const total = w.globals.seriesTotals.reduce((a: number, b: number) => a + b, 0);
@@ -146,19 +146,19 @@ export class DashboardComponent {
       dataLabels: {
         enabled: true,
         formatter: (val: number) => val.toFixed(1) + '%',
-        style: { fontSize: '11px', fontFamily: 'DM Sans, sans-serif' },
+        style: { fontSize: '11px', fontFamily: 'system-ui, sans-serif' },
         dropShadow: { enabled: false },
       },
       legend: {
         position: 'bottom',
         fontSize: '12px',
-        fontFamily: 'DM Sans, sans-serif',
-        labels: { colors: '#94a3b8' },
+        fontFamily: 'system-ui, sans-serif',
+        labels: { colors: '#8A7A62' },
         markers: { size: 6 },
         itemMargin: { horizontal: 8, vertical: 4 },
       },
       tooltip: {
-        theme: 'dark',
+        theme: 'light',
         y: {
           formatter: (val: number) =>
             'R$ ' + val.toLocaleString('pt-BR', { minimumFractionDigits: 2 }),
@@ -185,12 +185,12 @@ export class DashboardComponent {
         type: 'line',
         height: 280,
         background: 'transparent',
-        foreColor: '#94a3b8',
-        fontFamily: 'DM Sans, sans-serif',
+        foreColor: '#8A7A62',
+        fontFamily: 'system-ui, sans-serif',
         toolbar: { show: false },
         animations: { enabled: true, speed: 400 },
       },
-      colors: ['#6366f1', '#ef4444'],
+      colors: ['#2C6B3D', '#8B3122'],
       stroke: {
         curve: 'smooth',
         width: 2.5,
@@ -203,7 +203,7 @@ export class DashboardComponent {
       xaxis: {
         categories: MONTH_LABELS,
         labels: {
-          style: { colors: '#64748b', fontSize: '11px' },
+          style: { colors: '#8A7A62', fontSize: '11px' },
         },
         axisBorder: { show: false },
         axisTicks: { show: false },
@@ -212,14 +212,14 @@ export class DashboardComponent {
       },
       yaxis: {
         labels: {
-          style: { colors: '#64748b', fontSize: '11px' },
+          style: { colors: '#8A7A62', fontSize: '11px' },
           formatter: (val: number) =>
             'R$ ' +
             val.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 }),
         },
       },
       grid: {
-        borderColor: '#1e2d45',
+        borderColor: '#E0D8C8',
         strokeDashArray: 4,
         xaxis: { lines: { show: false } },
         yaxis: { lines: { show: true } },
@@ -228,12 +228,12 @@ export class DashboardComponent {
       legend: {
         position: 'top',
         fontSize: '12px',
-        fontFamily: 'DM Sans, sans-serif',
-        labels: { colors: '#94a3b8' },
+        fontFamily: 'system-ui, sans-serif',
+        labels: { colors: '#8A7A62' },
         markers: { size: 6 },
       },
       tooltip: {
-        theme: 'dark',
+        theme: 'light',
         x: { show: true },
         y: {
           formatter: (val: number) =>

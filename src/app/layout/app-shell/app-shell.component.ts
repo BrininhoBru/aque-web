@@ -14,6 +14,7 @@ import { ToastComponent } from '../../shared/components/toast/toast.component';
       display: flex;
       height: 100vh;
       overflow: hidden;
+      background: var(--color-ledger-page);
     }
     .app-shell-content {
       display: flex;
@@ -22,10 +23,21 @@ import { ToastComponent } from '../../shared/components/toast/toast.component';
       min-width: 0;
       overflow: hidden;
     }
+    .app-shell-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 1.5rem;
+      height: 3.5rem;
+      flex-shrink: 0;
+      background: var(--color-ledger-surface);
+      border-bottom: 1px solid var(--color-ledger-border-lt);
+    }
     .app-shell-main {
       flex: 1;
       overflow-y: auto;
-      padding: 1.5rem;
+      padding: 2rem;
+      background: var(--color-ledger-page);
     }
   `],
 })

@@ -2,10 +2,8 @@
   <!-- Header -->
   <div class="page-header">
     <div>
-      <h1 class="page-title">Recorrentes</h1>
-      <p class="text-sm mt-0.5" style="color: #64748b">
-        Templates gerados automaticamente todo mês
-      </p>
+      <h1 class="ledger-h1">Recorrentes</h1>
+      <p class="text-body-sm mt-0.5" style="color: var(--color-ledger-ink-lt)">Templates gerados automaticamente todo mês</p>
     </div>
     <button class="btn-primary" (click)="openCreate()">
       <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
@@ -17,159 +15,88 @@
 
   <!-- Filtros -->
   <div class="btn-row">
-    @for (
-      opt of [
-        ['ATIVOS', 'Ativos'],
-        ['INATIVOS', 'Inativos'],
-        ['TODOS', 'Todos'],
-      ];
-      track opt[0]
-    ) {
+    @for (opt of [['ATIVOS', 'Ativos'], ['INATIVOS', 'Inativos'], ['TODOS', 'Todos']]; track opt[0]) {
       <button
-        class="btn"
-        style="font-size: 0.875rem; padding: 0.375rem 1rem;"
+        class="btn btn-sm"
         [class.btn-primary]="filterActive() === opt[0]"
-        [class.btn-ghost]="filterActive() !== opt[0]"
+        [class.btn-secondary]="filterActive() !== opt[0]"
         (click)="setFilter(opt[0])"
-      >
-        {{ opt[1] }}
-      </button>
+      >{{ opt[1] }}</button>
     }
   </div>
 
   <!-- Loading -->
   @if (loading()) {
     <div style="display: flex; align-items: center; justify-content: center; padding: 4rem 0;">
-      <div
-        class="w-8 h-8 rounded-full border-2 animate-spin"
-        style="border-color: var(--color-primary); border-top-color: transparent"
-      ></div>
+      <div class="w-8 h-8 rounded-full border-2 animate-spin" style="border-color: var(--color-ledger-accent); border-top-color: transparent"></div>
     </div>
   }
 
-  <!-- Lista -->
+  <!-- Tabela -->
   @if (!loading()) {
-    <div class="card">
+    <div class="ledger-card" style="overflow: hidden;">
       @if (filtered().length === 0) {
-        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 3rem 0; gap: 0.75rem;">
-          <div
-            class="w-12 h-12 rounded-full"
-            style="background: var(--color-surface2); display: flex; align-items: center; justify-content: center;"
-          >
-            <svg
-              width="22"
-              height="22"
-              fill="currentColor"
-              viewBox="0 0 24 24"
-              style="color: #475569"
-            >
-              <path
-                d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"
-              />
-            </svg>
-          </div>
-          <p class="text-sm" style="color: #475569">Nenhum recorrente neste filtro.</p>
-          <button class="btn-ghost text-sm" (click)="openCreate()">+ Criar primeiro</button>
+        <div class="ledger-empty">
+          <svg class="ledger-empty-icon" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/>
+          </svg>
+          <p class="ledger-empty-title">Nenhum recorrente</p>
+          <p class="ledger-empty-desc">Nenhum recorrente neste filtro.</p>
+          <button class="btn-secondary btn-sm" (click)="openCreate()">+ Criar primeiro</button>
         </div>
-      }
-
-      @if (filtered().length > 0) {
-        <!-- Cabeçalho da tabela -->
-        <div
-          style="
-            display: grid;
-            grid-template-columns: 1fr 140px 80px 100px 80px;
-            gap: 0.75rem;
-            padding: 0 1rem 0.5rem;
-            margin-bottom: 0.25rem;
-            border-bottom: 1px solid var(--color-border);
-            color: #475569;
-          "
-        >
-          <span class="text-xs font-semibold uppercase tracking-wider">Descrição</span>
-          <span class="text-xs font-semibold uppercase tracking-wider">Categoria</span>
-          <span class="text-xs font-semibold uppercase tracking-wider">Tipo</span>
-          <span class="text-xs font-semibold uppercase tracking-wider text-right">Valor padrão</span>
-          <span class="text-xs font-semibold uppercase tracking-wider text-right">Ações</span>
-        </div>
-
-        <div style="display: flex; flex-direction: column; gap: 0.25rem;">
-          @for (r of filtered(); track r.id) {
-            <div
-              style="
-                display: grid;
-                grid-template-columns: 1fr 140px 80px 100px 80px;
-                align-items: center;
-                gap: 0.75rem;
-                padding: 0.75rem 1rem;
-                border-radius: 8px;
-                background: var(--color-surface2);
-              "
-              [style.opacity]="r.active ? '1' : '0.45'"
-            >
-              <!-- Descrição -->
-              <div style="display: flex; align-items: center; gap: 0.5rem; min-width: 0;">
-                <svg
-                  width="13"
-                  height="13"
-                  fill="currentColor"
-                  viewBox="0 0 24 24"
-                  style="color: #475569; flex-shrink: 0;"
-                >
-                  <path
-                    d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"
-                  />
-                </svg>
-                <span class="text-sm font-medium truncate" style="color: #e2e8f0">
-                  {{ r.description }}
-                </span>
-                @if (!r.active) {
-                  <span class="badge-pendente shrink-0">inativo</span>
-                }
-              </div>
-
-              <!-- Categoria -->
-              <span class="text-sm truncate" style="color: #94a3b8">{{ r.category.name }}</span>
-
-              <!-- Tipo -->
-              <span [class]="r.type === 'RECEITA' ? 'badge-receita' : 'badge-despesa'">
-                {{ r.type }}
-              </span>
-
-              <!-- Valor -->
-              <span
-                class="text-sm font-semibold text-right"
-                [style.color]="r.type === 'RECEITA' ? 'var(--color-success)' : '#e2e8f0'"
-              >
-                R$ {{ r.defaultAmount.toFixed(2).replace('.', ',') }}
-              </span>
-
-              <!-- Ações -->
-              <div style="display: flex; align-items: center; justify-content: flex-end; gap: 0.25rem;">
-                <button class="btn-ghost" style="padding: 0.375rem 0.5rem;" (click)="openEdit(r)" title="Editar">
-                  <svg width="13" height="13" fill="currentColor" viewBox="0 0 24 24">
-                    <path
-                      d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"
-                    />
-                  </svg>
-                </button>
-                @if (r.active) {
-                  <button
-                    class="btn-danger"
-                    style="padding: 0.375rem 0.5rem;"
-                    (click)="askDeactivate(r.id)"
-                    title="Desativar"
-                  >
-                    <svg width="13" height="13" fill="currentColor" viewBox="0 0 24 24">
-                      <path
-                        d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11H7v-2h10v2z"
-                      />
-                    </svg>
-                  </button>
-                }
-              </div>
-            </div>
-          }
+      } @else {
+        <div style="overflow-x: auto;">
+          <table class="ledger-table">
+            <thead>
+              <tr>
+                <th>Descrição</th>
+                <th>Categoria</th>
+                <th>Tipo</th>
+                <th class="col-num">Valor padrão</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (r of filtered(); track r.id) {
+                <tr [style.opacity]="r.active ? '1' : '0.5'">
+                  <td>
+                    <div style="display: flex; align-items: center; gap: 0.5rem; min-width: 0;">
+                      <svg width="12" height="12" fill="currentColor" viewBox="0 0 24 24" style="color: var(--color-ledger-ink-lt); flex-shrink: 0;">
+                        <path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/>
+                      </svg>
+                      <span class="font-medium truncate" style="color: var(--color-ledger-ink)">{{ r.description }}</span>
+                      @if (!r.active) {
+                        <span class="badge-pending">inativo</span>
+                      }
+                    </div>
+                  </td>
+                  <td class="text-body-sm" style="color: var(--color-ledger-ink-md)">{{ r.category.name }}</td>
+                  <td>
+                    <span [class]="r.type === 'RECEITA' ? 'badge-income' : 'badge-expense'">{{ r.type }}</span>
+                  </td>
+                  <td [class]="r.type === 'RECEITA' ? 'col-positive' : 'col-num'">
+                    R$ {{ r.defaultAmount.toFixed(2).replace('.', ',') }}
+                  </td>
+                  <td>
+                    <div style="display: flex; align-items: center; justify-content: flex-end; gap: 2px;">
+                      <button class="btn-ghost btn-icon" (click)="openEdit(r)" title="Editar">
+                        <svg width="13" height="13" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+                        </svg>
+                      </button>
+                      @if (r.active) {
+                        <button class="btn-danger btn-icon" (click)="askDeactivate(r.id)" title="Desativar">
+                          <svg width="13" height="13" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11H7v-2h10v2z"/>
+                          </svg>
+                        </button>
+                      }
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
         </div>
       }
     </div>
@@ -178,150 +105,87 @@
 
 <!-- Modal: Formulário -->
 @if (showForm()) {
-  <div
-    class="fixed inset-0 z-40 flex items-center justify-center p-4"
-    style="background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px)"
-    (click)="closeForm()"
-  >
-    <div
-      class="w-full max-w-md card-glass p-6"
-      style="display: flex; flex-direction: column; gap: 1rem;"
-      (click)="$event.stopPropagation()"
-    >
-      <div style="display: flex; align-items: center; justify-content: space-between;">
-        <h3
-          style="
-            font-family: var(--font-display);
-            font-size: 1rem;
-            font-weight: 700;
-            color: #f1f5f9;
-          "
-        >
-          {{ editingId() ? 'Editar Recorrente' : 'Novo Recorrente' }}
-        </h3>
-        <button class="btn-ghost" style="padding: 0.25rem 0.5rem;" (click)="closeForm()">✕</button>
+  <div class="fixed inset-0 z-40 flex items-center justify-center p-4" style="background: rgba(44, 36, 22, 0.5); backdrop-filter: blur(4px)" (click)="closeForm()">
+    <div class="ledger-card w-full max-w-md" style="display: flex; flex-direction: column;" (click)="$event.stopPropagation()">
+      <div class="ledger-card-header">
+        <h3 class="ledger-h3">{{ editingId() ? 'Editar Recorrente' : 'Novo Recorrente' }}</h3>
+        <button class="btn-ghost btn-icon" (click)="closeForm()">✕</button>
       </div>
 
-      <form (submit)="$event.preventDefault(); save()" style="display: flex; flex-direction: column; gap: 1rem;">
-        <!-- Descrição -->
-        <div>
-          <label class="label">Descrição</label>
-          <input
-            class="input"
-            type="text"
-            [formField]="recurringForm.description"
-            placeholder="Ex: Aluguel, Netflix..."
-          />
+      <form (submit)="$event.preventDefault(); save()" class="ledger-card-body" style="display: flex; flex-direction: column;">
+        <div class="ledger-form-group">
+          <label class="ledger-label">Descrição</label>
+          <input class="ledger-input" type="text" [formField]="recurringForm.description" placeholder="Ex: Aluguel, Netflix..." />
           @if (recurringForm.description().touched() && recurringForm.description().invalid()) {
-            <p class="text-xs mt-1" style="color: var(--color-danger)">
-              {{ recurringForm.description().errors()[0]?.message }}
-            </p>
+            <p class="ledger-error">{{ recurringForm.description().errors()[0]?.message }}</p>
           }
         </div>
 
-        <!-- Tipo -->
-        <div>
-          <label class="label">Tipo</label>
+        <div class="ledger-form-group">
+          <label class="ledger-label">Tipo</label>
           <div class="btn-row">
-            @for (
-              opt of [
-                ['DESPESA', 'Despesa'],
-                ['RECEITA', 'Receita'],
-              ];
-              track opt[0]
-            ) {
-              <button
-                type="button"
-                class="btn"
-                style="flex: 1;"
+            @for (opt of [['DESPESA', 'Despesa'], ['RECEITA', 'Receita']]; track opt[0]) {
+              <button type="button" class="btn" style="flex: 1;"
                 [class.btn-primary]="recurringForm.type().value() === opt[0]"
-                [class.btn-ghost]="recurringForm.type().value() !== opt[0]"
+                [class.btn-secondary]="recurringForm.type().value() !== opt[0]"
                 (click)="setType(opt[0])"
-              >
-                {{ opt[1] }}
-              </button>
+              >{{ opt[1] }}</button>
             }
           </div>
         </div>
 
-        <!-- Categoria -->
-        <div>
-          <label class="label">Categoria</label>
-          <select class="input" [formField]="recurringForm.categoryId">
+        <div class="ledger-form-group">
+          <label class="ledger-label">Categoria</label>
+          <select class="ledger-select" [formField]="recurringForm.categoryId">
             <option value="">Selecione...</option>
             @for (cat of categoriesByType(); track cat.id) {
               <option [value]="cat.id">{{ cat.name }}</option>
             }
           </select>
           @if (recurringForm.categoryId().touched() && recurringForm.categoryId().invalid()) {
-            <p class="text-xs mt-1" style="color: var(--color-danger)">
-              {{ recurringForm.categoryId().errors()[0]?.message }}
-            </p>
+            <p class="ledger-error">{{ recurringForm.categoryId().errors()[0]?.message }}</p>
           }
         </div>
 
-        <!-- Valor padrão -->
-        <div>
-          <label class="label">Valor padrão (R$)</label>
-          <input
-            class="input"
-            type="number"
-            step="0.01"
-            [formField]="recurringForm.defaultAmount"
-            placeholder="0,00"
-          />
+        <div class="ledger-form-group" style="margin-bottom: 0;">
+          <label class="ledger-label">Valor padrão (R$)</label>
+          <div class="ledger-input-group">
+            <span class="ledger-input-group-prefix">R$</span>
+            <input type="number" step="0.01" [formField]="recurringForm.defaultAmount" placeholder="0,00" />
+          </div>
           @if (recurringForm.defaultAmount().touched() && recurringForm.defaultAmount().invalid()) {
-            <p class="text-xs mt-1" style="color: var(--color-danger)">
-              {{ recurringForm.defaultAmount().errors()[0]?.message }}
-            </p>
+            <p class="ledger-error">{{ recurringForm.defaultAmount().errors()[0]?.message }}</p>
           }
-        </div>
-
-        <div style="display: flex; gap: 0.5rem; padding-top: 0.5rem;">
-          <button type="button" class="btn-ghost" style="flex: 1;" (click)="closeForm()">Cancelar</button>
-          <button type="submit" class="btn-primary" style="flex: 1;" [disabled]="!formValid() || saving()">
-            {{ saving() ? 'Salvando...' : 'Salvar' }}
-          </button>
         </div>
       </form>
+
+      <div class="ledger-card-footer">
+        <button class="btn-secondary" (click)="closeForm()">Cancelar</button>
+        <button class="btn-primary" (click)="save()" [disabled]="!formValid() || saving()">
+          {{ saving() ? 'Salvando...' : 'Salvar' }}
+        </button>
+      </div>
     </div>
   </div>
 }
 
 <!-- Modal: Confirmação de desativação -->
 @if (confirmDeactivateId()) {
-  <div
-    class="fixed inset-0 z-40 flex items-center justify-center p-4"
-    style="background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px)"
-  >
-    <div class="w-full max-w-xs card-glass p-6" style="display: flex; flex-direction: column; gap: 1rem;">
+  <div class="fixed inset-0 z-40 flex items-center justify-center p-4" style="background: rgba(44, 36, 22, 0.5); backdrop-filter: blur(4px)">
+    <div class="ledger-card w-full max-w-xs" style="display: flex; flex-direction: column; gap: 1.25rem; padding: 1.5rem;">
       <div style="display: flex; flex-direction: column; align-items: center; gap: 0.75rem; text-align: center;">
-        <div
-          class="w-12 h-12 rounded-full"
-          style="background: rgba(245, 158, 11, 0.1); display: flex; align-items: center; justify-content: center;"
-        >
-          <svg
-            width="22"
-            height="22"
-            fill="currentColor"
-            viewBox="0 0 24 24"
-            style="color: var(--color-warning)"
-          >
-            <path
-              d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11H7v-2h10v2z"
-            />
+        <div style="width: 48px; height: 48px; border-radius: 50%; background: var(--color-ledger-pending-bg); border: 1px solid var(--color-ledger-pending-bd); display: flex; align-items: center; justify-content: center;">
+          <svg width="22" height="22" fill="currentColor" viewBox="0 0 24 24" style="color: var(--color-ledger-pending)">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11H7v-2h10v2z"/>
           </svg>
         </div>
         <div>
-          <p class="font-semibold" style="color: #f1f5f9">Desativar recorrente?</p>
-          <p class="text-sm mt-1" style="color: #64748b">
-            Lançamentos já gerados não serão afetados. Nenhum novo lançamento será criado.
-          </p>
+          <p class="ledger-h3">Desativar recorrente?</p>
+          <p class="text-body-sm mt-1" style="color: var(--color-ledger-ink-lt)">Lançamentos já gerados não serão afetados. Nenhum novo lançamento será criado.</p>
         </div>
       </div>
-
       <div style="display: flex; gap: 0.5rem;">
-        <button class="btn-ghost" style="flex: 1;" (click)="cancelDeactivate()">Cancelar</button>
+        <button class="btn-secondary" style="flex: 1;" (click)="cancelDeactivate()">Cancelar</button>
         <button class="btn-danger" style="flex: 1;" (click)="confirmDeactivate()">Desativar</button>
       </div>
     </div>

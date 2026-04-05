@@ -10,31 +10,24 @@ import { LayoutService } from '../layout.service';
   imports: [MonthYearPipe],
   templateUrl: './header.component.html',
   styles: [`
-    .app-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 1.5rem;
-      height: 3.5rem;
-      flex-shrink: 0;
-      background: var(--color-surface);
-      border-bottom: 1px solid var(--color-border);
+    :host {
+      display: contents;
     }
     .header-month {
       display: flex;
       align-items: center;
-      gap: 0.25rem;
+      gap: 4px;
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
     }
     .header-month-display {
-      padding: 0.375rem 1rem;
-      border-radius: 8px;
-      background: var(--color-surface2);
-      min-width: 160px;
+      font-family: var(--font-serif);
+      font-size: 17px;
+      font-weight: 600;
+      color: var(--color-ledger-ink);
+      min-width: 140px;
       text-align: center;
-      font-family: var(--font-display);
-      font-size: 0.9rem;
-      font-weight: 700;
-      color: #f1f5f9;
       letter-spacing: -0.01em;
     }
     .btn-nav {
@@ -43,34 +36,36 @@ import { LayoutService } from '../layout.service';
       justify-content: center;
       width: 28px;
       height: 28px;
-      border-radius: 6px;
-      border: none;
-      background: transparent;
-      color: #64748b;
+      border-radius: var(--radius-ledger-sm);
+      border: 1px solid var(--color-ledger-border-md);
+      background: var(--color-ledger-card);
+      color: var(--color-ledger-ink-md);
+      font-size: 18px;
+      line-height: 1;
       cursor: pointer;
       transition: all 0.15s ease;
     }
     .btn-nav:hover {
-      background: var(--color-surface2);
-      color: #cbd5e1;
+      border-color: var(--color-ledger-border-st);
+      background: var(--color-ledger-surface);
     }
     .header-logout {
       display: flex;
       align-items: center;
-      gap: 0.375rem;
-      padding: 0.375rem 0.75rem;
-      border-radius: 8px;
-      font-size: 0.875rem;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: var(--radius-ledger-sm);
+      font-size: 13px;
       font-weight: 500;
-      color: #64748b;
+      color: var(--color-ledger-ink-lt);
       background: transparent;
       border: none;
       cursor: pointer;
       transition: all 0.15s ease;
     }
     .header-logout:hover {
-      background: var(--color-surface2);
-      color: #e2e8f0;
+      background: var(--color-ledger-stripe);
+      color: var(--color-ledger-ink);
     }
   `],
 })

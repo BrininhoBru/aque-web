@@ -23,7 +23,16 @@ export class AuthService {
 
   private readonly _token = signal<string | null>(localStorage.getItem(TOKEN_KEY));
 
-  readonly isAuthenticated = computed(() => !!this._token());
+  readonly isAuthenticated = computed(() => {
+    const token = this._token();
+    if (!token) return false;
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      return typeof payload.exp === 'number' && payload.exp * 1000 > Date.now();
+    } catch {
+      return false;
+    }
+  });
   readonly token = this._token.asReadonly();
 
   login(username: string, password: string): Observable<LoginResponse> {

@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { TransactionService, TransactionFilters } from '../../core/services/transaction.service';
 import { CategoryService } from '../../core/services/category.service';
+import { RecurringService } from '../../core/services/recurring.service';
 import { ToastService } from '../../shared/services/toast.service';
 import { MonthYearService } from '../../core/services/month-year.service';
 import { Transaction, Category } from '../../core/models';
@@ -20,6 +21,7 @@ type FilterStatus = 'TODOS' | 'PENDENTE' | 'PAGO';
 export class TransactionsComponent implements OnInit {
   private readonly transactionService = inject(TransactionService);
   private readonly categoryService = inject(CategoryService);
+  private readonly recurringService = inject(RecurringService);
   private readonly toast = inject(ToastService);
   private readonly router = inject(Router);
   readonly monthYear = inject(MonthYearService);
@@ -29,6 +31,7 @@ export class TransactionsComponent implements OnInit {
   readonly loading = signal(false);
   readonly deletingId = signal<string | null>(null);
   readonly confirmDeleteId = signal<string | null>(null);
+  readonly generating = signal(false);
 
   // Filtros
   readonly filterCategoryId = signal<string>('');
@@ -120,6 +123,22 @@ export class TransactionsComponent implements OnInit {
     this.filterType.set('TODOS');
     this.filterStatus.set('TODOS');
     this.filterCategoryId.set('');
+  }
+
+  generateRecurring(): void {
+    const { month, year } = this.monthYear.selected();
+    this.generating.set(true);
+    this.recurringService.generate(year, month).subscribe({
+      next: (msg) => {
+        this.toast.success(msg);
+        this.generating.set(false);
+        this.load();
+      },
+      error: () => {
+        this.toast.error('Erro ao gerar recorrentes.');
+        this.generating.set(false);
+      },
+    });
   }
 
   goToCreate(): void {

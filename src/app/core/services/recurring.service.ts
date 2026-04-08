@@ -31,4 +31,8 @@ export class RecurringService {
   deactivate(id: string): Observable<RecurringTransaction> {
     return this.http.delete<RecurringTransaction>(`${this.base}/${id}`);
   }
+
+  generate(year: number, month: number): Observable<string> {
+    return this.http.post(`${this.base}/generate/${year}/${month}`, null, { responseType: 'text' });
+  }
 }

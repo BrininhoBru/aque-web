@@ -18,7 +18,37 @@ type FilterStatus = 'TODOS' | 'PENDENTE' | 'PAGO';
   imports: [CommonModule, BrlCurrencyPipe],
   templateUrl: './transactions.component.html',
   styles: [`
+    /* ── Header ─────────────────────────────────────────────── */
+    .tx-header-actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    /* ── Filter bar ──────────────────────────────────────────── */
+    .tx-filter-bar {
+      padding: 1rem 1.25rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      align-items: flex-end;
+      background: var(--color-ledger-surface);
+    }
+    .tx-filter-category {
+      display: flex;
+      flex-direction: column;
+      min-width: 10rem;
+      max-width: 16rem;
+    }
+
+    /* ── Card list ───────────────────────────────────────────── */
     .tx-card-list { display: none; }
+    @media (max-width: 639px) {
+      .tx-generate-text { display: none; }
+      .tx-filter-category { min-width: 0; max-width: none; width: 100%; }
+    }
+    @media (max-width: 399px) {
+      .tx-new-text { display: none; }
+    }
     @media (max-width: 767px) {
       .tx-table-view { display: none; }
       .tx-card-list {

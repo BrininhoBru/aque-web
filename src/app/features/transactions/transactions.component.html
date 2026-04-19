@@ -12,11 +12,11 @@
         </svg>
         <span class="tx-generate-text">{{ generating() ? 'Gerando...' : 'Gerar Recorrentes' }}</span>
       </button>
-      <button class="btn-primary" (click)="goToCreate()">
+      <button class="btn-primary tx-btn-new" (click)="goToCreate()">
         <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
           <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
         </svg>
-        <span class="tx-new-text">Novo Lançamento</span>
+        Novo Lançamento
       </button>
     </div>
   </div>
@@ -254,6 +254,13 @@
     </div>
   }
 </div>
+
+<!-- FAB: Novo Lançamento (mobile) -->
+<button class="tx-fab" (click)="goToCreate()" title="Novo Lançamento">
+  <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+    <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
+  </svg>
+</button>
 
 <!-- Modal: Confirmação de exclusão -->
 @if (confirmDeleteId()) {

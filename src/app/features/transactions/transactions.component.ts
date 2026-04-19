@@ -40,21 +40,49 @@ type FilterStatus = 'TODOS' | 'PENDENTE' | 'PAGO';
       max-width: 16rem;
     }
 
+    /* ── FAB ─────────────────────────────────────────────────── */
+    .tx-fab { display: none; }
+
     /* ── Card list ───────────────────────────────────────────── */
     .tx-card-list { display: none; }
     @media (max-width: 639px) {
       .tx-generate-text { display: none; }
       .tx-filter-category { min-width: 0; max-width: none; width: 100%; }
     }
-    @media (max-width: 399px) {
-      .tx-new-text { display: none; }
-    }
     @media (max-width: 767px) {
+      .tx-btn-new { display: none; }
+      .tx-fab {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: fixed;
+        bottom: 1.5rem;
+        right: 1.5rem;
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        background: var(--color-ledger-accent);
+        color: var(--color-ledger-ink-inv);
+        border: none;
+        cursor: pointer;
+        z-index: 30;
+        box-shadow: 0 4px 16px rgba(44, 36, 22, 0.35);
+        transition: background 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+      }
+      .tx-fab:hover {
+        background: var(--color-ledger-accent-hv);
+        transform: scale(1.06);
+        box-shadow: 0 6px 20px rgba(44, 36, 22, 0.45);
+      }
+      .tx-fab:active {
+        transform: scale(0.96);
+      }
       .tx-table-view { display: none; }
       .tx-card-list {
         display: flex;
         flex-direction: column;
         gap: 0.5rem;
+        padding-bottom: 5rem;
       }
       .tx-card {
         padding: 0.875rem 1rem;

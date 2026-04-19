@@ -20,6 +20,34 @@ interface PersonSplit {
   standalone: true,
   imports: [CommonModule, RouterLink, BrlCurrencyPipe, MonthYearPipe],
   templateUrl: './split.component.html',
+  styles: [`
+    .loader {
+      width: 14px; height: 14px;
+      border: 2px solid rgba(245, 240, 232, 0.3);
+      border-top-color: var(--color-ledger-ink-inv);
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+      display: inline-block;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .split-indicator {
+      padding: 0.75rem 1.5rem;
+      border-top: 1px solid var(--color-ledger-border-lt);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.25rem 0.75rem;
+      transition: all 0.15s ease;
+    }
+    .split-indicator-hint {
+      font-size: 13px;
+      color: var(--color-ledger-ink-lt);
+    }
+    @media (max-width: 479px) {
+      .split-indicator-hint { display: none; }
+    }
+  `],
 })
 export class SplitComponent implements OnInit {
   private readonly splitService = inject(SplitService);

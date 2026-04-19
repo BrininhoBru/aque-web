@@ -96,7 +96,7 @@
 
         <!-- Indicador de soma -->
         <div
-          style="padding: 0.75rem 1.5rem; border-top: 1px solid var(--color-ledger-border-lt); display: flex; align-items: center; justify-content: space-between; transition: all 0.15s ease;"
+          class="split-indicator"
           [style.background]="totalValid() ? 'var(--color-ledger-positive-bg)' : totalPercentage() > 100 ? 'var(--color-ledger-negative-bg)' : 'var(--color-ledger-pending-bg)'"
         >
           <div style="display: flex; align-items: center; gap: 0.5rem;">
@@ -117,7 +117,7 @@
               <span class="text-body-sm font-medium" style="color: var(--color-ledger-pending)">Total: {{ totalPercentage() }}% — faltam {{ totalDiff() }}%</span>
             }
           </div>
-          <span class="text-body-sm" style="color: var(--color-ledger-ink-lt)">deve somar 100%</span>
+          <span class="split-indicator-hint">deve somar 100%</span>
         </div>
 
         <!-- Ações -->
@@ -133,14 +133,3 @@
   }
 </div>
 
-<style>
-  .loader {
-    width: 14px; height: 14px;
-    border: 2px solid rgba(245, 240, 232, 0.3);
-    border-top-color: var(--color-ledger-ink-inv);
-    border-radius: 50%;
-    animation: spin 0.6s linear infinite;
-    display: inline-block;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
-</style>

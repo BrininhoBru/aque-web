@@ -83,11 +83,101 @@
     </div>
   }
 
-  <!-- Tabela -->
+  <!-- Tabela (desktop) -->
   @if (!loading()) {
-    <div class="ledger-card" style="overflow: hidden;">
+    <div class="tx-table-view">
+      <div class="ledger-card" style="overflow: hidden;">
+        @if (filtered().length === 0) {
+          <div class="ledger-empty">
+            <svg class="ledger-empty-icon" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M19 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2zm-7 14l-5-5 1.41-1.41L12 14.17l7.59-7.59L21 8l-9 9z"/>
+            </svg>
+            <p class="ledger-empty-title">Nenhum lançamento</p>
+            <p class="ledger-empty-desc">Nenhum lançamento encontrado com os filtros selecionados.</p>
+            <button class="btn-secondary btn-sm" (click)="goToCreate()">+ Criar primeiro</button>
+          </div>
+        } @else {
+          <div style="overflow-x: auto;">
+            <table class="ledger-table">
+              <thead>
+                <tr>
+                  <th>Descrição</th>
+                  <th>Categoria</th>
+                  <th>Tipo</th>
+                  <th class="col-num">Previsto</th>
+                  <th class="col-num">Pago</th>
+                  <th>Status</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (t of filtered(); track t.id) {
+                  <tr>
+                    <td>
+                      <div style="display: flex; align-items: center; gap: 0.5rem; min-width: 0;">
+                        @if (t.recurringId) {
+                          <svg width="11" height="11" fill="currentColor" viewBox="0 0 24 24" style="color: var(--color-ledger-ink-lt); flex-shrink: 0;" title="Gerado por recorrente">
+                            <path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/>
+                          </svg>
+                        }
+                        <span class="font-medium truncate" [style.color]="t.status === 'PAGO' ? 'var(--color-ledger-ink-lt)' : 'var(--color-ledger-ink)'">
+                          {{ t.description }}
+                        </span>
+                      </div>
+                      @if (t.recurringId) {
+                        <p class="text-body-sm" style="color: var(--color-ledger-ink-lt)">↻ recorrente</p>
+                      }
+                    </td>
+                    <td class="text-body-sm" style="color: var(--color-ledger-ink-md)">{{ t.category.name }}</td>
+                    <td>
+                      <span [class]="t.type === 'RECEITA' ? 'badge-income' : 'badge-expense'">{{ t.type }}</span>
+                    </td>
+                    <td class="col-num" style="color: var(--color-ledger-ink-md)">{{ t.amountExpected | brlCurrency }}</td>
+                    <td [class]="t.amountPaid ? 'col-positive' : 'col-num'" [style.color]="!t.amountPaid ? 'var(--color-ledger-ink-lt)' : ''">
+                      {{ t.amountPaid != null ? (t.amountPaid | brlCurrency) : '—' }}
+                    </td>
+                    <td>
+                      <span [class]="t.status === 'PAGO' ? 'badge-paid' : 'badge-pending'">{{ t.status }}</span>
+                    </td>
+                    <td>
+                      <div style="display: flex; align-items: center; gap: 2px;">
+                        <button class="btn-ghost btn-icon" (click)="goToEdit(t.id)" title="Editar">
+                          <svg width="13" height="13" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+                          </svg>
+                        </button>
+                        <button class="btn-danger btn-icon" (click)="askDelete(t.id)" title="Excluir">
+                          <svg width="13" height="13" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M6 19c0 1.1.9 2 2 2h8a2 2 0 002-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+                          </svg>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+              <tfoot>
+                <tr>
+                  <td colspan="3" style="color: var(--color-ledger-ink-md);">Totais do mês</td>
+                  <td class="col-num" style="color: var(--color-ledger-negative);">{{ totalExpected() | brlCurrency }}</td>
+                  <td class="col-num" style="color: var(--color-ledger-positive);">{{ totalPaid() | brlCurrency }}</td>
+                  <td colspan="2">
+                    <span style="font-size: 11px; color: var(--color-ledger-ink-lt);">
+                      Rec. prev.: {{ totalIncomeExpected() | brlCurrency }}
+                    </span>
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Cards (mobile) -->
+    <div class="tx-card-list">
       @if (filtered().length === 0) {
-        <div class="ledger-empty">
+        <div class="ledger-card ledger-empty">
           <svg class="ledger-empty-icon" fill="currentColor" viewBox="0 0 24 24">
             <path d="M19 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2zm-7 14l-5-5 1.41-1.41L12 14.17l7.59-7.59L21 8l-9 9z"/>
           </svg>
@@ -96,78 +186,69 @@
           <button class="btn-secondary btn-sm" (click)="goToCreate()">+ Criar primeiro</button>
         </div>
       } @else {
-        <div style="overflow-x: auto;">
-          <table class="ledger-table">
-            <thead>
-              <tr>
-                <th>Descrição</th>
-                <th>Categoria</th>
-                <th>Tipo</th>
-                <th class="col-num">Previsto</th>
-                <th class="col-num">Pago</th>
-                <th>Status</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (t of filtered(); track t.id) {
-                <tr>
-                  <td>
-                    <div style="display: flex; align-items: center; gap: 0.5rem; min-width: 0;">
-                      @if (t.recurringId) {
-                        <svg width="11" height="11" fill="currentColor" viewBox="0 0 24 24" style="color: var(--color-ledger-ink-lt); flex-shrink: 0;" title="Gerado por recorrente">
-                          <path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/>
-                        </svg>
-                      }
-                      <span class="font-medium truncate" [style.color]="t.status === 'PAGO' ? 'var(--color-ledger-ink-lt)' : 'var(--color-ledger-ink)'">
-                        {{ t.description }}
-                      </span>
-                    </div>
-                    @if (t.recurringId) {
-                      <p class="text-body-sm" style="color: var(--color-ledger-ink-lt)">↻ recorrente</p>
-                    }
-                  </td>
-                  <td class="text-body-sm" style="color: var(--color-ledger-ink-md)">{{ t.category.name }}</td>
-                  <td>
-                    <span [class]="t.type === 'RECEITA' ? 'badge-income' : 'badge-expense'">{{ t.type }}</span>
-                  </td>
-                  <td class="col-num" style="color: var(--color-ledger-ink-md)">{{ t.amountExpected | brlCurrency }}</td>
-                  <td [class]="t.amountPaid ? 'col-positive' : 'col-num'" [style.color]="!t.amountPaid ? 'var(--color-ledger-ink-lt)' : ''">
+        @for (t of filtered(); track t.id) {
+          <div class="tx-card ledger-card">
+            <div class="tx-card-top">
+              <div class="tx-card-desc">
+                @if (t.recurringId) {
+                  <svg width="11" height="11" fill="currentColor" viewBox="0 0 24 24" class="tx-card-recurring-icon" title="Gerado por recorrente">
+                    <path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/>
+                  </svg>
+                }
+                <span class="tx-card-title" [style.color]="t.status === 'PAGO' ? 'var(--color-ledger-ink-lt)' : 'var(--color-ledger-ink)'">
+                  {{ t.description }}
+                </span>
+              </div>
+              <span [class]="t.type === 'RECEITA' ? 'badge-income' : 'badge-expense'">{{ t.type }}</span>
+            </div>
+
+            <div class="tx-card-mid">
+              <span class="tx-card-category">{{ t.category.name }}</span>
+              <span [class]="t.status === 'PAGO' ? 'badge-paid' : 'badge-pending'">{{ t.status }}</span>
+            </div>
+
+            <div class="tx-card-bottom">
+              <div class="tx-card-amounts">
+                <div class="tx-card-amount-item">
+                  <span class="ledger-label">Previsto</span>
+                  <span class="tx-card-amount-value" style="color: var(--color-ledger-ink-md)">{{ t.amountExpected | brlCurrency }}</span>
+                </div>
+                <div class="tx-card-amount-item">
+                  <span class="ledger-label">Pago</span>
+                  <span class="tx-card-amount-value" [style.color]="t.amountPaid ? 'var(--color-ledger-positive)' : 'var(--color-ledger-ink-lt)'">
                     {{ t.amountPaid != null ? (t.amountPaid | brlCurrency) : '—' }}
-                  </td>
-                  <td>
-                    <span [class]="t.status === 'PAGO' ? 'badge-paid' : 'badge-pending'">{{ t.status }}</span>
-                  </td>
-                  <td>
-                    <div style="display: flex; align-items: center; gap: 2px;">
-                      <button class="btn-ghost btn-icon" (click)="goToEdit(t.id)" title="Editar">
-                        <svg width="13" height="13" fill="currentColor" viewBox="0 0 24 24">
-                          <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
-                        </svg>
-                      </button>
-                      <button class="btn-danger btn-icon" (click)="askDelete(t.id)" title="Excluir">
-                        <svg width="13" height="13" fill="currentColor" viewBox="0 0 24 24">
-                          <path d="M6 19c0 1.1.9 2 2 2h8a2 2 0 002-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
-                        </svg>
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              }
-            </tbody>
-            <tfoot>
-              <tr>
-                <td colspan="3" style="color: var(--color-ledger-ink-md);">Totais do mês</td>
-                <td class="col-num" style="color: var(--color-ledger-negative);">{{ totalExpected() | brlCurrency }}</td>
-                <td class="col-num" style="color: var(--color-ledger-positive);">{{ totalPaid() | brlCurrency }}</td>
-                <td colspan="2">
-                  <span style="font-size: 11px; color: var(--color-ledger-ink-lt);">
-                    Rec. prev.: {{ totalIncomeExpected() | brlCurrency }}
                   </span>
-                </td>
-              </tr>
-            </tfoot>
-          </table>
+                </div>
+              </div>
+              <div class="tx-card-actions">
+                <button class="btn-ghost btn-icon" (click)="goToEdit(t.id)" title="Editar">
+                  <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+                  </svg>
+                </button>
+                <button class="btn-danger btn-icon" (click)="askDelete(t.id)" title="Excluir">
+                  <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M6 19c0 1.1.9 2 2 2h8a2 2 0 002-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        }
+
+        <div class="tx-card-summary ledger-card">
+          <div class="tx-summary-row">
+            <span class="ledger-label" style="margin-bottom: 0;">Despesas previstas</span>
+            <span class="tx-summary-value" style="color: var(--color-ledger-negative);">{{ totalExpected() | brlCurrency }}</span>
+          </div>
+          <div class="tx-summary-row">
+            <span class="ledger-label" style="margin-bottom: 0;">Despesas pagas</span>
+            <span class="tx-summary-value" style="color: var(--color-ledger-positive);">{{ totalPaid() | brlCurrency }}</span>
+          </div>
+          <div class="tx-summary-row">
+            <span class="ledger-label" style="margin-bottom: 0;">Receitas previstas</span>
+            <span class="tx-summary-value" style="color: var(--color-ledger-ink-md);">{{ totalIncomeExpected() | brlCurrency }}</span>
+          </div>
         </div>
       }
     </div>

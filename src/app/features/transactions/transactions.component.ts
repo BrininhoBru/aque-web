@@ -17,6 +17,97 @@ type FilterStatus = 'TODOS' | 'PENDENTE' | 'PAGO';
   standalone: true,
   imports: [CommonModule, BrlCurrencyPipe],
   templateUrl: './transactions.component.html',
+  styles: [`
+    .tx-card-list { display: none; }
+    @media (max-width: 767px) {
+      .tx-table-view { display: none; }
+      .tx-card-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+      .tx-card {
+        padding: 0.875rem 1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.625rem;
+      }
+      .tx-card-top {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 0.5rem;
+      }
+      .tx-card-desc {
+        display: flex;
+        align-items: center;
+        gap: 0.375rem;
+        flex: 1;
+        min-width: 0;
+      }
+      .tx-card-recurring-icon {
+        color: var(--color-ledger-ink-lt);
+        flex-shrink: 0;
+      }
+      .tx-card-title {
+        font-size: 15px;
+        font-weight: 500;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .tx-card-mid {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .tx-card-category {
+        font-size: 13px;
+        color: var(--color-ledger-ink-md);
+      }
+      .tx-card-bottom {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding-top: 0.625rem;
+        border-top: 1px solid var(--color-ledger-border-lt);
+      }
+      .tx-card-amounts {
+        display: flex;
+        gap: 1.25rem;
+      }
+      .tx-card-amount-item {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+      .tx-card-amount-value {
+        font-family: var(--font-mono);
+        font-size: 14px;
+        line-height: 1;
+      }
+      .tx-card-actions {
+        display: flex;
+        gap: 4px;
+      }
+      .tx-card-summary {
+        padding: 1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.625rem;
+      }
+      .tx-summary-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .tx-summary-value {
+        font-family: var(--font-mono);
+        font-size: 14px;
+        font-weight: 500;
+      }
+    }
+  `],
 })
 export class TransactionsComponent implements OnInit {
   private readonly transactionService = inject(TransactionService);

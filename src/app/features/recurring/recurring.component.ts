@@ -13,6 +13,90 @@ type FilterActive = 'TODOS' | 'ATIVOS' | 'INATIVOS';
   standalone: true,
   imports: [CommonModule, FormField],
   templateUrl: './recurring.component.html',
+  styles: [`
+    .rc-card-list { display: none; }
+    .rc-fab { display: none; }
+    @media (max-width: 767px) {
+      .rc-btn-new { display: none; }
+      .rc-table-view { display: none; }
+      .rc-card-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        padding-bottom: 5rem;
+      }
+      .rc-card {
+        padding: 0.875rem 1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+      .rc-card-top {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 0.5rem;
+      }
+      .rc-card-desc {
+        display: flex;
+        align-items: center;
+        gap: 0.375rem;
+        flex: 1;
+        min-width: 0;
+      }
+      .rc-card-icon { color: var(--color-ledger-ink-lt); flex-shrink: 0; }
+      .rc-card-title {
+        font-size: 15px;
+        font-weight: 500;
+        color: var(--color-ledger-ink);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .rc-card-mid {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding-top: 0.5rem;
+        border-top: 1px solid var(--color-ledger-border-lt);
+      }
+      .rc-card-category { font-size: 13px; color: var(--color-ledger-ink-md); }
+      .rc-card-amount {
+        font-family: var(--font-mono);
+        font-size: 14px;
+        font-weight: 500;
+      }
+      .rc-card-actions {
+        display: flex;
+        gap: 4px;
+        justify-content: flex-end;
+      }
+      .rc-fab {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: fixed;
+        bottom: 1.5rem;
+        right: 1.5rem;
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        background: var(--color-ledger-accent);
+        color: var(--color-ledger-ink-inv);
+        border: none;
+        cursor: pointer;
+        z-index: 30;
+        box-shadow: 0 4px 16px rgba(44, 36, 22, 0.35);
+        transition: background 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+      }
+      .rc-fab:hover {
+        background: var(--color-ledger-accent-hv);
+        transform: scale(1.06);
+        box-shadow: 0 6px 20px rgba(44, 36, 22, 0.45);
+      }
+      .rc-fab:active { transform: scale(0.96); }
+    }
+  `],
 })
 export class RecurringComponent implements OnInit {
   private readonly recurringService = inject(RecurringService);

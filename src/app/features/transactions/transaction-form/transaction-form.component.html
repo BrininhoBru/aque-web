@@ -74,7 +74,7 @@
         </div>
 
         <!-- Mês / Ano de referência -->
-        <div class="tx-form-grid">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div class="ledger-form-group" style="margin-bottom: 0;">
             <label class="ledger-label">Mês de referência *</label>
             <select
@@ -97,7 +97,7 @@
         </div>
 
         <!-- Valores -->
-        <div class="tx-form-grid">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <!-- Valor previsto -->
           <div class="ledger-form-group" style="margin-bottom: 0;">
             <label class="ledger-label">Valor previsto *</label>
@@ -138,7 +138,7 @@
           <span class="text-body-sm" style="color: var(--color-ledger-ink-lt)">Status resultante:</span>
           <span [class]="statusLabel() === 'PAGO' ? 'badge-paid' : 'badge-pending'">{{ statusLabel() }}</span>
           @if (statusLabel() === 'PENDENTE') {
-            <span class="tx-status-hint text-body-sm" style="color: var(--color-ledger-ink-lt)">— preencha o valor pago para marcar como PAGO</span>
+            <span class="hidden sm:inline text-body-sm" style="color: var(--color-ledger-ink-lt)">— preencha o valor pago para marcar como PAGO</span>
           }
         </div>
       </form>

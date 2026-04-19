@@ -5,14 +5,14 @@
       <h1 class="ledger-h1">Lançamentos</h1>
       <p class="text-body-sm mt-0.5" style="color: var(--color-ledger-ink-lt)">Receitas e despesas do mês selecionado</p>
     </div>
-    <div class="tx-header-actions">
+    <div class="flex gap-2">
       <button class="btn-secondary" (click)="generateRecurring()" [disabled]="generating()" [title]="generating() ? 'Gerando...' : 'Gerar Recorrentes'">
         <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
           <path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/>
         </svg>
-        <span class="tx-generate-text">{{ generating() ? 'Gerando...' : 'Gerar Recorrentes' }}</span>
+        <span class="hidden sm:inline">{{ generating() ? 'Gerando...' : 'Gerar Recorrentes' }}</span>
       </button>
-      <button class="btn-primary tx-btn-new" (click)="goToCreate()">
+      <button class="btn-primary hidden md:inline-flex" (click)="goToCreate()">
         <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
           <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
         </svg>
@@ -85,7 +85,7 @@
 
   <!-- Tabela (desktop) -->
   @if (!loading()) {
-    <div class="tx-table-view">
+    <div class="hidden md:block">
       <div class="ledger-card" style="overflow: hidden;">
         @if (filtered().length === 0) {
           <div class="ledger-empty">
@@ -175,7 +175,7 @@
     </div>
 
     <!-- Cards (mobile) -->
-    <div class="tx-card-list">
+    <div class="md:hidden flex flex-col gap-2 pb-20">
       @if (filtered().length === 0) {
         <div class="ledger-card ledger-empty">
           <svg class="ledger-empty-icon" fill="currentColor" viewBox="0 0 24 24">
@@ -256,7 +256,10 @@
 </div>
 
 <!-- FAB: Novo Lançamento (mobile) -->
-<button class="tx-fab" (click)="goToCreate()" title="Novo Lançamento">
+<button
+  class="fixed bottom-6 right-6 md:hidden flex items-center justify-center w-14 h-14 rounded-full border-0 bg-ledger-accent text-ledger-ink-inv z-30 cursor-pointer transition-all hover:bg-ledger-accent-hv hover:scale-105 active:scale-95"
+  style="box-shadow: 0 4px 16px rgba(44, 36, 22, 0.35);"
+  (click)="goToCreate()" title="Novo Lançamento">
   <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
     <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
   </svg>

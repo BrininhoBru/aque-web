@@ -24,11 +24,6 @@ interface TransactionModel {
   imports: [CommonModule, FormField],
   templateUrl: './transaction-form.component.html',
   styles: [`
-    .tx-form-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1rem;
-    }
     .loader {
       width: 14px; height: 14px;
       border: 2px solid rgba(245, 240, 232, 0.3);
@@ -38,10 +33,6 @@ interface TransactionModel {
       display: inline-block;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
-    @media (max-width: 479px) {
-      .tx-form-grid { grid-template-columns: 1fr; }
-      .tx-status-hint { display: none; }
-    }
   `],
 })
 export class TransactionFormComponent implements OnInit {

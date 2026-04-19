@@ -18,12 +18,6 @@ type FilterStatus = 'TODOS' | 'PENDENTE' | 'PAGO';
   imports: [CommonModule, BrlCurrencyPipe],
   templateUrl: './transactions.component.html',
   styles: [`
-    /* ── Header ─────────────────────────────────────────────── */
-    .tx-header-actions {
-      display: flex;
-      gap: 0.5rem;
-    }
-
     /* ── Filter bar ──────────────────────────────────────────── */
     .tx-filter-bar {
       padding: 1rem 1.25rem;
@@ -39,132 +33,59 @@ type FilterStatus = 'TODOS' | 'PENDENTE' | 'PAGO';
       min-width: 10rem;
       max-width: 16rem;
     }
-
-    /* ── FAB ─────────────────────────────────────────────────── */
-    .tx-fab { display: none; }
-
-    /* ── Card list ───────────────────────────────────────────── */
-    .tx-card-list { display: none; }
     @media (max-width: 639px) {
-      .tx-generate-text { display: none; }
       .tx-filter-category { min-width: 0; max-width: none; width: 100%; }
     }
-    @media (max-width: 767px) {
-      .tx-btn-new { display: none; }
-      .tx-fab {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        position: fixed;
-        bottom: 1.5rem;
-        right: 1.5rem;
-        width: 56px;
-        height: 56px;
-        border-radius: 50%;
-        background: var(--color-ledger-accent);
-        color: var(--color-ledger-ink-inv);
-        border: none;
-        cursor: pointer;
-        z-index: 30;
-        box-shadow: 0 4px 16px rgba(44, 36, 22, 0.35);
-        transition: background 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
-      }
-      .tx-fab:hover {
-        background: var(--color-ledger-accent-hv);
-        transform: scale(1.06);
-        box-shadow: 0 6px 20px rgba(44, 36, 22, 0.45);
-      }
-      .tx-fab:active {
-        transform: scale(0.96);
-      }
-      .tx-table-view { display: none; }
-      .tx-card-list {
-        display: flex;
-        flex-direction: column;
-        gap: 0.5rem;
-        padding-bottom: 5rem;
-      }
-      .tx-card {
-        padding: 0.875rem 1rem;
-        display: flex;
-        flex-direction: column;
-        gap: 0.625rem;
-      }
-      .tx-card-top {
-        display: flex;
-        align-items: flex-start;
-        justify-content: space-between;
-        gap: 0.5rem;
-      }
-      .tx-card-desc {
-        display: flex;
-        align-items: center;
-        gap: 0.375rem;
-        flex: 1;
-        min-width: 0;
-      }
-      .tx-card-recurring-icon {
-        color: var(--color-ledger-ink-lt);
-        flex-shrink: 0;
-      }
-      .tx-card-title {
-        font-size: 15px;
-        font-weight: 500;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-      }
-      .tx-card-mid {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-      }
-      .tx-card-category {
-        font-size: 13px;
-        color: var(--color-ledger-ink-md);
-      }
-      .tx-card-bottom {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding-top: 0.625rem;
-        border-top: 1px solid var(--color-ledger-border-lt);
-      }
-      .tx-card-amounts {
-        display: flex;
-        gap: 1.25rem;
-      }
-      .tx-card-amount-item {
-        display: flex;
-        flex-direction: column;
-        gap: 2px;
-      }
-      .tx-card-amount-value {
-        font-family: var(--font-mono);
-        font-size: 14px;
-        line-height: 1;
-      }
-      .tx-card-actions {
-        display: flex;
-        gap: 4px;
-      }
-      .tx-card-summary {
-        padding: 1rem;
-        display: flex;
-        flex-direction: column;
-        gap: 0.625rem;
-      }
-      .tx-summary-row {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-      }
-      .tx-summary-value {
-        font-family: var(--font-mono);
-        font-size: 14px;
-        font-weight: 500;
-      }
+
+    /* ── Card layout ─────────────────────────────────────────── */
+    .tx-card {
+      padding: 0.875rem 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.625rem;
     }
+    .tx-card-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 0.5rem;
+    }
+    .tx-card-desc {
+      display: flex;
+      align-items: center;
+      gap: 0.375rem;
+      flex: 1;
+      min-width: 0;
+    }
+    .tx-card-recurring-icon { color: var(--color-ledger-ink-lt); flex-shrink: 0; }
+    .tx-card-title {
+      font-size: 15px;
+      font-weight: 500;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .tx-card-mid { display: flex; align-items: center; justify-content: space-between; }
+    .tx-card-category { font-size: 13px; color: var(--color-ledger-ink-md); }
+    .tx-card-bottom {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 0.625rem;
+      border-top: 1px solid var(--color-ledger-border-lt);
+    }
+    .tx-card-amounts { display: flex; gap: 1.25rem; }
+    .tx-card-amount-item { display: flex; flex-direction: column; gap: 2px; }
+    .tx-card-amount-value { font-family: var(--font-mono); font-size: 14px; line-height: 1; }
+    .tx-card-actions { display: flex; gap: 4px; }
+    .tx-card-summary {
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.625rem;
+    }
+    .tx-summary-row { display: flex; align-items: center; justify-content: space-between; }
+    .tx-summary-value { font-family: var(--font-mono); font-size: 14px; font-weight: 500; }
   `],
 })
 export class TransactionsComponent implements OnInit {

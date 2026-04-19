@@ -74,7 +74,7 @@
         </div>
 
         <!-- Mês / Ano de referência -->
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+        <div class="tx-form-grid">
           <div class="ledger-form-group" style="margin-bottom: 0;">
             <label class="ledger-label">Mês de referência *</label>
             <select
@@ -97,7 +97,7 @@
         </div>
 
         <!-- Valores -->
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+        <div class="tx-form-grid">
           <!-- Valor previsto -->
           <div class="ledger-form-group" style="margin-bottom: 0;">
             <label class="ledger-label">Valor previsto *</label>
@@ -138,7 +138,7 @@
           <span class="text-body-sm" style="color: var(--color-ledger-ink-lt)">Status resultante:</span>
           <span [class]="statusLabel() === 'PAGO' ? 'badge-paid' : 'badge-pending'">{{ statusLabel() }}</span>
           @if (statusLabel() === 'PENDENTE') {
-            <span class="text-body-sm" style="color: var(--color-ledger-ink-lt)">— preencha o valor pago para marcar como PAGO</span>
+            <span class="tx-status-hint text-body-sm" style="color: var(--color-ledger-ink-lt)">— preencha o valor pago para marcar como PAGO</span>
           }
         </div>
       </form>
@@ -155,14 +155,3 @@
   }
 </div>
 
-<style>
-  .loader {
-    width: 14px; height: 14px;
-    border: 2px solid rgba(245, 240, 232, 0.3);
-    border-top-color: var(--color-ledger-ink-inv);
-    border-radius: 50%;
-    animation: spin 0.6s linear infinite;
-    display: inline-block;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
-</style>

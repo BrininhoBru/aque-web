@@ -1,6 +1,10 @@
 <div class="app-shell-layout">
   <app-sidebar />
 
+  @if (layout.sidebarOpen()) {
+    <div class="sidebar-backdrop" (click)="layout.close()"></div>
+  }
+
   <div class="app-shell-content">
     <header class="app-shell-header">
       <app-header />

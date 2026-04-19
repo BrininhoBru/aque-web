@@ -22,7 +22,7 @@
     <p class="sidebar-section-label">Principal</p>
 
     @for (item of mainNav; track item.path) {
-      <a [routerLink]="item.path" routerLinkActive="nav-active" class="nav-link">
+      <a [routerLink]="item.path" routerLinkActive="nav-active" class="nav-link" (click)="onNavClick()">
         <span [innerHTML]="item.icon"></span>
         <span>{{ item.label }}</span>
       </a>
@@ -31,7 +31,7 @@
     <p class="sidebar-section-label" style="margin-top: 1rem;">Cadastros</p>
 
     @for (item of secondaryNav; track item.path) {
-      <a [routerLink]="item.path" routerLinkActive="nav-active" class="nav-link">
+      <a [routerLink]="item.path" routerLinkActive="nav-active" class="nav-link" (click)="onNavClick()">
         <span [innerHTML]="item.icon"></span>
         <span>{{ item.label }}</span>
       </a>

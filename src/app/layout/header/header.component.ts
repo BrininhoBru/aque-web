@@ -34,13 +34,13 @@ import { LayoutService } from '../layout.service';
       display: flex;
       align-items: center;
       justify-content: center;
-      width: 28px;
-      height: 28px;
+      width: 40px;
+      height: 40px;
       border-radius: var(--radius-ledger-sm);
       border: 1px solid var(--color-ledger-border-md);
       background: var(--color-ledger-card);
       color: var(--color-ledger-ink-md);
-      font-size: 18px;
+      font-size: 20px;
       line-height: 1;
       cursor: pointer;
       transition: all 0.15s ease;
@@ -53,7 +53,7 @@ import { LayoutService } from '../layout.service';
       display: flex;
       align-items: center;
       gap: 6px;
-      padding: 6px 10px;
+      padding: 8px 12px;
       border-radius: var(--radius-ledger-sm);
       font-size: 13px;
       font-weight: 500;
@@ -66,6 +66,11 @@ import { LayoutService } from '../layout.service';
     .header-logout:hover {
       background: var(--color-ledger-stripe);
       color: var(--color-ledger-ink);
+    }
+    @media (max-width: 479px) {
+      .header-logout-text {
+        display: none;
+      }
     }
   `],
 })

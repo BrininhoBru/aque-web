@@ -1,8 +1,9 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { SidebarComponent } from '../sidebar/sidebar.component';
 import { HeaderComponent } from '../header/header.component';
 import { ToastComponent } from '../../shared/components/toast/toast.component';
+import { LayoutService } from '../layout.service';
 
 @Component({
   selector: 'app-shell',
@@ -39,6 +40,26 @@ import { ToastComponent } from '../../shared/components/toast/toast.component';
       padding: 2rem;
       background: var(--color-ledger-page);
     }
+    .sidebar-backdrop {
+      display: none;
+    }
+    @media (max-width: 767px) {
+      .app-shell-header {
+        padding: 0 1rem;
+      }
+      .app-shell-main {
+        padding: 1rem;
+      }
+      .sidebar-backdrop {
+        display: block;
+        position: fixed;
+        inset: 0;
+        z-index: 40;
+        background: rgba(0, 0, 0, 0.5);
+      }
+    }
   `],
 })
-export class AppShellComponent {}
+export class AppShellComponent {
+  readonly layout = inject(LayoutService);
+}

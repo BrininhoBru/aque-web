@@ -24,6 +24,24 @@ interface NavItem {
     :host.sidebar-closed {
       width: 0;
     }
+    @media (max-width: 767px) {
+      :host {
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100vh;
+        height: 100dvh;
+        z-index: 50;
+        width: 15rem;
+        overflow: visible;
+        transition: transform 0.25s ease;
+        box-shadow: 4px 0 32px rgba(0, 0, 0, 0.5);
+      }
+      :host.sidebar-closed {
+        width: 15rem;
+        transform: translateX(-100%);
+      }
+    }
     .sidebar {
       display: flex;
       flex-direction: column;
@@ -131,6 +149,12 @@ export class SidebarComponent {
 
   @HostBinding('class.sidebar-closed') get isClosed() {
     return !this.layout.sidebarOpen();
+  }
+
+  onNavClick(): void {
+    if (typeof window !== 'undefined' && window.innerWidth < 768) {
+      this.layout.close();
+    }
   }
 
   readonly mainNav: NavItem[] = [

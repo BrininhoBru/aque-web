@@ -107,6 +107,7 @@
                   <th class="col-num">Previsto</th>
                   <th class="col-num">Pago</th>
                   <th>Status</th>
+                  <th>Vencimento</th>
                   <th></th>
                 </tr>
               </thead>
@@ -139,6 +140,9 @@
                     <td>
                       <span [class]="t.status === 'PAGO' ? 'badge-paid' : 'badge-pending'">{{ t.status }}</span>
                     </td>
+                    <td class="text-body-sm" style="color: var(--color-ledger-ink-md); white-space: nowrap;">
+                      {{ t.dueDate ? (t.dueDate | date:'dd/MM/yyyy') : '—' }}
+                    </td>
                     <td>
                       <div style="display: flex; align-items: center; gap: 2px;">
                         <button class="btn-ghost btn-icon" (click)="goToEdit(t.id)" title="Editar">
@@ -161,7 +165,7 @@
                   <td colspan="3" style="color: var(--color-ledger-ink-md);">Totais do mês</td>
                   <td class="col-num" style="color: var(--color-ledger-negative);">{{ totalExpected() | brlCurrency }}</td>
                   <td class="col-num" style="color: var(--color-ledger-positive);">{{ totalPaid() | brlCurrency }}</td>
-                  <td colspan="2">
+                  <td colspan="3">
                     <span style="font-size: 11px; color: var(--color-ledger-ink-lt);">
                       Rec. prev.: {{ totalIncomeExpected() | brlCurrency }}
                     </span>
@@ -204,7 +208,12 @@
 
             <div class="tx-card-mid">
               <span class="tx-card-category">{{ t.category.name }}</span>
-              <span [class]="t.status === 'PAGO' ? 'badge-paid' : 'badge-pending'">{{ t.status }}</span>
+              <div style="display: flex; align-items: center; gap: 0.5rem;">
+                @if (t.dueDate) {
+                  <span class="text-body-sm" style="color: var(--color-ledger-ink-lt);">venc. {{ t.dueDate | date:'dd/MM' }}</span>
+                }
+                <span [class]="t.status === 'PAGO' ? 'badge-paid' : 'badge-pending'">{{ t.status }}</span>
+              </div>
             </div>
 
             <div class="tx-card-bottom">

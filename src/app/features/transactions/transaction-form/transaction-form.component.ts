@@ -16,6 +16,7 @@ interface TransactionModel {
   referenceYear: number;
   amountExpected: number;
   amountPaid: number | null;
+  dueDate: string | null;
 }
 
 @Component({
@@ -65,6 +66,7 @@ export class TransactionFormComponent implements OnInit {
     referenceYear: this.monthYear.year(),
     amountExpected: 0,
     amountPaid: null,
+    dueDate: null,
   });
 
   readonly transactionForm = form(this.model, (f) => {
@@ -128,6 +130,7 @@ export class TransactionFormComponent implements OnInit {
             referenceYear: t.referenceYear,
             amountExpected: t.amountExpected,
             amountPaid: t.amountPaid,
+            dueDate: t.dueDate,
           });
         } else {
           this.toast.error('Lançamento não encontrado.');
@@ -166,6 +169,7 @@ export class TransactionFormComponent implements OnInit {
       referenceYear: data.referenceYear,
       amountExpected: data.amountExpected,
       amountPaid,
+      dueDate: data.dueDate || null,
     };
 
     const id = this.editingId();

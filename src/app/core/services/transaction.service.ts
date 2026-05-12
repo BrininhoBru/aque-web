@@ -19,6 +19,7 @@ export interface TransactionPayload {
   referenceYear: number;
   amountExpected: number;
   amountPaid?: number | null;
+  dueDate?: string | null;
 }
 
 @Injectable({ providedIn: 'root' })

@@ -133,6 +133,30 @@
           </div>
         </div>
 
+        <!-- Data de vencimento -->
+        <div class="ledger-form-group" style="margin-bottom: 0;">
+          <label class="ledger-label">
+            Data de vencimento
+            <span style="text-transform: none; letter-spacing: normal; font-weight: 400; opacity: 0.6;">— opcional</span>
+          </label>
+          <div style="position: relative;">
+            <input
+              class="ledger-input"
+              type="date"
+              [value]="transactionForm.dueDate().value() ?? ''"
+              (change)="transactionForm.dueDate().value.set($any($event.target).value || null)"
+            />
+            @if (transactionForm.dueDate().value()) {
+              <button
+                type="button"
+                style="position: absolute; right: 0.5rem; top: 50%; transform: translateY(-50%); font-size: 13px; color: var(--color-ledger-ink-lt); background: none; border: none; cursor: pointer; line-height: 1;"
+                (click)="transactionForm.dueDate().value.set(null)"
+                title="Limpar data de vencimento"
+              >✕</button>
+            }
+          </div>
+        </div>
+
         <!-- Status derivado -->
         <div style="display: flex; align-items: center; gap: 0.75rem; padding: 0.625rem 0.875rem; border-radius: var(--radius-ledger-md); background: var(--color-ledger-stripe); border: 1px solid var(--color-ledger-border-lt);">
           <span class="text-body-sm" style="color: var(--color-ledger-ink-lt)">Status resultante:</span>

@@ -22,6 +22,7 @@ export interface Transaction {
   amountExpected: number;
   amountPaid: number | null;
   status: 'PENDENTE' | 'PAGO';
+  dueDate: string | null;
   recurringId: string | null;
   isOverride: boolean;
 }

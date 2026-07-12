@@ -6,6 +6,12 @@ import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { authGuard } from './auth.guard';
 import { AuthService } from './auth.service';
 
+// Monta um JWT falso só com o payload que AuthService.isAuthenticated() realmente lê
+function fakeJwt(expSeconds: number): string {
+  const payload = btoa(JSON.stringify({ exp: Math.floor(expSeconds) }));
+  return `header.${payload}.signature`;
+}
+
 describe('authGuard', () => {
   let router: Router;
   let authService: AuthService;
@@ -43,7 +49,7 @@ describe('authGuard', () => {
   });
 
   it('deve permitir acesso com token válido', () => {
-    localStorage.setItem('aque_token', 'token-valido');
+    localStorage.setItem('aque_token', fakeJwt(Date.now() / 1000 + 3600));
 
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({

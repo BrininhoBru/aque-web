@@ -4,6 +4,12 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideRouter } from '@angular/router';
 import { AuthService } from './auth.service';
 
+// Monta um JWT falso só com o payload que isAuthenticated() realmente lê (exp em segundos)
+function fakeJwt(expSeconds: number): string {
+  const payload = btoa(JSON.stringify({ exp: Math.floor(expSeconds) }));
+  return `header.${payload}.signature`;
+}
+
 describe('AuthService', () => {
   let service: AuthService;
   let http: HttpTestingController;
@@ -33,8 +39,8 @@ describe('AuthService', () => {
       expect(service.isAuthenticated()).toBeFalse();
     });
 
-    it('deve retornar true quando há token no localStorage', () => {
-      localStorage.setItem('aque_token', 'token-valido');
+    it('deve retornar true quando há token válido e não expirado no localStorage', () => {
+      localStorage.setItem('aque_token', fakeJwt(Date.now() / 1000 + 3600));
       // Recria o serviço para pegar o token do localStorage
       TestBed.resetTestingModule();
       TestBed.configureTestingModule({
@@ -48,6 +54,36 @@ describe('AuthService', () => {
       const svc = TestBed.inject(AuthService);
       expect(svc.isAuthenticated()).toBeTrue();
     });
+
+    it('deve retornar false quando o token está expirado', () => {
+      localStorage.setItem('aque_token', fakeJwt(Date.now() / 1000 - 3600));
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({
+        providers: [
+          AuthService,
+          provideHttpClient(),
+          provideHttpClientTesting(),
+          provideRouter([]),
+        ],
+      });
+      const svc = TestBed.inject(AuthService);
+      expect(svc.isAuthenticated()).toBeFalse();
+    });
+
+    it('deve retornar false quando o token não é um JWT válido', () => {
+      localStorage.setItem('aque_token', 'token-nao-jwt');
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({
+        providers: [
+          AuthService,
+          provideHttpClient(),
+          provideHttpClientTesting(),
+          provideRouter([]),
+        ],
+      });
+      const svc = TestBed.inject(AuthService);
+      expect(svc.isAuthenticated()).toBeFalse();
+    });
   });
 
   describe('login()', () => {
@@ -58,11 +94,12 @@ describe('AuthService', () => {
       expect(req.request.method).toBe('POST');
       expect(req.request.body).toEqual({ username: 'admin', password: '123456' });
 
-      req.flush({ token: 'jwt-token-mock', expiresIn: 3600 });
+      const mockToken = fakeJwt(Date.now() / 1000 + 3600);
+      req.flush({ token: mockToken, expiresIn: 3600 });
 
-      expect(localStorage.getItem('aque_token')).toBe('jwt-token-mock');
+      expect(localStorage.getItem('aque_token')).toBe(mockToken);
       expect(service.isAuthenticated()).toBeTrue();
-      expect(service.getToken()).toBe('jwt-token-mock');
+      expect(service.getToken()).toBe(mockToken);
     });
 
     it('deve emitir erro quando credenciais inválidas', () => {

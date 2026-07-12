@@ -87,4 +87,30 @@ describe('authInterceptor', () => {
 
     expect(authService.logout).toHaveBeenCalled();
   });
+
+  it('deve chamar logout e redirecionar ao receber 403 (é o que o backend realmente retorna pra token inválido/expirado)', () => {
+    localStorage.setItem('aque_token', 'token-invalido');
+
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [
+        AuthService,
+        provideRouter([{ path: 'login', component: class {} as any }]),
+        provideHttpClient(withInterceptors([authInterceptor])),
+        provideHttpClientTesting(),
+      ],
+    });
+    http = TestBed.inject(HttpClient);
+    httpMock = TestBed.inject(HttpTestingController);
+    authService = TestBed.inject(AuthService);
+
+    spyOn(authService, 'logout');
+    http.get('/api/transactions').subscribe({ error: () => {} });
+
+    httpMock
+      .expectOne('/api/transactions')
+      .flush({ message: 'Forbidden' }, { status: 403, statusText: 'Forbidden' });
+
+    expect(authService.logout).toHaveBeenCalled();
+  });
 });

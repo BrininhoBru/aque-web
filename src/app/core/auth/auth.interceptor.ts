@@ -11,7 +11,9 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
 
   return next(authReq).pipe(
     catchError((error: HttpErrorResponse) => {
-      if (error.status === 401) {
+      // backend só usa 401 pra credencial errada no login (não autenticado ainda);
+      // token ausente/inválido/expirado nas rotas protegidas vem como 403 (Spring Security)
+      if (error.status === 401 || error.status === 403) {
         auth.logout();
       }
       return throwError(() => error);

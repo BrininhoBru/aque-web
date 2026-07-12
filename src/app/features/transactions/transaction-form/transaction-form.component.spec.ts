@@ -37,6 +37,7 @@ describe('TransactionFormComponent', () => {
         referenceYear: 2026,
         amountExpected: 1800,
         amountPaid: null,
+        dueDate: null,
       });
       fixture.detectChanges();
       expect(component.formValid()).toBeTrue();
@@ -51,6 +52,7 @@ describe('TransactionFormComponent', () => {
         referenceYear: 2026,
         amountExpected: 0,
         amountPaid: null,
+        dueDate: null,
       });
       fixture.detectChanges();
       expect(component.formValid()).toBeFalse();
@@ -65,6 +67,7 @@ describe('TransactionFormComponent', () => {
         referenceYear: 2026,
         amountExpected: 500,
         amountPaid: null,
+        dueDate: null,
       });
       fixture.detectChanges();
       expect(component.formValid()).toBeFalse();

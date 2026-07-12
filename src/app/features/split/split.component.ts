@@ -164,10 +164,13 @@ export class SplitComponent implements OnInit {
     const { year, month } = this.monthYear.selected();
 
     const payload: SplitPayload = {
-      items: this.items().map((i) => ({
-        personId: i.person.id,
-        percentage: i.percentage,
-      })),
+      // backend rejeita percentage <= 0 (regra: só quem tem participação real entra na divisão)
+      items: this.items()
+        .filter((i) => i.percentage > 0)
+        .map((i) => ({
+          personId: i.person.id,
+          percentage: i.percentage,
+        })),
     };
 
     this.splitService.save(year, month, payload).subscribe({

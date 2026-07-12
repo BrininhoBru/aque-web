@@ -108,8 +108,7 @@ describe('SplitComponent', () => {
 
       const req = httpMock.expectOne((r) => r.method === 'PUT' && r.url.startsWith('/api/split/'));
       expect(req.request.body.items).toEqual([{ personId: '1', percentage: 100 }]);
-      req.flush({ id: '1', referenceMonth: 1, referenceYear: 2026, items: [] });
-    });
+      req.flush({ year: 2026, month: 1, items: [] });
 
     it('não deve salvar quando a soma dos percentuais não é 100%', () => {
       component['items'].set([{ person: { id: '1', name: 'Eu' }, percentage: 50 }]);

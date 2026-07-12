@@ -74,4 +74,4 @@ Dashboard uses **ng-apexcharts** (`ng-apexcharts` + `apexcharts`). Chart option 
 All interfaces live in `src/app/core/models/index.ts`. Key types:
 - `Transaction` — has `referenceMonth`/`referenceYear`, `amountExpected`/`amountPaid`, `status: PENDENTE|PAGO`
 - `RecurringTransaction` — template that generates monthly transactions; linked via `recurringId` on `Transaction`
-- `SplitRule` / `SplitResult` — per-month expense split among `Person` entries by percentage
+- `SplitRule` / `SplitResult` — per-month expense split among `Person` entries by percentage 

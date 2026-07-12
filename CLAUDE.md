@@ -60,10 +60,10 @@ src/app/
 
 ### Styling
 
-- **Tailwind CSS v4** (PostCSS plugin, no config file)
-- Dark-only theme via CSS custom properties defined in `src/styles.css` (`--color-bg`, `--color-surface`, `--color-primary`, etc.)
-- Reusable utility classes defined in `@layer components`: `.card`, `.card-glass`, `.btn`, `.btn-primary`, `.btn-ghost`, `.btn-danger`, `.input`, `.label`, `.badge-pago`, `.badge-pendente`, `.badge-receita`, `.badge-despesa`, `.page-title`
-- Fonts: **DM Sans** (body) and **Syne** (display/headings) from Google Fonts
+- **Tailwind CSS v4** (PostCSS plugin, no config file) — the entire design system is CSS-based config in `src/styles.css` via `@theme`
+- Light "ledger" (cream/paper) theme by default via CSS custom properties (`--color-ledger-*`) in `src/styles.css`, with an opt-in dark mode: `@custom-variant dark (&:where(.dark, .dark *))` plus a `.dark { ... }` block redefining every `--color-ledger-*` token. Toggled by `ThemeService` (`core/services/theme.service.ts`), which adds/removes the `.dark` class on `<html>`, persists the choice in `localStorage`, and defaults to OS preference (`prefers-color-scheme`) on first load
+- Reusable classes: `.ledger-card`, `.ledger-input`, `.ledger-label`, `.ledger-table`, `.btn-primary`/`-secondary`/`-ghost`/`-danger`, `.badge-paid`/`-pending`/`-income`/`-expense`
+- Fonts: **Crimson Pro** (serif/display) and **DM Mono** (numeric/mono) from Google Fonts
 
 ### Charts
 

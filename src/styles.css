@@ -2,6 +2,8 @@
 @import 'tailwindcss';
 @source "./app/**/*.html";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   /* ── Paleta Ledger ───────────────────────────────────────── */
   --color-ledger-page:         #EDE8DE;
@@ -76,6 +78,42 @@
   --shadow-ledger-elevated: 0 2px 8px rgba(44, 36, 22, 0.12);
   --shadow-ledger-focus:    0 0 0 3px rgba(74, 62, 42, 0.12);
   --shadow-ledger-focus-ng: 0 0 0 3px rgba(139, 49, 34, 0.12);
+}
+
+.dark {
+  --color-ledger-page:         #1C1810;
+  --color-ledger-surface:      #241F16;
+  --color-ledger-card:         #2A2419;
+  --color-ledger-input:        #211C13;
+  --color-ledger-stripe:       #302A1D;
+
+  --color-ledger-ink:          #EDE6D6;
+  --color-ledger-ink-md:       #C4B79A;
+  --color-ledger-ink-lt:       #8F836A;
+  --color-ledger-ink-inv:      #2C2416;
+
+  --color-ledger-positive:     #6FBF83;
+  --color-ledger-positive-bg:  #1E2F22;
+  --color-ledger-positive-bd:  #3D5C46;
+
+  --color-ledger-negative:     #E08A72;
+  --color-ledger-negative-bg:  #33231E;
+  --color-ledger-negative-bd:  #5C3F35;
+
+  --color-ledger-pending:      #D9B85C;
+  --color-ledger-pending-bg:   #332C1A;
+  --color-ledger-pending-bd:   #5C4E2E;
+
+  --color-ledger-border-lt:    #3A3324;
+  --color-ledger-border-md:    #46402E;
+  --color-ledger-border-st:    #5C543D;
+
+  --color-ledger-accent:       #C8B898;
+  --color-ledger-accent-hv:    #EDE6D6;
+
+  --color-ledger-side-bg:      #14110B;
+  --color-ledger-side-text:    #A99A7C;
+  --color-ledger-side-active:  #EDE6D6;
 }
 
 *,
@@ -500,4 +538,8 @@ app-header {
   animation: skeleton-shimmer 1.5s infinite linear;
   border-radius: var(--radius-ledger-sm);
   display: inline-block;
+}
+.dark .ledger-skeleton {
+  background: linear-gradient(90deg, #302A1D 25%, #46402E 50%, #302A1D 75%);
+  background-size: 1200px 100%;
 }

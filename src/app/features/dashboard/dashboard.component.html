@@ -10,7 +10,7 @@
   <!-- Skeleton loading -->
   @if (loading()) {
     <div class="cards-grid">
-      @for (i of [1, 2, 3, 4, 5, 6]; track i) {
+      @for (i of [1, 2, 3, 4, 5, 6, 7]; track i) {
         <div class="ledger-card" style="padding: 1.25rem; display: flex; flex-direction: column; gap: 0.75rem;">
           <div class="ledger-skeleton" style="height: 11px; width: 80px;"></div>
           <div class="ledger-skeleton" style="height: 26px; width: 120px;"></div>
@@ -77,6 +77,28 @@
           {{ summary()!.balancePaid | brlCurrency }}
         </span>
       </div>
+
+      <div class="ledger-card" style="padding: 1.25rem; display: flex; flex-direction: column; gap: 0.375rem;">
+        <span class="ledger-label">Despesas pendentes</span>
+        <span class="ledger-num-xl" style="color: var(--color-ledger-pending)">
+          {{ summary()!.totalExpensePending | brlCurrency }}
+        </span>
+      </div>
+
+      @if (hasOverdue()) {
+        <div
+          class="ledger-card"
+          style="padding: 1.25rem; display: flex; flex-direction: column; gap: 0.375rem;
+                 background: var(--color-ledger-pending-bg); border-color: var(--color-ledger-pending-bd);"
+        >
+          <span class="ledger-label" style="color: var(--color-ledger-pending)">
+            ⚠ Atrasado ({{ summary()!.totalOverdueCount }})
+          </span>
+          <span class="ledger-num-xl" style="color: var(--color-ledger-pending)">
+            {{ summary()!.totalOverdueAmount | brlCurrency }}
+          </span>
+        </div>
+      }
     </div>
 
     <!-- Linha 2: Gráfico de pizza + Divisão -->

@@ -91,6 +91,8 @@ export class DashboardComponent {
 
   readonly balancePaidPositive = computed(() => (this.summary()?.balancePaid ?? 0) >= 0);
 
+  readonly hasOverdue = computed(() => (this.summary()?.totalOverdueCount ?? 0) > 0);
+
   readonly filteredByCategory = computed(() =>
     this.byCategory().filter((c) => c.category.type === this.pieFilter()),
   );

@@ -54,6 +54,10 @@ export interface DashboardSummary {
   totalExpensePaid: number;
   balanceExpected: number;
   balancePaid: number;
+  totalIncomePending: number;
+  totalExpensePending: number;
+  totalOverdueAmount: number;
+  totalOverdueCount: number;
 }
 
 export interface CategoryTotal {

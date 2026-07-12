@@ -31,12 +31,7 @@ COPY --from=build /app/dist/aque-web/browser /usr/share/nginx/html
 # Copia a configuração customizada do Nginx
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# Gera certificado auto-assinado para HTTPS local
-RUN apk add --no-cache openssl && \
-    mkdir -p /etc/nginx/certs && \
-    openssl req -x509 -nodes -days 3650 -newkey rsa:2048 \
-      -keyout /etc/nginx/certs/aque.key \
-      -out /etc/nginx/certs/aque.crt \
-      -subj "/CN=aque.local/O=Aque/C=BR"
+# nginx.conf e certs/ são bind mounts em produção (ver docker-compose.yml no
+# Rasp) — não há mais geração de certificado aqui, seria sempre sobrescrita
 
 EXPOSE 80 443

@@ -3,10 +3,10 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Tech Debt & Testing Cleanup
 status: planning
-last_updated: "2026-08-02T00:52:06.244Z"
+last_updated: "2026-08-01T00:00:00.000Z"
 last_activity: 2026-08-01
 progress:
-  total_phases: 0
+  total_phases: 3
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -20,14 +20,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-08-01)
 
 **Core value:** Let the user view and manage their money quickly and without friction.
-**Current focus:** No active phase — baseline onboarding complete, awaiting next milestone scope.
+**Current focus:** Phase 1 — API Config & Type Cleanup
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-08-01 — Milestone v1.0 started
+Phase: 1 of 3 (API Config & Type Cleanup)
+Plan: — (not yet planned)
+Status: Ready to plan
+Last activity: 2026-08-01 — Roadmap created, 8/8 requirements mapped across 3 phases
+
+Progress: [░░░░░░░░░░] 0%
 
 ## Performance Metrics
 
@@ -56,6 +58,8 @@ Last activity: 2026-08-01 — Milestone v1.0 started
 
 Decisions are logged in PROJECT.md Key Decisions table.
 
+- Roadmap: tech-debt phases (1, 2) run before the testing phase (3) — DEBT-01/-04/-02 change the exact URLs, form shape, and toast messages the specs would assert on
+- Roadmap: `auth.service.ts`'s `/api/auth/login` is in DEBT-01 scope too, not just the 6 domain services — one base, all callers
 - Onboarding: Signals over NgRx — simpler state for a small, single-domain app
 - Onboarding: JWT in localStorage, not httpOnly cookie — acceptable risk at current scale
 
@@ -65,8 +69,8 @@ None yet.
 
 ### Blockers/Concerns
 
-- No `environment.ts` — every service hardcodes its own `/api/...` base path; blocks split-origin deployment without a refactor across services (see CONCERNS.md)
-- Generic, non-actionable HTTP error toasts discard the real `HttpErrorResponse` — no observability into production errors
+- No `environment.ts` — every service hardcodes its own `/api/...` base path (addressed in Phase 1)
+- Generic, non-actionable HTTP error toasts discard the real `HttpErrorResponse` (addressed in Phase 2)
 
 ## Deferred Items
 
@@ -77,5 +81,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-08-01
-Stopped at: Brownfield onboarding complete (codebase map + PROJECT.md + REQUIREMENTS.md + ROADMAP.md + STATE.md)
+Stopped at: ROADMAP.md created for milestone v1.0; REQUIREMENTS.md traceability populated
 Resume file: None

@@ -34,24 +34,24 @@ None deferred from this milestone — all 8 audit issues are in scope.
 
 ## Traceability
 
-Populated during roadmap creation.
-
-| Requirement | Phase | Status |
-|-------------|-------|--------|
-| TEST-01 | TBD | Pending |
-| TEST-02 | TBD | Pending |
-| TEST-03 | TBD | Pending |
-| DEBT-01 | TBD | Pending |
-| DEBT-02 | TBD | Pending |
-| DEBT-03 | TBD | Pending |
-| DEBT-04 | TBD | Pending |
-| DEBT-05 | TBD | Pending |
+| Requirement | GH Issue | Phase | Status |
+|-------------|----------|-------|--------|
+| DEBT-01 | #5 | Phase 1 | Pending |
+| DEBT-04 | #9 | Phase 1 | Pending |
+| DEBT-05 | #10 | Phase 1 | Pending |
+| DEBT-02 | #6 | Phase 2 | Pending |
+| DEBT-03 | #7 | Phase 2 | Pending |
+| TEST-01 | #3 | Phase 3 | Pending |
+| TEST-02 | #4 | Phase 3 | Pending |
+| TEST-03 | #8 | Phase 3 | Pending |
 
 **Coverage:**
 - v1.0 requirements: 8 total
-- Mapped to phases: 0 (pending roadmap)
-- Unmapped: 8 ⚠️ (roadmap not yet created)
+- Mapped to phases: 8 ✓
+- Unmapped: 0
+
+**Sequencing note:** the tech-debt phases run before the testing phase on purpose. DEBT-01 rewrites the URL literal in all 7 services TEST-01 specs, DEBT-04 changes the login form shape TEST-02 asserts against, and DEBT-02 changes the toast messages TEST-03 asserts against. Specs written first would be rewritten.
 
 ---
 *Requirements defined: 2026-08-01*
-*Last updated: 2026-08-01 after milestone v1.0 scoping*
+*Last updated: 2026-08-01 after roadmap creation (traceability populated)*

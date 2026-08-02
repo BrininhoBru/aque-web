@@ -7,7 +7,7 @@ No external API integration: this phase adds no third-party service, SDK, or out
 | Check | Result |
 |-------|--------|
 | New outbound service/SDK/API | None |
-| New dependency in `package.json` | None — gated by `git diff --exit-code package.json package-lock.json` in the plan's `<verification>` (threat T-01-SC) |
+| New dependency in `package.json` | None — gated by `git diff --exit-code package.json package-lock.json` in each plan's `<verification>` (threat T-01-SC) |
 | Request destinations changed | None — `apiBaseUrl` is `/api` in both environments, identical to the 7 literals it replaces |
 | Credentials / API keys introduced | None — the environment object has exactly one member, `apiBaseUrl` (threat T-01-02) |
 

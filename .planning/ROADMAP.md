@@ -33,8 +33,10 @@ The ordering is deliberate: **all source-shape changes land before any spec is w
   3. The Signal Forms field callback in `login.component.ts:160` is typed against the login model — no `any` in its signature
   4. The ApexCharts donut formatter in `dashboard.component.ts:139` is typed against the ApexCharts option type — no `any`
   5. `npm run build` succeeds and `npm test` passes with the existing 10 specs still green
-**Plans**: 1 plan
-- [ ] 01-01-PLAN.md — Configured API base (DEBT-01) + typed Signal Forms and ApexCharts callbacks (DEBT-04, DEBT-05)
+**Plans**: 3 plans
+- [ ] 01-01-PLAN.md — Tracer: environment config modules, angular.json file replacement, auth.service migrated (DEBT-01) [wave 1]
+- [ ] 01-02-PLAN.md — Expansion: 6 domain services + 3 specs migrated, whole-tree literal gate (DEBT-01, closes #5) [wave 2]
+- [ ] 01-03-PLAN.md — Typed Signal Forms schema callback and ApexCharts donut formatter (DEBT-04, DEBT-05, closes #9 #10) [wave 1]
 
 ### Phase 2: Centralized HTTP Error Handling
 **Goal**: HTTP failures surface the backend's actual message to the user and land in the logs, with the 401-vs-403 auth contract written down instead of buried in an interceptor comment.
@@ -65,7 +67,7 @@ The ordering is deliberate: **all source-shape changes land before any spec is w
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 1. API Config & Type Cleanup | v1.0 | 0/1 | Planned | - |
+| 1. API Config & Type Cleanup | v1.0 | 0/3 | Planned | - |
 | 2. Centralized HTTP Error Handling | v1.0 | 0/TBD | Not started | - |
 | 3. Test Coverage for Services, Login & Toast | v1.0 | 0/TBD | Not started | - |
 

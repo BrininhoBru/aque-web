@@ -8,6 +8,16 @@ Aque Web is an Angular 21 single-page app — the frontend for **aque**, a perso
 
 Let the user view and manage their money (transactions, categories, people, recurring transactions, splits) quickly and without friction — this is a daily-use ledger tool, so speed and clarity of the transaction/dashboard views matter most.
 
+## Current Milestone: v1.0 Tech Debt & Testing Cleanup
+
+**Goal:** Close out the 8 issues filed from the `/gsd-onboard` codebase audit — the missing test coverage across services/login/toast, the `environment.ts` gap, centralized HTTP error handling, and the small typing/documentation cleanups.
+
+**Target features:**
+- Cover the untested HTTP service layer and the auth-critical login component with specs
+- Introduce `environment.ts` for API base URL config (supersedes the earlier "out of scope" call — now being addressed)
+- Centralize HTTP error handling and document the cross-repo 401/403 contract
+- Clear the small typing cleanups (Signal Forms callback, ApexCharts formatter) and add a toast spec
+
 ## Requirements
 
 ### Validated
@@ -24,13 +34,19 @@ Let the user view and manage their money (transactions, categories, people, recu
 
 ### Active
 
-<!-- No new v1 work scoped at onboarding time. -->
+<!-- Milestone v1.0: tech-debt/testing cleanup, scoped from GitHub issues #3-#10 -->
 
-(None yet — this is a baseline onboarding snapshot of an already-shipped app. Run `/gsd-new-milestone` or `/gsd-capture` to scope the next slice of work.)
+- [ ] Core HTTP services (transaction, category, person, recurring, split, dashboard, theme) have unit tests — GH #3
+- [ ] login.component.ts has a spec — GH #4
+- [ ] `environment.ts` exists with `apiBaseUrl`, replacing hardcoded `/api/...` paths — GH #5
+- [ ] HTTP error handling is centralized, surfacing backend messages and logging unexpected errors — GH #6
+- [ ] The 401 vs 403 auth-failure contract with `aque-backend` is documented or contract-tested — GH #7
+- [ ] toast service/component have specs — GH #8
+- [ ] Signal Forms field callback in login.component.ts is typed (no `any`) — GH #9
+- [ ] ApexCharts formatter in dashboard.component.ts is typed (no `any`) — GH #10
 
 ### Out of Scope
 
-- Environment-based API config (`environment.ts`) — currently every service hardcodes its own `/api/...` path; works because dev proxy and prod both serve API under the same origin. Revisit only if a split-origin deployment is ever needed.
 - NgRx / centralized state library — Signals-based per-service state is the established pattern and covers current needs
 
 ## Context
@@ -56,7 +72,7 @@ Let the user view and manage their money (transactions, categories, people, recu
 | JWT in localStorage, not httpOnly cookie | Simplicity for a single-user personal app; SPA-only, no cross-site cookie needs | ✓ Good — acceptable risk at current scale |
 
 ---
-*Last updated: 2026-08-01 after initialization*
+*Last updated: 2026-08-01 after starting milestone v1.0*
 
 ## Evolution
 

@@ -1,17 +1,10 @@
 # Testing Patterns
 
-**Analysis Date:** 2026-08-01
-
 ## Test Framework
 
-**Runner:**
-- Karma 6.4 + Jasmine 6.1 (Angular CLI default), headless Chrome via `karma-chrome-launcher`
-- Config: no standalone `karma.conf.js` in repo root — Angular CLI's built-in test builder (`@angular/build`) drives Karma via `angular.json` / project defaults
-- Coverage plugin present: `karma-coverage`
-- Interactive HTML reporter available: `karma-jasmine-html-reporter`
+**Runner:** Karma 6.4 + Jasmine 6.1 (Angular CLI default), headless Chrome via `karma-chrome-launcher`. No standalone `karma.conf.js` — Angular CLI's built-in test builder (`@angular/build`) drives Karma via `angular.json`. Coverage plugin present: `karma-coverage`. Interactive HTML reporter available: `karma-jasmine-html-reporter`.
 
-**Assertion Library:**
-- Jasmine matchers (`expect().toBe()`, `.toBeTrue()`, `.toBeFalse()`, `.toBeNull()`, `.toEqual()`, `.toHaveBeenCalled()`, `.toBeTruthy()`)
+**Assertion Library:** Jasmine matchers (`expect().toBe()`, `.toBeTrue()`, `.toBeFalse()`, `.toBeNull()`, `.toEqual()`, `.toHaveBeenCalled()`, `.toBeTruthy()`).
 
 **Run Commands:**
 ```bash
@@ -22,17 +15,13 @@ No dedicated watch/coverage npm scripts beyond `npm test` — flags can be passe
 
 ## Test File Organization
 
-**Location:**
-- Co-located: every `*.spec.ts` sits next to the file it tests, same directory
+**Location:** co-located — every `*.spec.ts` sits next to the file it tests, same directory.
 
-**Naming:**
-- `<subject>.<type>.spec.ts` matching the source file name exactly, e.g. `auth.service.spec.ts`, `auth.guard.spec.ts`, `auth.interceptor.spec.ts`, `dashboard.component.spec.ts`, `transaction-form.component.spec.ts`
+**Naming:** `<subject>.<type>.spec.ts` matching the source file name exactly, e.g. `auth.service.spec.ts`, `auth.guard.spec.ts`, `auth.interceptor.spec.ts`, `dashboard.component.spec.ts`, `transaction-form.component.spec.ts`.
 
-**Coverage in repo (as of analysis):**
+**Coverage in repo:**
 - `src/app/app.spec.ts`
-- `src/app/core/auth/auth.service.spec.ts`
-- `src/app/core/auth/auth.guard.spec.ts`
-- `src/app/core/auth/auth.interceptor.spec.ts`
+- `src/app/core/auth/auth.service.spec.ts`, `auth.guard.spec.ts`, `auth.interceptor.spec.ts`
 - `src/app/core/services/month-year.service.spec.ts`
 - `src/app/features/dashboard/dashboard.component.spec.ts`
 - `src/app/features/transactions/transactions.component.spec.ts`
@@ -40,11 +29,10 @@ No dedicated watch/coverage npm scripts beyond `npm test` — flags can be passe
 - `src/app/features/recurring/recurring.component.spec.ts`
 - `src/app/features/split/split.component.spec.ts`
 
-Notably untested: `categories.component.ts`, `persons.component.ts`, `login.component.ts`, layout components (`app-shell`, `header`, `sidebar`), `toast.service.ts`, pipes (`brl-currency.pipe.ts`, `month-year.pipe.ts`) — no spec files found for these.
+Notably untested: `categories.component.ts`, `persons.component.ts`, `login.component.ts`, layout components (`app-shell`, `header`, `sidebar`), `toast.service.ts`, pipes (`brl-currency.pipe.ts`, `month-year.pipe.ts`) — see `CONCERNS.md`.
 
 ## Test Structure
 
-**Suite Organization:**
 ```typescript
 describe('AuthService', () => {
   let service: AuthService;
@@ -77,11 +65,11 @@ describe('AuthService', () => {
 - Nested `describe` blocks group tests by method/feature under test (`describe('login()', ...)`, `describe('logout()', ...)`)
 - `localStorage.clear()` in both `beforeEach` and `afterEach` to guarantee isolation for anything touching `AuthService`'s token storage
 - `http.verify()` in `afterEach` to assert no unexpected outstanding HTTP requests
-- When a test needs a service instantiated with different initial state (e.g. a pre-existing token), it calls `TestBed.resetTestingModule()` and reconfigures from scratch inside the `it()` block, rather than parameterizing `beforeEach` — see `auth.service.spec.ts:44-56` and `auth.interceptor.spec.ts:38-46`
+- When a test needs a service instantiated with different initial state (e.g. a pre-existing token), it calls `TestBed.resetTestingModule()` and reconfigures from scratch inside the `it()` block, rather than parameterizing `beforeEach`
 
 ## Mocking
 
-**Framework:** Angular's `HttpClientTestingModule` (via `provideHttpClientTesting()`) + `HttpTestingController`; Jasmine `spyOn()` for method spies
+**Framework:** Angular's `HttpClientTestingModule` (via `provideHttpClientTesting()`) + `HttpTestingController`; Jasmine `spyOn()` for method spies.
 
 **Patterns:**
 ```typescript
@@ -102,18 +90,12 @@ spyOn(authService, 'logout');
 expect(authService.logout).toHaveBeenCalled();
 ```
 
-**What to Mock:**
-- HTTP boundary only, via `HttpTestingController` — never a hand-rolled fake `HttpClient`
-- Individual methods on real, DI-provided services via `spyOn()` when only observing a call (e.g. `logout()`), not full service replacement
-- Router navigation is exercised through `provideRouter([...])` with real (stub) route configs rather than mocking `Router` — `spyOn(router, 'navigate')` is used only for assertions
+**What to mock:** HTTP boundary only, via `HttpTestingController` — never a hand-rolled fake `HttpClient`. Individual methods on real, DI-provided services via `spyOn()` when only observing a call, not full service replacement. Router navigation is exercised through `provideRouter([...])` with real (stub) route configs rather than mocking `Router`.
 
-**What NOT to Mock:**
-- Signals and computed state are never mocked — tests set state directly via public signal setters (`component.summary.set(summary({...}))`) and assert on computed outputs
-- `AuthService` itself is never mocked when testing the interceptor/guard — it's constructed for real against `localStorage` and a testing `HttpClient`
+**What NOT to mock:** Signals and computed state are never mocked — tests set state directly via public signal setters and assert on computed outputs. `AuthService` itself is never mocked when testing the interceptor/guard — it's constructed for real against `localStorage` and a testing `HttpClient`.
 
 ## Fixtures and Factories
 
-**Test Data:**
 ```typescript
 // Local factory function per spec file, using object-spread overrides
 function summary(overrides: Partial<DashboardSummary>): DashboardSummary {
@@ -135,36 +117,24 @@ function fakeJwt(expSeconds: number): string {
 }
 ```
 
-**Location:**
-- No shared fixtures directory — each spec file defines its own local factory functions at the top, scoped to what that suite needs (avoid over-fixturing; only encode fields the code under test actually reads)
+No shared fixtures directory — each spec file defines its own local factory functions at the top, scoped to what that suite needs (avoid over-fixturing; only encode fields the code under test actually reads).
 
 ## Coverage
 
-**Requirements:** None enforced (no coverage threshold config found)
-
-**View Coverage:**
-```bash
-npx ng test --code-coverage
-```
-(`karma-coverage` is installed as a devDependency, enabling this flag)
+No enforced coverage threshold. View with `npx ng test --code-coverage` (`karma-coverage` is installed as a devDependency).
 
 ## Test Types
 
-**Unit Tests:**
-- Services (`AuthService`, `MonthYearService`) tested directly via `TestBed.inject()`, no component wrapper
+**Unit Tests:** Services (`AuthService`, `MonthYearService`) tested directly via `TestBed.inject()`, no component wrapper.
 
-**Component/Integration Tests:**
-- Components tested via `TestBed.createComponent()` + `fixture.detectChanges()`, with real `HttpTestingController` backing any HTTP calls triggered by constructor `effect()`s — effectively integration tests exercising signal reactivity + HTTP + component logic together (see `dashboard.component.spec.ts`)
-- Guards and interceptors tested as plain functions via `TestBed.runInInjectionContext`-style DI setup (functional guards/interceptors, not class-based)
+**Component/Integration Tests:** Components tested via `TestBed.createComponent()` + `fixture.detectChanges()`, with real `HttpTestingController` backing any HTTP calls triggered by constructor `effect()`s — effectively integration tests exercising signal reactivity + HTTP + component logic together. Guards and interceptors tested as plain functions via DI setup (functional guards/interceptors, not class-based).
 
-**E2E Tests:**
-- Not used — no Cypress/Playwright/Protractor config found
+**E2E Tests:** Not used — no Cypress/Playwright/Protractor config.
 
 ## Common Patterns
 
 **Async Testing:**
 ```typescript
-// Component setup is `async` when compileComponents() is needed
 beforeEach(async () => {
   await TestBed.configureTestingModule({
     imports: [DashboardComponent],
@@ -194,7 +164,3 @@ it('deve emitir erro quando credenciais inválidas', () => {
 });
 ```
 Errors are asserted via a boolean flag set in the `subscribe({ error: ... })` callback, then checked after `flush()`, rather than using `catchError` or async/await patterns.
-
----
-
-*Testing analysis: 2026-08-01*

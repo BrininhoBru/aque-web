@@ -75,3 +75,13 @@ All interfaces live in `src/app/core/models/index.ts`. Key types:
 - `Transaction` — has `referenceMonth`/`referenceYear`, `amountExpected`/`amountPaid`, `status: PENDENTE|PAGO`
 - `RecurringTransaction` — template that generates monthly transactions; linked via `recurringId` on `Transaction`
 - `SplitRule` / `SplitResult` — per-month expense split among `Person` entries by percentage 
+
+## Reference docs
+
+Deeper, verified-against-code analysis lives in `.claude/docs/`: `ARCHITECTURE.md` (layers, data flow, anti-patterns), `CONVENTIONS.md` (naming, error handling, style), `STACK.md` (dependencies, versions), `STRUCTURE.md` (where to add new code), `TESTING.md` (test patterns/fixtures), `INTEGRATIONS.md` (external services, env vars), `CONCERNS.md` (tech debt, known gaps, fragile areas). Read the relevant one before a structural change or when this file doesn't have the answer.
+
+## Key decisions
+
+- **Signals over NgRx** — simpler state for a small, single-domain app.
+- **Signal Forms over `ReactiveFormsModule`** — experimental Angular API, chosen deliberately to align with the Signals-first approach.
+- **JWT in `localStorage`, not an httpOnly cookie** — acceptable risk for a single-user personal app; revisit only if the XSS threat model changes.

@@ -59,10 +59,7 @@ export class CategoriesComponent implements OnInit {
         this.categories.set(data);
         this.loading.set(false);
       },
-      error: () => {
-        this.toast.error('Erro ao carregar categorias.');
-        this.loading.set(false);
-      },
+      error: () => this.loading.set(false),
     });
   }
 
@@ -109,10 +106,7 @@ export class CategoriesComponent implements OnInit {
         this.load();
         this.saving.set(false);
       },
-      error: () => {
-        this.toast.error('Erro ao salvar categoria.');
-        this.saving.set(false);
-      },
+      error: () => this.saving.set(false),
     });
   }
 
@@ -132,10 +126,7 @@ export class CategoriesComponent implements OnInit {
         this.confirmDeleteId.set(null);
         this.load();
       },
-      error: () => {
-        this.toast.error('Não foi possível excluir esta categoria.');
-        this.confirmDeleteId.set(null);
-      },
+      error: () => this.confirmDeleteId.set(null),
     });
   }
 

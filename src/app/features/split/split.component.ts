@@ -90,7 +90,6 @@ export class SplitComponent implements OnInit {
   ngOnInit(): void {
     this.personService.getAll().subscribe({
       next: (data) => this.persons.set(data),
-      error: () => this.toast.error('Erro ao carregar pessoas.'),
     });
   }
 
@@ -111,8 +110,6 @@ export class SplitComponent implements OnInit {
         if (err.status === 404) {
           // Sem regra — inicializa com todas as pessoas em 0%
           this.initFromPersons();
-        } else {
-          this.toast.error('Erro ao carregar regra de divisão.');
         }
         this.loading.set(false);
       },
@@ -131,7 +128,6 @@ export class SplitComponent implements OnInit {
       next: (persons) => {
         this.items.set(persons.map((p) => ({ person: p, percentage: 0 })));
       },
-      error: () => this.toast.error('Erro ao carregar pessoas.'),
     });
   }
 
@@ -178,10 +174,7 @@ export class SplitComponent implements OnInit {
         this.toast.success('Regra de divisão salva!');
         this.saving.set(false);
       },
-      error: () => {
-        this.toast.error('Erro ao salvar regra de divisão.');
-        this.saving.set(false);
-      },
+      error: () => this.saving.set(false),
     });
   }
 }

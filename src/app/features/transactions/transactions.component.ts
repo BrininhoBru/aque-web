@@ -119,7 +119,6 @@ export class TransactionsComponent implements OnInit {
   ngOnInit(): void {
     this.categoryService.getAll().subscribe({
       next: (data) => this.categories.set(data),
-      error: () => this.toast.error('Erro ao carregar categorias.'),
     });
   }
 
@@ -136,10 +135,7 @@ export class TransactionsComponent implements OnInit {
         this.transactions.set(data);
         this.loading.set(false);
       },
-      error: () => {
-        this.toast.error('Erro ao carregar lançamentos.');
-        this.loading.set(false);
-      },
+      error: () => this.loading.set(false),
     });
   }
 
@@ -204,10 +200,7 @@ export class TransactionsComponent implements OnInit {
         this.generating.set(false);
         this.load();
       },
-      error: () => {
-        this.toast.error('Erro ao gerar recorrentes.');
-        this.generating.set(false);
-      },
+      error: () => this.generating.set(false),
     });
   }
 
@@ -239,7 +232,6 @@ export class TransactionsComponent implements OnInit {
         this.load();
       },
       error: () => {
-        this.toast.error('Erro ao excluir lançamento.');
         this.confirmDeleteId.set(null);
         this.deletingId.set(null);
       },

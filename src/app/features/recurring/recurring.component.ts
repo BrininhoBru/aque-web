@@ -110,17 +110,13 @@ export class RecurringComponent implements OnInit {
         this.recurrings.set(data);
         this.loading.set(false);
       },
-      error: () => {
-        this.toast.error('Erro ao carregar recorrentes.');
-        this.loading.set(false);
-      },
+      error: () => this.loading.set(false),
     });
   }
 
   loadCategories(): void {
     this.categoryService.getAll().subscribe({
       next: (data) => this.categories.set(data),
-      error: () => this.toast.error('Erro ao carregar categorias.'),
     });
   }
 
@@ -173,10 +169,7 @@ export class RecurringComponent implements OnInit {
         this.load();
         this.saving.set(false);
       },
-      error: () => {
-        this.toast.error('Erro ao salvar recorrente.');
-        this.saving.set(false);
-      },
+      error: () => this.saving.set(false),
     });
   }
 
@@ -197,10 +190,7 @@ export class RecurringComponent implements OnInit {
         this.confirmDeactivateId.set(null);
         this.load();
       },
-      error: () => {
-        this.toast.error('Erro ao desativar recorrente.');
-        this.confirmDeactivateId.set(null);
-      },
+      error: () => this.confirmDeactivateId.set(null),
     });
   }
 }

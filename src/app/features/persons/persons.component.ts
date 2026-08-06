@@ -42,10 +42,7 @@ export class PersonsComponent implements OnInit {
         this.persons.set(data);
         this.loading.set(false);
       },
-      error: () => {
-        this.toast.error('Erro ao carregar pessoas.');
-        this.loading.set(false);
-      },
+      error: () => this.loading.set(false),
     });
   }
 
@@ -84,10 +81,7 @@ export class PersonsComponent implements OnInit {
         this.load();
         this.saving.set(false);
       },
-      error: () => {
-        this.toast.error('Erro ao salvar pessoa.');
-        this.saving.set(false);
-      },
+      error: () => this.saving.set(false),
     });
   }
 
@@ -108,14 +102,7 @@ export class PersonsComponent implements OnInit {
         this.confirmDeleteId.set(null);
         this.load();
       },
-      error: (err) => {
-        const msg =
-          err.status === 400
-            ? 'Não é possível excluir: pessoa vinculada a uma regra de divisão.'
-            : 'Erro ao excluir pessoa.';
-        this.toast.error(msg);
-        this.confirmDeleteId.set(null);
-      },
+      error: () => this.confirmDeleteId.set(null),
     });
   }
 }

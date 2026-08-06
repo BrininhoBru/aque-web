@@ -176,7 +176,10 @@ export class LoginComponent {
     const { username, password } = this.model();
 
     this.auth.login(username, password).subscribe({
-      next: () => this.router.navigate(['/dashboard']),
+      next: () => {
+        this.loading.set(false);
+        this.router.navigate(['/dashboard']);
+      },
       error: () => {
         this.errorMessage.set('Usuário ou senha inválidos.');
         this.loading.set(false);

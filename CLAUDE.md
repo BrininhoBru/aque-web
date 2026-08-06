@@ -56,7 +56,9 @@ src/app/
 
 ### Auth flow
 
-`AuthService` stores the JWT in `localStorage` under key `aque_token`. `authInterceptor` injects the `Authorization: Bearer` header on every request and calls `auth.logout()` on 401. `authGuard` protects all routes under the `AppShellComponent` layout.
+`AuthService` stores the JWT in `localStorage` under key `aque_token`. `authInterceptor` injects the `Authorization: Bearer` header on every request and calls `auth.logout()` on 401 **or** 403. `authGuard` protects all routes under the `AppShellComponent` layout.
+
+**401 vs 403 contract with `aque-backend`:** the backend only returns `401` for wrong credentials at `POST /auth/login` (handled inline by `login.component.ts`, not the interceptor). A missing, invalid, or expired token on any protected route returns `403` — Spring Security's default for an unauthenticated request past the `JwtFilter`, not a "true" authorization failure. `authInterceptor` treats both as "not logged in" and logs out. This is an implicit behavior contract, not enforced by a shared type or a test spanning both repos — a change to `aque-backend`'s `SecurityConfig`/exception handling that starts returning a different status for expired tokens would silently break logout-on-expiry here. See the matching note in `aque-backend/CLAUDE.md`.
 
 ### Styling
 

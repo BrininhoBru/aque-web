@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Transaction } from '../models';
+import { environment } from '../../../environments/environment';
 
 export interface TransactionFilters {
   month?: number;
@@ -25,7 +26,7 @@ export interface TransactionPayload {
 @Injectable({ providedIn: 'root' })
 export class TransactionService {
   private readonly http = inject(HttpClient);
-  private readonly base = '/api/transactions';
+  private readonly base = `${environment.apiBaseUrl}/api/transactions`;
 
   getAll(filters?: TransactionFilters): Observable<Transaction[]> {
     let params = new HttpParams();

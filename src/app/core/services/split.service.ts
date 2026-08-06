@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { SplitRule } from '../models';
+import { environment } from '../../../environments/environment';
 
 export interface SplitPayload {
   items: { personId: string; percentage: number }[];
@@ -10,7 +11,7 @@ export interface SplitPayload {
 @Injectable({ providedIn: 'root' })
 export class SplitService {
   private readonly http = inject(HttpClient);
-  private readonly base = '/api/split';
+  private readonly base = `${environment.apiBaseUrl}/api/split`;
 
   getByMonth(year: number, month: number): Observable<SplitRule> {
     return this.http.get<SplitRule>(`${this.base}/${year}/${month}`);

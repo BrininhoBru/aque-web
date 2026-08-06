@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { tap } from 'rxjs/operators';
 import { Observable } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
 export interface LoginRequest {
   username: string;
@@ -36,7 +37,7 @@ export class AuthService {
   readonly token = this._token.asReadonly();
 
   login(username: string, password: string): Observable<LoginResponse> {
-    return this.http.post<LoginResponse>('/api/auth/login', { username, password }).pipe(
+    return this.http.post<LoginResponse>(`${environment.apiBaseUrl}/api/auth/login`, { username, password }).pipe(
       tap((res) => {
         localStorage.setItem(TOKEN_KEY, res.token);
         this._token.set(res.token);

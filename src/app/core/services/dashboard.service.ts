@@ -2,11 +2,12 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { DashboardSummary, CategoryTotal, MonthEvolution, SplitResult } from '../models';
+import { environment } from '../../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class DashboardService {
   private readonly http = inject(HttpClient);
-  private readonly base = '/api/dashboard';
+  private readonly base = `${environment.apiBaseUrl}/api/dashboard`;
 
   getSummary(year: number, month: number): Observable<DashboardSummary> {
     return this.http.get<DashboardSummary>(`${this.base}/summary/${year}/${month}`);

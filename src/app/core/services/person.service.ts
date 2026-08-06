@@ -2,11 +2,12 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Person } from '../models';
+import { environment } from '../../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class PersonService {
   private readonly http = inject(HttpClient);
-  private readonly base = '/api/persons';
+  private readonly base = `${environment.apiBaseUrl}/api/persons`;
 
   getAll(): Observable<Person[]> {
     return this.http.get<Person[]>(this.base);

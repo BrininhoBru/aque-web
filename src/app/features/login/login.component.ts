@@ -157,7 +157,7 @@ export class LoginComponent {
   private readonly model = signal({ username: '', password: '' });
 
   // Field tree com validações
-  readonly loginForm = form(this.model, (f: { username: any; password: any; }) => {
+  readonly loginForm = form(this.model, (f) => {
     required(f.username, { message: 'Usuário obrigatório' });
     required(f.password, { message: 'Senha obrigatória' });
   });

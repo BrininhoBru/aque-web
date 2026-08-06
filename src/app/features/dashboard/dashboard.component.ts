@@ -136,7 +136,7 @@ export class DashboardComponent {
                 label: 'Total',
                 color: '#8A7A62',
                 fontSize: '12px',
-                formatter: (w: any) => {
+                formatter: (w: { globals: { seriesTotals: number[] } }) => {
                   const total = w.globals.seriesTotals.reduce((a: number, b: number) => a + b, 0);
                   return 'R$ ' + total.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
                 },

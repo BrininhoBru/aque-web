@@ -13,6 +13,10 @@ function summary(overrides: Partial<DashboardSummary>): DashboardSummary {
     totalExpensePaid: 50,
     balanceExpected: 50,
     balancePaid: 50,
+    totalIncomePending: 0,
+    totalExpensePending: 0,
+    totalOverdueAmount: 0,
+    totalOverdueCount: 0,
     ...overrides,
   };
 }

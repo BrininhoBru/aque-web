@@ -4,6 +4,7 @@ import { form, FormField, required, minLength } from '@angular/forms/signals';
 import { CategoryService } from '../../core/services/category.service';
 import { ToastService } from '../../shared/services/toast.service';
 import { Category } from '../../core/models';
+import { notBlank } from '../../shared/validators/not-blank.validator';
 
 type FilterType = 'TODOS' | 'RECEITA' | 'DESPESA';
 
@@ -35,6 +36,7 @@ export class CategoriesComponent implements OnInit {
   readonly categoryForm = form(this.model, (f) => {
     required(f.name, { message: 'Nome obrigatório' });
     minLength(f.name, 2, { message: 'Mínimo 2 caracteres' });
+    notBlank(f.name, { message: 'Nome não pode ser só espaços' });
   });
 
   // Validade geral do form

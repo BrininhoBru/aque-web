@@ -4,6 +4,7 @@ import { form, FormField, required, minLength } from '@angular/forms/signals';
 import { PersonService } from '../../core/services/person.service';
 import { ToastService } from '../../shared/services/toast.service';
 import { Person } from '../../core/models';
+import { notBlank } from '../../shared/validators/not-blank.validator';
 
 @Component({
   selector: 'app-persons',
@@ -27,6 +28,7 @@ export class PersonsComponent implements OnInit {
   readonly personForm = form(this.model, (f) => {
     required(f.name, { message: 'Nome obrigatório' });
     minLength(f.name, 2, { message: 'Mínimo 2 caracteres' });
+    notBlank(f.name, { message: 'Nome não pode ser só espaços' });
   });
 
   readonly formValid = computed(() => this.personForm.name().valid());

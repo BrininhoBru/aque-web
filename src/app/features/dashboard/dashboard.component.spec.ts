@@ -63,20 +63,12 @@ describe('DashboardComponent', () => {
   });
 
   describe('load() — mês sem regra de divisão configurada', () => {
-    it('mantém summary/byCategory/evolution e marca splitError quando split retorna 404', () => {
+    it('mantém summary/byCategory/evolution e marca splitError quando split retorna 404, sem duplicar nenhuma request', () => {
       const { month, year } = component.monthYear.selected();
       const base = '/api/dashboard';
 
-      // 1ª rodada: forkJoin dos 4 endpoints, disparada pelo effect() do construtor
-      httpMock.expectOne(`${base}/summary/${year}/${month}`).flush(summary({}));
-      httpMock.expectOne(`${base}/by-category/${year}/${month}`).flush([]);
-      httpMock.expectOne(`${base}/evolution/${year}`).flush([]);
-      httpMock
-        .expectOne(`${base}/split/${year}/${month}`)
-        .flush({ message: 'not found' }, { status: 404, statusText: 'Not Found' });
-
-      // 2ª rodada: loadPartial() repete os 3 primeiros e busca o split à parte
-      // (é exatamente a duplicidade de requisições reportada no levantamento)
+      // forkJoin dos 4 endpoints, disparada pelo effect() do construtor — split falhando
+      // (404) não pode mais derrubar o forkJoin inteiro nem disparar uma 2ª rodada
       httpMock.expectOne(`${base}/summary/${year}/${month}`).flush(summary({}));
       httpMock.expectOne(`${base}/by-category/${year}/${month}`).flush([]);
       httpMock.expectOne(`${base}/evolution/${year}`).flush([]);
@@ -87,6 +79,41 @@ describe('DashboardComponent', () => {
       expect(component.split()).toBeNull();
       expect(component.splitError()).toBeTrue();
       expect(component.summary()).not.toBeNull();
+      expect(component.loading()).toBeFalse();
+      httpMock.verify();
+    });
+  });
+
+  describe('load() — race condition entre trocas rápidas de mês', () => {
+    it('mantém o resultado da carga mais recente, mesmo se a resposta antiga chegar depois', () => {
+      const { month, year } = component.monthYear.selected();
+      const base = '/api/dashboard';
+
+      // 1ª rodada (carga inicial do effect do construtor)
+      const req1 = httpMock.expectOne(`${base}/summary/${year}/${month}`);
+      httpMock.expectOne(`${base}/by-category/${year}/${month}`).flush([]);
+      httpMock.expectOne(`${base}/evolution/${year}`).flush([]);
+      httpMock
+        .expectOne(`${base}/split/${year}/${month}`)
+        .flush({ message: 'not found' }, { status: 404, statusText: 'Not Found' });
+
+      // usuário navega rápido pro mês seguinte antes da 1ª rodada responder
+      const nextMonth = month === 12 ? 1 : month + 1;
+      const nextYear = month === 12 ? year + 1 : year;
+      component.load(nextYear, nextMonth);
+
+      const req2 = httpMock.expectOne(`${base}/summary/${nextYear}/${nextMonth}`);
+      httpMock.expectOne(`${base}/by-category/${nextYear}/${nextMonth}`).flush([]);
+      httpMock.expectOne(`${base}/evolution/${nextYear}`).flush([]);
+      httpMock
+        .expectOne(`${base}/split/${nextYear}/${nextMonth}`)
+        .flush({ message: 'not found' }, { status: 404, statusText: 'Not Found' });
+
+      // resposta da 2ª (mais nova) chega primeiro, depois a da 1ª (obsoleta)
+      req2.flush(summary({ totalIncomeExpected: 999 }));
+      req1.flush(summary({ totalIncomeExpected: 1 }));
+
+      expect(component.summary()?.totalIncomeExpected).toBe(999);
     });
   });
 });

@@ -1,5 +1,3 @@
-export * from './enums';
-
 export interface Category {
   id: string;
   name: string;

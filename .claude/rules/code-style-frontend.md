@@ -6,6 +6,13 @@ paths:
 
 # Estilo de código — Frontend (Angular/TypeScript)
 
+- **Antes de gerar ou revisar código Angular, consulte `.agents/skills/angular-developer/`**
+  (`SKILL.md` + `references/*.md`) — skill oficial do Google para Angular, com orientação
+  por versão sobre Signals, Signal Forms, `resource`, DI, routing, testes, a11y (ARIA) e
+  CLI. Esse diretório não é carregado automaticamente pelo Claude Code (é convenção
+  `.agents/`, não `.claude/skills/`), então precisa ser lido manualmente antes de aplicar
+  os padrões abaixo, e sempre que a dúvida for sobre um recurso específico do Angular
+  (ex.: qual API usar para um formulário, um resolver, uma animação de rota)
 - Identificadores (classes, funções, variáveis) em inglês; comentários em português —
   ver regra geral em `standards.md`
 - Standalone components apenas — nunca `NgModule`

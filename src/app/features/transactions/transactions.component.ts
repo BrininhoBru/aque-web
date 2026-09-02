@@ -108,6 +108,8 @@ export class TransactionsComponent implements OnInit {
   readonly filterType = signal<FilterType>('TODOS');
   readonly filterStatus = signal<FilterStatus>('TODOS');
 
+  private latestRequestId = 0;
+
   // Recarrega ao mudar mês/ano global
   constructor() {
     effect(() => {
@@ -129,13 +131,18 @@ export class TransactionsComponent implements OnInit {
       year: year ?? y,
     };
 
+    const requestId = ++this.latestRequestId;
     this.loading.set(true);
     this.transactionService.getAll(filters).subscribe({
       next: (data) => {
+        if (requestId !== this.latestRequestId) return; // resposta obsoleta, ignora
         this.transactions.set(data);
         this.loading.set(false);
       },
-      error: () => this.loading.set(false),
+      error: () => {
+        if (requestId !== this.latestRequestId) return;
+        this.loading.set(false);
+      },
     });
   }
 

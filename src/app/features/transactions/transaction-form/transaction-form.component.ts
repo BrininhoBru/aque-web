@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed, OnInit } from '@angular/core';
+import { Component, ElementRef, afterRenderEffect, inject, signal, computed, viewChild, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute } from '@angular/router';
 import { form, FormField, required, min } from '@angular/forms/signals';
@@ -12,7 +12,7 @@ interface TransactionModel {
   description: string;
   categoryId: string;
   type: 'RECEITA' | 'DESPESA';
-  referenceMonth: number;
+  referenceMonth: string;
   referenceYear: number;
   amountExpected: number;
   amountPaid: number | null;
@@ -62,7 +62,7 @@ export class TransactionFormComponent implements OnInit {
     description: '',
     categoryId: '',
     type: 'DESPESA',
-    referenceMonth: this.monthYear.month(),
+    referenceMonth: String(this.monthYear.month()),
     referenceYear: this.monthYear.year(),
     amountExpected: 0,
     amountPaid: null,
@@ -102,6 +102,23 @@ export class TransactionFormComponent implements OnInit {
     { value: 12, label: 'Dezembro' },
   ];
 
+  private readonly monthSelect = viewChild<ElementRef<HTMLSelectElement>>('monthSelect');
+
+  constructor() {
+    // [formField]/[value] num <select> nativo só sincroniza de forma confiável quando as
+    // <option> do @for já existem no momento do binding — falha (mostra a primeira opção)
+    // quando o valor é setado programaticamente depois (ex.: carregar um lançamento pra
+    // editar) sem que a lista de opções mude junto. afterRenderEffect roda garantidamente
+    // depois que a view (incluindo as <option>) já está montada, então sempre acerta.
+    afterRenderEffect(() => {
+      const month = this.transactionForm.referenceMonth().value();
+      const select = this.monthSelect()?.nativeElement;
+      if (select && select.value !== month) {
+        select.value = month;
+      }
+    });
+  }
+
   ngOnInit(): void {
     this.categoryService.getAll().subscribe({
       next: (data) => this.categories.set(data),
@@ -126,7 +143,7 @@ export class TransactionFormComponent implements OnInit {
             description: t.description,
             categoryId: t.category.id,
             type: t.type,
-            referenceMonth: t.referenceMonth,
+            referenceMonth: String(t.referenceMonth),
             referenceYear: t.referenceYear,
             amountExpected: t.amountExpected,
             amountPaid: t.amountPaid,
@@ -165,7 +182,7 @@ export class TransactionFormComponent implements OnInit {
       description: data.description,
       categoryId: data.categoryId,
       type: data.type,
-      referenceMonth: data.referenceMonth,
+      referenceMonth: Number(data.referenceMonth),
       referenceYear: data.referenceYear,
       amountExpected: data.amountExpected,
       amountPaid,

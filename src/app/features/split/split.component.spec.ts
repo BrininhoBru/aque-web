@@ -38,6 +38,25 @@ describe('SplitComponent', () => {
       component['items'].set([]);
       expect(component.totalPercentage()).toBe(0);
     });
+
+    it('deve considerar válida uma soma que bate 100 em decimal mas sofre ruído de ponto flutuante', () => {
+      component['items'].set([
+        { person: { id: '1', name: 'A' }, percentage: 5.95 },
+        { person: { id: '2', name: 'B' }, percentage: 7.41 },
+        { person: { id: '3', name: 'C' }, percentage: 8.04 },
+        { person: { id: '4', name: 'D' }, percentage: 5.82 },
+        { person: { id: '5', name: 'E' }, percentage: 4.79 },
+        { person: { id: '6', name: 'F' }, percentage: 8.96 },
+        { person: { id: '7', name: 'G' }, percentage: 4.25 },
+        { person: { id: '8', name: 'H' }, percentage: 10.9 },
+        { person: { id: '9', name: 'I' }, percentage: 6.29 },
+        { person: { id: '10', name: 'J' }, percentage: 11.79 },
+        { person: { id: '11', name: 'K' }, percentage: 7.32 },
+        { person: { id: '12', name: 'L' }, percentage: 18.48 },
+      ]);
+      expect(component.totalPercentage()).toBe(100);
+      expect(component.totalValid()).toBeTrue();
+    });
   });
 
   describe('totalValid()', () => {

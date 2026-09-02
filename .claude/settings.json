@@ -1,1 +1,33 @@
-{}
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm test *)",
+      "Bash(npm run *)",
+      "Bash(git log *)",
+      "Bash(git diff *)",
+      "Bash(git status)",
+      "Bash(git commit *)"
+    ],
+    "deny": [
+      "Bash(rm -rf *)",
+      "Bash(git push --force*)",
+      "Bash(git push origin main)",
+      "Read(./**/.env)",
+      "Read(./**/*.pem)",
+      "Read(./**/secrets/**)"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "case \"$(jq -r '.tool_input.file_path')\" in *.ts|*.html) npx prettier --write \"$(jq -r '.tool_input.file_path')\" ;; esac"
+          }
+        ]
+      }
+    ]
+  }
+}

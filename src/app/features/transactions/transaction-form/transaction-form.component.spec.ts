@@ -73,6 +73,40 @@ describe('TransactionFormComponent', () => {
       fixture.detectChanges();
       expect(component.formValid()).toBeFalse();
     });
+
+    it('deve ser inválido quando o ano de referência está fora de uma faixa plausível', () => {
+      component['model'].set({
+        description: 'Aluguel',
+        categoryId: 'cat-1',
+        type: 'DESPESA',
+        referenceMonth: '3',
+        referenceYear: 0,
+        amountExpected: 500,
+        amountPaid: null,
+        dueDate: null,
+      });
+      fixture.detectChanges();
+      expect(component.formValid()).toBeFalse();
+
+      component['model'].update((m) => ({ ...m, referenceYear: 99999 }));
+      fixture.detectChanges();
+      expect(component.formValid()).toBeFalse();
+    });
+
+    it('deve ser inválido quando o valor pago é negativo', () => {
+      component['model'].set({
+        description: 'Aluguel',
+        categoryId: 'cat-1',
+        type: 'DESPESA',
+        referenceMonth: '3',
+        referenceYear: 2026,
+        amountExpected: 500,
+        amountPaid: -50,
+        dueDate: null,
+      });
+      fixture.detectChanges();
+      expect(component.formValid()).toBeFalse();
+    });
   });
 
   describe('statusLabel()', () => {

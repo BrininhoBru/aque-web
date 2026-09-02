@@ -1,12 +1,15 @@
 import { Component, ElementRef, afterRenderEffect, inject, signal, computed, viewChild, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute } from '@angular/router';
-import { form, FormField, required, min } from '@angular/forms/signals';
+import { form, FormField, required, min, max, validate } from '@angular/forms/signals';
 import { TransactionService, TransactionPayload } from '../../../core/services/transaction.service';
 import { CategoryService } from '../../../core/services/category.service';
 import { ToastService } from '../../../shared/services/toast.service';
 import { MonthYearService } from '../../../core/services/month-year.service';
 import { Category } from '../../../core/models';
+
+const MIN_TRANSACTION_YEAR = 2000;
+const MAX_TRANSACTION_YEAR = new Date().getFullYear() + 10;
 
 interface TransactionModel {
   description: string;
@@ -74,8 +77,20 @@ export class TransactionFormComponent implements OnInit {
     required(f.categoryId, { message: 'Categoria obrigatória' });
     required(f.referenceMonth, { message: 'Mês obrigatório' });
     required(f.referenceYear, { message: 'Ano obrigatório' });
+    min(f.referenceYear, MIN_TRANSACTION_YEAR, {
+      message: `Ano deve ser a partir de ${MIN_TRANSACTION_YEAR}`,
+    });
+    max(f.referenceYear, MAX_TRANSACTION_YEAR, {
+      message: `Ano não pode passar de ${MAX_TRANSACTION_YEAR}`,
+    });
     required(f.amountExpected, { message: 'Valor previsto obrigatório' });
     min(f.amountExpected, 0.01, { message: 'Valor previsto deve ser positivo' });
+    validate(f.amountPaid, ({ value }) => {
+      const v = value();
+      return v != null && v < 0
+        ? { kind: 'negative', message: 'Valor pago não pode ser negativo' }
+        : undefined;
+    });
   });
 
   readonly formValid = computed(
@@ -84,7 +99,8 @@ export class TransactionFormComponent implements OnInit {
       this.transactionForm.categoryId().valid() &&
       this.transactionForm.referenceMonth().valid() &&
       this.transactionForm.referenceYear().valid() &&
-      this.transactionForm.amountExpected().valid(),
+      this.transactionForm.amountExpected().valid() &&
+      this.transactionForm.amountPaid().valid(),
   );
 
   readonly months = [

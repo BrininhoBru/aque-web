@@ -113,4 +113,60 @@ describe('authInterceptor', () => {
 
     expect(authService.logout).toHaveBeenCalled();
   });
+
+  it('não deve chamar logout quando /auth/login retorna 401 (credencial errada, não sessão expirada)', () => {
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [
+        AuthService,
+        provideRouter([{ path: 'login', component: class {} as any }]),
+        provideHttpClient(withInterceptors([authInterceptor])),
+        provideHttpClientTesting(),
+      ],
+    });
+    http = TestBed.inject(HttpClient);
+    httpMock = TestBed.inject(HttpTestingController);
+    authService = TestBed.inject(AuthService);
+
+    spyOn(authService, 'logout');
+    let capturedError: unknown;
+    http.post('/api/auth/login', { username: 'admin', password: 'errada' }).subscribe({
+      error: (err) => (capturedError = err),
+    });
+
+    httpMock
+      .expectOne('/api/auth/login')
+      .flush({ message: 'Credenciais inválidas' }, { status: 401, statusText: 'Unauthorized' });
+
+    expect(authService.logout).not.toHaveBeenCalled();
+    expect(capturedError).toBeTruthy();
+  });
+
+  it('não deve chamar logout quando /auth/login retorna 403 (ex.: rejeição de CORS, não sessão expirada)', () => {
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [
+        AuthService,
+        provideRouter([{ path: 'login', component: class {} as any }]),
+        provideHttpClient(withInterceptors([authInterceptor])),
+        provideHttpClientTesting(),
+      ],
+    });
+    http = TestBed.inject(HttpClient);
+    httpMock = TestBed.inject(HttpTestingController);
+    authService = TestBed.inject(AuthService);
+
+    spyOn(authService, 'logout');
+    let capturedError: unknown;
+    http.post('/api/auth/login', { username: 'admin', password: '123456' }).subscribe({
+      error: (err) => (capturedError = err),
+    });
+
+    httpMock
+      .expectOne('/api/auth/login')
+      .flush({ message: 'Forbidden' }, { status: 403, statusText: 'Forbidden' });
+
+    expect(authService.logout).not.toHaveBeenCalled();
+    expect(capturedError).toBeTruthy();
+  });
 });

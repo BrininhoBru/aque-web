@@ -62,10 +62,13 @@ export class SplitComponent implements OnInit {
   readonly saving = signal(false);
   readonly totalExpenseExpected = signal<number>(0);
 
-  // Soma total dos percentuais em tempo real
-  readonly totalPercentage = computed(() =>
-    this.items().reduce((acc, i) => acc + (i.percentage || 0), 0),
-  );
+  // Soma total dos percentuais em tempo real — arredonda pra 2 casas decimais (mesma
+  // escala dos inputs) pra não deixar ruído de ponto flutuante rejeitar uma soma que já
+  // bate 100 em decimal (ex.: vários percentuais de 2 casas podem somar 99.99999999999999)
+  readonly totalPercentage = computed(() => {
+    const sum = this.items().reduce((acc, i) => acc + (i.percentage || 0), 0);
+    return Math.round(sum * 100) / 100;
+  });
 
   readonly totalValid = computed(() => this.totalPercentage() === 100);
   readonly totalDiff = computed(() => 100 - this.totalPercentage());

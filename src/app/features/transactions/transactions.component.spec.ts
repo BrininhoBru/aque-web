@@ -146,4 +146,35 @@ describe('TransactionsComponent', () => {
       expect(component.totalIncomePaid()).toBe(3000);
     });
   });
+
+  describe('indicador de isOverride', () => {
+    let httpMock: HttpTestingController;
+
+    beforeEach(() => {
+      httpMock = TestBed.inject(HttpTestingController);
+    });
+
+    it('aparece quando a instância gerada por recorrente foi editada manualmente', () => {
+      // dispara o effect() do construtor (load() inicial); só o flush aplica os dados
+      // no signal transactions — loading() fica true até a resposta chegar, e a
+      // tabela/cards ficam ocultos enquanto loading() for true
+      fixture.detectChanges();
+      httpMock
+        .expectOne((r) => r.url === '/api/transactions')
+        .flush([tx({ recurringId: 'r1', isOverride: true })]);
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.querySelector('[title="Editado manualmente"]')).not.toBeNull();
+    });
+
+    it('não aparece quando a instância do recorrente não foi editada', () => {
+      fixture.detectChanges();
+      httpMock
+        .expectOne((r) => r.url === '/api/transactions')
+        .flush([tx({ recurringId: 'r1', isOverride: false })]);
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.querySelector('[title="Editado manualmente"]')).toBeNull();
+    });
+  });
 });

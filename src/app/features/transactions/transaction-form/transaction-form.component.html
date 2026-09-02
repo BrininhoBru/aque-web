@@ -134,6 +134,9 @@
                 >✕</button>
               }
             </div>
+            @if (transactionForm.amountPaid().touched() && transactionForm.amountPaid().invalid()) {
+              <p class="ledger-error">{{ transactionForm.amountPaid().errors()[0]?.message }}</p>
+            }
           </div>
         </div>
 

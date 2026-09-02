@@ -42,8 +42,7 @@ export interface SplitRuleItem {
 }
 
 export interface SplitRule {
-  year: number;
-  month: number;
+  effectiveFrom: string;
   items: SplitRuleItem[];
 }
 

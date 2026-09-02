@@ -16,8 +16,11 @@
       <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
     </svg>
     <p class="text-body-sm" style="color: var(--color-ledger-pending)">
-      Esta regra se aplica sobre o <strong>total de despesas previstas</strong> do mês.
-      Alterar os percentuais não afeta meses anteriores.
+      Esta regra se aplica sobre o <strong>total de despesas previstas</strong> de cada mês.
+      Alterar os percentuais vale a partir do mês atual em diante — não reescreve meses já fechados.
+      @if (isViewingPastMonth()) {
+        Você está visualizando um mês passado: salvar não altera o split <strong>daquele</strong> mês, só a partir de agora.
+      }
     </p>
   </div>
 

@@ -17,7 +17,7 @@ export class SplitService {
     return this.http.get<SplitRule>(`${this.base}/${year}/${month}`);
   }
 
-  save(year: number, month: number, data: SplitPayload): Observable<SplitRule> {
-    return this.http.put<SplitRule>(`${this.base}/${year}/${month}`, data);
+  save(data: SplitPayload): Observable<SplitRule> {
+    return this.http.put<SplitRule>(this.base, data);
   }
 }

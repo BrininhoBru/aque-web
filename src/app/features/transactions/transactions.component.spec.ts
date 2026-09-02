@@ -1,6 +1,6 @@
 import { TestBed, ComponentFixture } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
-import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideRouter } from '@angular/router';
 import { TransactionsComponent } from './transactions.component';
 import { Transaction, Category } from '../../core/models';
@@ -116,6 +116,37 @@ describe('TransactionsComponent', () => {
 
     it('totalIncomePaid soma só receitas pagas', () => {
       expect(component.totalIncomePaid()).toBe(3000);
+    });
+  });
+
+  describe('indicador de isOverride', () => {
+    let httpMock: HttpTestingController;
+
+    beforeEach(() => {
+      httpMock = TestBed.inject(HttpTestingController);
+    });
+
+    it('aparece quando a instância gerada por recorrente foi editada manualmente', () => {
+      // dispara o effect() do construtor (load() inicial); só o flush aplica os dados
+      // no signal transactions — loading() fica true até a resposta chegar, e a
+      // tabela/cards ficam ocultos enquanto loading() for true
+      fixture.detectChanges();
+      httpMock
+        .expectOne((r) => r.url === '/api/transactions')
+        .flush([tx({ recurringId: 'r1', isOverride: true })]);
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.querySelector('[title="Editado manualmente"]')).not.toBeNull();
+    });
+
+    it('não aparece quando a instância do recorrente não foi editada', () => {
+      fixture.detectChanges();
+      httpMock
+        .expectOne((r) => r.url === '/api/transactions')
+        .flush([tx({ recurringId: 'r1', isOverride: false })]);
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.querySelector('[title="Editado manualmente"]')).toBeNull();
     });
   });
 });

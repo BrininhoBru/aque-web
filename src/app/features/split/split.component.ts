@@ -62,6 +62,8 @@ export class SplitComponent implements OnInit {
   readonly saving = signal(false);
   readonly totalExpenseExpected = signal<number>(0);
 
+  private latestExpensesRequestId = 0;
+
   // Soma total dos percentuais em tempo real
   readonly totalPercentage = computed(() =>
     this.items().reduce((acc, i) => acc + (i.percentage || 0), 0),
@@ -127,9 +129,16 @@ export class SplitComponent implements OnInit {
   }
 
   loadExpenses(year: number, month: number): void {
+    const requestId = ++this.latestExpensesRequestId;
     this.dashboardService.getSummary(year, month).subscribe({
-      next: (s) => this.totalExpenseExpected.set(s.totalExpenseExpected),
-      error: () => this.totalExpenseExpected.set(0),
+      next: (s) => {
+        if (requestId !== this.latestExpensesRequestId) return; // resposta obsoleta, ignora
+        this.totalExpenseExpected.set(s.totalExpenseExpected);
+      },
+      error: () => {
+        if (requestId !== this.latestExpensesRequestId) return;
+        this.totalExpenseExpected.set(0);
+      },
     });
   }
 

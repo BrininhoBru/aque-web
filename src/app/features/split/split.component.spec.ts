@@ -167,6 +167,51 @@ describe('SplitComponent', () => {
       const noSplitRequest = httpMock.match((r) => r.url.startsWith('/api/split/'));
       expect(noSplitRequest.length).toBe(0);
     });
+
+    it('mantém o total de despesas da carga mais recente, mesmo se a resposta antiga chegar depois', () => {
+      fixture.detectChanges();
+      httpMock.expectOne('/api/persons').flush([]);
+      httpMock.expectOne((r) => r.url.startsWith('/api/split/')).flush({
+        effectiveFrom: '2026-01-01',
+        items: [],
+      });
+
+      // requisição de despesas disparada pelo effect() do construtor — ainda não respondida
+      const req1 = httpMock.expectOne((r) => r.url.startsWith('/api/dashboard/summary/'));
+
+      component.loadExpenses(2026, 4);
+      const req2 = httpMock.expectOne(
+        (r) => r.url.startsWith('/api/dashboard/summary/') && r.url.endsWith('/2026/4'),
+      );
+
+      // resposta da 2ª (mais nova) chega primeiro, depois a da 1ª (obsoleta)
+      req2.flush({
+        totalIncomeExpected: 0,
+        totalIncomePaid: 0,
+        totalExpenseExpected: 999,
+        totalExpensePaid: 0,
+        balanceExpected: 0,
+        balancePaid: 0,
+        totalIncomePending: 0,
+        totalExpensePending: 0,
+        totalOverdueAmount: 0,
+        totalOverdueCount: 0,
+      });
+      req1.flush({
+        totalIncomeExpected: 0,
+        totalIncomePaid: 0,
+        totalExpenseExpected: 1,
+        totalExpensePaid: 0,
+        balanceExpected: 0,
+        balancePaid: 0,
+        totalIncomePending: 0,
+        totalExpensePending: 0,
+        totalOverdueAmount: 0,
+        totalOverdueCount: 0,
+      });
+
+      expect(component.totalExpenseExpected()).toBe(999);
+    });
   });
 
   describe('isViewingPastMonth()', () => {

@@ -23,6 +23,18 @@
 
   <!-- Filtros -->
   <div class="tx-filter-bar ledger-card">
+    <!-- Busca -->
+    <div class="tx-filter-category">
+      <label class="ledger-label">Busca</label>
+      <input
+        type="text"
+        class="ledger-input"
+        placeholder="Descrição..."
+        [value]="searchText()"
+        (input)="searchText.set($any($event.target).value)"
+      />
+    </div>
+
     <!-- Categoria -->
     <div class="tx-filter-category">
       <label class="ledger-label">Categoria</label>
@@ -68,6 +80,17 @@
       </div>
     </div>
 
+    <!-- Vencidos -->
+    <div style="display: flex; flex-direction: column;">
+      <label class="ledger-label">Vencimento</label>
+      <button
+        class="btn btn-sm"
+        [class.btn-primary]="filterOverdue()"
+        [class.btn-secondary]="!filterOverdue()"
+        (click)="toggleOverdue()"
+      >Vencidos</button>
+    </div>
+
     <button class="btn-ghost btn-sm" style="align-self: flex-end;" (click)="clearFilters()">
       Limpar filtros
     </button>
@@ -101,13 +124,23 @@
             <table class="ledger-table">
               <thead>
                 <tr>
-                  <th>Descrição</th>
-                  <th>Categoria</th>
+                  <th style="cursor: pointer;" (click)="setSort('description')">
+                    Descrição @if (sortColumn() === 'description') { {{ sortDirection() === 'asc' ? '▲' : '▼' }} }
+                  </th>
+                  <th style="cursor: pointer;" (click)="setSort('category')">
+                    Categoria @if (sortColumn() === 'category') { {{ sortDirection() === 'asc' ? '▲' : '▼' }} }
+                  </th>
                   <th>Tipo</th>
-                  <th class="col-num">Previsto</th>
-                  <th class="col-num">Pago</th>
+                  <th class="col-num" style="cursor: pointer;" (click)="setSort('amountExpected')">
+                    Previsto @if (sortColumn() === 'amountExpected') { {{ sortDirection() === 'asc' ? '▲' : '▼' }} }
+                  </th>
+                  <th class="col-num" style="cursor: pointer;" (click)="setSort('amountPaid')">
+                    Pago @if (sortColumn() === 'amountPaid') { {{ sortDirection() === 'asc' ? '▲' : '▼' }} }
+                  </th>
                   <th>Status</th>
-                  <th>Vencimento</th>
+                  <th style="cursor: pointer;" (click)="setSort('dueDate')">
+                    Vencimento @if (sortColumn() === 'dueDate') { {{ sortDirection() === 'asc' ? '▲' : '▼' }} }
+                  </th>
                   <th></th>
                 </tr>
               </thead>

@@ -1,7 +1,7 @@
 import { TestBed, ComponentFixture } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import { provideRouter } from '@angular/router';
+import { ActivatedRoute, Router, convertToParamMap, provideRouter } from '@angular/router';
 import { TransactionsComponent } from './transactions.component';
 import { Transaction, Category } from '../../core/models';
 
@@ -111,6 +111,195 @@ describe('TransactionsComponent', () => {
       component.setFilterCategory('c2');
       component.clearFilters();
       expect(component.filtered().length).toBe(2);
+    });
+
+    it('clearFilters() também reseta busca, vencidos e ordenação', () => {
+      component.searchText.set('algo');
+      component.toggleOverdue();
+      component.setSort('description');
+      component.clearFilters();
+      expect(component.searchText()).toBe('');
+      expect(component.filterOverdue()).toBeFalse();
+      expect(component.sortColumn()).toBeNull();
+    });
+  });
+
+  describe('busca por texto (searchText)', () => {
+    beforeEach(() => {
+      component.transactions.set([
+        tx({ id: '1', description: 'Aluguel de março', type: 'DESPESA' }),
+        tx({ id: '2', description: 'Supermercado', type: 'DESPESA' }),
+      ]);
+    });
+
+    it('filtra por descrição, case-insensitive', () => {
+      component.searchText.set('aluguel');
+      expect(component.filtered().map((t) => t.id)).toEqual(['1']);
+    });
+
+    it('combina com outros filtros já ativos', () => {
+      component.setFilterType('RECEITA');
+      component.searchText.set('aluguel');
+      expect(component.filtered().length).toBe(0);
+    });
+  });
+
+  describe('ordenação de colunas (setSort)', () => {
+    it('ordena por descrição, ascendente', () => {
+      component.transactions.set([
+        tx({ id: '1', description: 'Banana' }),
+        tx({ id: '2', description: 'Abacaxi' }),
+      ]);
+      component.setSort('description');
+      expect(component.filtered().map((t) => t.id)).toEqual(['2', '1']);
+    });
+
+    it('clicar na mesma coluna de novo inverte a direção', () => {
+      component.transactions.set([
+        tx({ id: '1', description: 'Banana' }),
+        tx({ id: '2', description: 'Abacaxi' }),
+      ]);
+      component.setSort('description');
+      component.setSort('description');
+      expect(component.filtered().map((t) => t.id)).toEqual(['1', '2']);
+    });
+
+    it('trocar de coluna volta a ordenar ascendente', () => {
+      component.transactions.set([
+        tx({ id: '1', description: 'Banana', amountExpected: 100 }),
+        tx({ id: '2', description: 'Abacaxi', amountExpected: 300 }),
+      ]);
+      component.setSort('description');
+      component.setSort('description'); // desc: ['1', '2']
+      component.setSort('amountExpected'); // troca de coluna: volta pra asc
+      expect(component.filtered().map((t) => t.id)).toEqual(['1', '2']);
+    });
+
+    it('ordena por valor previsto numericamente', () => {
+      component.transactions.set([
+        tx({ id: '1', amountExpected: 300 }),
+        tx({ id: '2', amountExpected: 100 }),
+        tx({ id: '3', amountExpected: 200 }),
+      ]);
+      component.setSort('amountExpected');
+      expect(component.filtered().map((t) => t.id)).toEqual(['2', '3', '1']);
+    });
+
+    it('ordena por vencimento sem quebrar quando algum é null', () => {
+      component.transactions.set([
+        tx({ id: '1', dueDate: '2026-03-15' }),
+        tx({ id: '2', dueDate: null }),
+        tx({ id: '3', dueDate: '2026-01-01' }),
+      ]);
+      component.setSort('dueDate');
+      expect(component.filtered().map((t) => t.id)).toEqual(['2', '3', '1']);
+    });
+  });
+
+  describe('chip de vencidos (toggleOverdue)', () => {
+    it('mostra só lançamentos PENDENTE com vencimento no passado quando ativado', () => {
+      component.transactions.set([
+        tx({ id: '1', status: 'PENDENTE', dueDate: '2000-01-01' }),
+        tx({ id: '2', status: 'PENDENTE', dueDate: '2999-01-01' }),
+        tx({ id: '3', status: 'PAGO', dueDate: '2000-01-01' }),
+        tx({ id: '4', status: 'PENDENTE', dueDate: null }),
+      ]);
+      component.toggleOverdue();
+      expect(component.filtered().map((t) => t.id)).toEqual(['1']);
+    });
+
+    it('toggleOverdue() chamado de novo desativa o filtro', () => {
+      component.transactions.set([tx({ id: '1', status: 'PENDENTE', dueDate: '2000-01-01' })]);
+      component.toggleOverdue();
+      component.toggleOverdue();
+      expect(component.filtered().length).toBe(1);
+    });
+  });
+
+  describe('persistência de filtros na URL', () => {
+    describe('leitura inicial dos query params', () => {
+      function setupWithQueryParams(params: Record<string, string> = {}): void {
+        TestBed.resetTestingModule();
+        TestBed.configureTestingModule({
+          imports: [TransactionsComponent],
+          providers: [
+            provideHttpClient(),
+            provideHttpClientTesting(),
+            provideRouter([]),
+            {
+              provide: ActivatedRoute,
+              useValue: { snapshot: { queryParamMap: convertToParamMap(params) } },
+            },
+          ],
+        });
+
+        fixture = TestBed.createComponent(TransactionsComponent);
+        component = fixture.componentInstance;
+        httpMock = TestBed.inject(HttpTestingController);
+      }
+
+      it('inicializa os filtros a partir dos query params da URL', () => {
+        setupWithQueryParams({
+          categoryId: 'c1',
+          type: 'DESPESA',
+          status: 'PENDENTE',
+          search: 'luz',
+          overdue: '1',
+          sortBy: 'description',
+          sortDir: 'desc',
+        });
+
+        expect(component.filterCategoryId()).toBe('c1');
+        expect(component.filterType()).toBe('DESPESA');
+        expect(component.filterStatus()).toBe('PENDENTE');
+        expect(component.searchText()).toBe('luz');
+        expect(component.filterOverdue()).toBeTrue();
+        expect(component.sortColumn()).toBe('description');
+        expect(component.sortDirection()).toBe('desc');
+      });
+
+      it('ignora valores inválidos na URL e usa os defaults', () => {
+        setupWithQueryParams({ type: 'LIXO', sortBy: 'campo-invalido', sortDir: 'lateral' });
+
+        expect(component.filterType()).toBe('TODOS');
+        expect(component.sortColumn()).toBeNull();
+        expect(component.sortDirection()).toBe('asc');
+      });
+    });
+
+    describe('escrita na URL', () => {
+      it('atualiza a URL quando um filtro muda', () => {
+        const router = TestBed.inject(Router);
+        spyOn(router, 'navigate');
+
+        component.setFilterType('RECEITA');
+        fixture.detectChanges();
+
+        expect(router.navigate).toHaveBeenCalledWith(
+          [],
+          jasmine.objectContaining({
+            queryParams: jasmine.objectContaining({ type: 'RECEITA' }),
+            queryParamsHandling: 'merge',
+          }),
+        );
+      });
+
+      it('remove o param da URL quando o filtro volta pro default', () => {
+        const router = TestBed.inject(Router);
+        component.setFilterType('RECEITA');
+        fixture.detectChanges();
+        spyOn(router, 'navigate');
+
+        component.setFilterType('TODOS');
+        fixture.detectChanges();
+
+        expect(router.navigate).toHaveBeenCalledWith(
+          [],
+          jasmine.objectContaining({
+            queryParams: jasmine.objectContaining({ type: null }),
+          }),
+        );
+      });
     });
   });
 

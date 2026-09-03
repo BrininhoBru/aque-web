@@ -4,6 +4,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
 import { TransactionFormComponent } from './transaction-form.component';
 import { MonthYearService } from '../../../core/services/month-year.service';
+import { ToastService } from '../../../shared/services/toast.service';
 
 describe('TransactionFormComponent', () => {
   let component: TransactionFormComponent;
@@ -132,6 +133,63 @@ describe('TransactionFormComponent', () => {
       component.setType('RECEITA');
       expect(component.transactionForm.type().value()).toBe('RECEITA');
       expect(component.transactionForm.categoryId().value()).toBe('');
+    });
+  });
+
+  // aque-web#35: o componente disparava um toast.error() próprio em cima do que o
+  // errorInterceptor já mostra pra qualquer erro HTTP — usuário via 2 toasts por 1 erro só.
+  describe('tratamento de erro HTTP (delegado ao errorInterceptor, não duplicado localmente)', () => {
+    let http: HttpTestingController;
+
+    beforeEach(() => {
+      http = TestBed.inject(HttpTestingController);
+    });
+
+    afterEach(() => http.verify());
+
+    it('não deve chamar toast.error localmente quando falha o carregamento de categorias', () => {
+      const toast = TestBed.inject(ToastService);
+      spyOn(toast, 'error');
+
+      http.expectOne((req) => req.url.includes('/api/categories')).flush('erro', { status: 500, statusText: 'Server Error' });
+
+      expect(toast.error).not.toHaveBeenCalled();
+    });
+
+    it('não deve chamar toast.error localmente quando falha o carregamento do lançamento, e reseta loading', () => {
+      const toast = TestBed.inject(ToastService);
+      spyOn(toast, 'error');
+      http.expectOne((req) => req.url.includes('/api/categories')).flush([]);
+
+      component.loadTransaction('id-inexistente');
+      http.expectOne((req) => req.url.includes('/api/transactions')).flush('erro', { status: 500, statusText: 'Server Error' });
+
+      expect(component.loading()).toBeFalse();
+      expect(toast.error).not.toHaveBeenCalled();
+    });
+
+    it('não deve chamar toast.error localmente quando falha o salvamento, e reseta saving', () => {
+      const toast = TestBed.inject(ToastService);
+      spyOn(toast, 'error');
+      http.expectOne((req) => req.url.includes('/api/categories')).flush([]);
+
+      component['model'].set({
+        description: 'Aluguel',
+        categoryId: 'cat-1',
+        type: 'DESPESA',
+        referenceMonth: '3',
+        referenceYear: 2026,
+        amountExpected: 1800,
+        amountPaid: null,
+        dueDate: null,
+      });
+      fixture.detectChanges();
+      component.save();
+
+      http.expectOne((req) => req.url.includes('/api/transactions')).flush('erro', { status: 500, statusText: 'Server Error' });
+
+      expect(component.saving()).toBeFalse();
+      expect(toast.error).not.toHaveBeenCalled();
     });
   });
 

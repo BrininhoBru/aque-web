@@ -20,7 +20,6 @@ import {
 } from 'ng-apexcharts';
 import { DashboardService } from '../../core/services/dashboard.service';
 import { MonthYearService } from '../../core/services/month-year.service';
-import { ToastService } from '../../shared/services/toast.service';
 import { BrlCurrencyPipe } from '../../shared/pipes/brl-currency.pipe';
 import { MonthYearPipe } from '../../shared/pipes/month-year.pipe';
 import { DashboardSummary, CategoryTotal, MonthEvolution, SplitResult } from '../../core/models';
@@ -76,7 +75,6 @@ const MONTH_LABELS = [
 })
 export class DashboardComponent {
   private readonly dashboardService = inject(DashboardService);
-  private readonly toast = inject(ToastService);
   readonly monthYear = inject(MonthYearService);
 
   readonly loading = signal(true);
@@ -283,7 +281,6 @@ export class DashboardComponent {
       },
       error: () => {
         if (requestId !== this.latestRequestId) return;
-        this.toast.error('Erro ao carregar dados do dashboard.');
         this.loading.set(false);
       },
     });

@@ -138,7 +138,9 @@ export class TransactionFormComponent implements OnInit {
   ngOnInit(): void {
     this.categoryService.getAll().subscribe({
       next: (data) => this.categories.set(data),
-      error: () => this.toast.error('Erro ao carregar categorias.'),
+      // errorInterceptor já loga/avisa o erro; precisa de um handler aqui só pra evitar
+      // que o RxJS relance a HttpErrorResponse por falta de observer de erro.
+      error: () => {},
     });
 
     const id = this.route.snapshot.paramMap.get('id');
@@ -172,7 +174,6 @@ export class TransactionFormComponent implements OnInit {
         this.loading.set(false);
       },
       error: () => {
-        this.toast.error('Erro ao carregar lançamento.');
         this.loading.set(false);
       },
     });
@@ -216,7 +217,6 @@ export class TransactionFormComponent implements OnInit {
         this.goBack();
       },
       error: () => {
-        this.toast.error('Erro ao salvar lançamento.');
         this.saving.set(false);
       },
     });

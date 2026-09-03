@@ -15,6 +15,14 @@ import { ToastService, Toast } from '../../services/toast.service';
         >
           <span class="text-lg">{{ toastIcon(toast.type) }}</span>
           <p class="text-sm font-medium flex-1">{{ toast.message }}</p>
+          @if (toast.action) {
+            <button
+              (click)="runAction(toast)"
+              class="toast-action text-current font-semibold text-sm underline underline-offset-2 hover:opacity-80 transition-opacity"
+            >
+              {{ toast.action.label }}
+            </button>
+          }
           <button
             (click)="toastService.dismiss(toast.id)"
             class="text-current opacity-50 hover:opacity-100 transition-opacity text-lg leading-none"
@@ -53,6 +61,11 @@ export class ToastComponent {
       warning: base + 'bg-[#1f1a09] border-[#f59e0b33] text-[#fbbf24]',
     };
     return map[toast.type] ?? map['success'];
+  }
+
+  runAction(toast: Toast): void {
+    toast.action?.onClick();
+    this.toastService.dismiss(toast.id);
   }
 
   toastIcon(type: string): string {

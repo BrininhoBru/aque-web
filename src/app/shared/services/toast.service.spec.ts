@@ -35,6 +35,26 @@ describe('ToastService', () => {
     });
   });
 
+  describe('actionable()', () => {
+    it('deve criar um toast com a ação preenchida', () => {
+      const onClick = jasmine.createSpy('onClick');
+      service.actionable('Excluído.', 'warning', { label: 'Desfazer', onClick });
+
+      expect(service.toasts()[0]).toEqual(
+        jasmine.objectContaining({
+          message: 'Excluído.',
+          type: 'warning',
+          action: { label: 'Desfazer', onClick },
+        }),
+      );
+    });
+
+    it('success()/error()/warning() continuam sem ação', () => {
+      service.success('a');
+      expect(service.toasts()[0].action).toBeUndefined();
+    });
+  });
+
   describe('dismiss()', () => {
     it('deve remover apenas o toast com o id informado', () => {
       service.success('a');

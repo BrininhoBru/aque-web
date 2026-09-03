@@ -2,10 +2,16 @@ import { Injectable, signal } from '@angular/core';
 
 export type ToastType = 'success' | 'error' | 'warning';
 
+export interface ToastAction {
+  label: string;
+  onClick: () => void;
+}
+
 export interface Toast {
   id: number;
   message: string;
   type: ToastType;
+  action?: ToastAction;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -26,13 +32,17 @@ export class ToastService {
     this.add(message, 'warning');
   }
 
+  actionable(message: string, type: ToastType, action: ToastAction): void {
+    this.add(message, type, action);
+  }
+
   dismiss(id: number): void {
     this._toasts.update((t) => t.filter((toast) => toast.id !== id));
   }
 
-  private add(message: string, type: ToastType): void {
+  private add(message: string, type: ToastType, action?: ToastAction): void {
     const id = this.nextId++;
-    this._toasts.update((t) => [...t, { id, message, type }]);
+    this._toasts.update((t) => [...t, { id, message, type, action }]);
     setTimeout(() => this.dismiss(id), 4000);
   }
 }

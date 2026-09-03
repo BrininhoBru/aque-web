@@ -14,15 +14,28 @@
   </div>
 
   <!-- Filtros -->
-  <div class="btn-row">
-    @for (opt of [['ATIVOS', 'Ativos'], ['INATIVOS', 'Inativos'], ['TODOS', 'Todos']]; track opt[0]) {
-      <button
-        class="btn btn-sm"
-        [class.btn-primary]="filterActive() === opt[0]"
-        [class.btn-secondary]="filterActive() !== opt[0]"
-        (click)="setFilter(opt[0])"
-      >{{ opt[1] }}</button>
-    }
+  <div style="display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: flex-end;">
+    <div style="display: flex; flex-direction: column; min-width: 10rem; max-width: 16rem;">
+      <label class="ledger-label">Busca</label>
+      <input
+        type="text"
+        class="ledger-input"
+        placeholder="Descrição..."
+        [value]="searchText()"
+        (input)="searchText.set($any($event.target).value)"
+      />
+    </div>
+
+    <div class="btn-row">
+      @for (opt of [['ATIVOS', 'Ativos'], ['INATIVOS', 'Inativos'], ['TODOS', 'Todos']]; track opt[0]) {
+        <button
+          class="btn btn-sm"
+          [class.btn-primary]="filterActive() === opt[0]"
+          [class.btn-secondary]="filterActive() !== opt[0]"
+          (click)="setFilter(opt[0])"
+        >{{ opt[1] }}</button>
+      }
+    </div>
   </div>
 
   <!-- Loading -->
@@ -50,10 +63,18 @@
             <table class="ledger-table">
               <thead>
                 <tr>
-                  <th>Descrição</th>
-                  <th>Categoria</th>
-                  <th>Tipo</th>
-                  <th class="col-num">Valor padrão</th>
+                  <th style="cursor: pointer;" (click)="setSort('description')">
+                    Descrição @if (sortColumn() === 'description') { {{ sortDirection() === 'asc' ? '▲' : '▼' }} }
+                  </th>
+                  <th style="cursor: pointer;" (click)="setSort('category')">
+                    Categoria @if (sortColumn() === 'category') { {{ sortDirection() === 'asc' ? '▲' : '▼' }} }
+                  </th>
+                  <th style="cursor: pointer;" (click)="setSort('type')">
+                    Tipo @if (sortColumn() === 'type') { {{ sortDirection() === 'asc' ? '▲' : '▼' }} }
+                  </th>
+                  <th class="col-num" style="cursor: pointer;" (click)="setSort('defaultAmount')">
+                    Valor padrão @if (sortColumn() === 'defaultAmount') { {{ sortDirection() === 'asc' ? '▲' : '▼' }} }
+                  </th>
                   <th></th>
                 </tr>
               </thead>

@@ -4,6 +4,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { ActivatedRoute, Router, convertToParamMap, provideRouter } from '@angular/router';
 import { TransactionsComponent } from './transactions.component';
 import { Transaction, Category } from '../../core/models';
+import { ToastService } from '../../shared/services/toast.service';
 
 const despesaCategory: Category = { id: 'c1', name: 'Casa', type: 'DESPESA', predefined: false };
 const receitaCategory: Category = { id: 'c2', name: 'Salário', type: 'RECEITA', predefined: false };
@@ -378,6 +379,111 @@ describe('TransactionsComponent', () => {
 
       expect(component.togglingId()).toBeNull();
       httpMock.expectNone((r) => r.url === '/api/transactions');
+    });
+  });
+
+  describe('seleção múltipla e ação em lote', () => {
+    beforeEach(() => {
+      component.transactions.set([
+        tx({ id: '1', status: 'PENDENTE', amountExpected: 100 }),
+        tx({ id: '2', status: 'PENDENTE', amountExpected: 200 }),
+      ]);
+    });
+
+    it('toggleSelect() adiciona e remove o id do conjunto selecionado', () => {
+      component.toggleSelect('1');
+      expect(component.isSelected('1')).toBeTrue();
+      component.toggleSelect('1');
+      expect(component.isSelected('1')).toBeFalse();
+    });
+
+    it('toggleSelectAll() seleciona todos os ids visíveis e, chamado de novo, desmarca todos', () => {
+      component.toggleSelectAll();
+      expect(component.selectedIds().size).toBe(2);
+      component.toggleSelectAll();
+      expect(component.selectedIds().size).toBe(0);
+    });
+
+    it('bulkUpdatePayment(true) marca cada id selecionado como pago, limpa a seleção e recarrega', () => {
+      component.toggleSelect('1');
+      component.toggleSelect('2');
+      component.bulkUpdatePayment(true);
+
+      const req1 = httpMock.expectOne('/api/transactions/1/payment');
+      expect(req1.request.body).toEqual({ amountPaid: 100 });
+      req1.flush(tx({ id: '1', status: 'PAGO', amountPaid: 100 }));
+
+      const req2 = httpMock.expectOne('/api/transactions/2/payment');
+      expect(req2.request.body).toEqual({ amountPaid: 200 });
+      req2.flush(tx({ id: '2', status: 'PAGO', amountPaid: 200 }));
+
+      httpMock.expectOne((r) => r.url === '/api/transactions').flush([]);
+
+      expect(component.selectedIds().size).toBe(0);
+    });
+
+    it('uma falha entre várias no lote não impede as demais de serem atualizadas', () => {
+      component.toggleSelect('1');
+      component.toggleSelect('2');
+      component.bulkUpdatePayment(true);
+
+      httpMock
+        .expectOne('/api/transactions/1/payment')
+        .flush('erro', { status: 500, statusText: 'Server Error' });
+      httpMock
+        .expectOne('/api/transactions/2/payment')
+        .flush(tx({ id: '2', status: 'PAGO', amountPaid: 200 }));
+
+      httpMock.expectOne((r) => r.url === '/api/transactions').flush([]);
+
+      expect(component.selectedIds().size).toBe(0);
+    });
+  });
+
+  describe('exclusão com desfazer', () => {
+    it('askDelete() mostra um toast com ação "Desfazer" e marca a linha como pendente de exclusão', () => {
+      const toast = TestBed.inject(ToastService);
+      spyOn(toast, 'actionable');
+
+      component.askDelete('1');
+
+      expect(component.pendingDeleteId()).toBe('1');
+      expect(toast.actionable).toHaveBeenCalledWith(
+        'Lançamento excluído.',
+        'warning',
+        jasmine.objectContaining({ label: 'Desfazer' }),
+      );
+    });
+
+    it('undoDelete() dentro da janela cancela a exclusão — nenhuma chamada DELETE é feita', () => {
+      jasmine.clock().install();
+      try {
+        component.askDelete('1');
+        component.undoDelete();
+        jasmine.clock().tick(4000);
+
+        expect(component.pendingDeleteId()).toBeNull();
+        httpMock.expectNone((r) => r.method === 'DELETE');
+      } finally {
+        jasmine.clock().uninstall();
+      }
+    });
+
+    it('deixar o timer expirar sem desfazer exclui o lançamento de verdade', () => {
+      jasmine.clock().install();
+      try {
+        component.askDelete('1');
+        jasmine.clock().tick(4000);
+
+        const req = httpMock.expectOne('/api/transactions/1');
+        expect(req.request.method).toBe('DELETE');
+        req.flush(null);
+
+        httpMock.expectOne((r) => r.url === '/api/transactions').flush([]);
+        expect(component.pendingDeleteId()).toBeNull();
+      } finally {
+        jasmine.clock().uninstall();
+      }
     });
   });
 

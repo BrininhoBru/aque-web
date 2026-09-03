@@ -84,9 +84,14 @@ builda e publica a imagem Docker no push pra `main` — não roda `npm test` nem
 
 ## Template de Pull Request
 Todo PR segue esta estrutura (a skill `/gerar-pr` já gera isso automaticamente):
-- **Contexto**: o que motivou a mudança
+- **Título**: Conventional Commits (`tipo(escopo): resumo`, `!` pra breaking change)
+- **Issue relacionada**: `Closes #N` / `Relates to #N`, quando houver
+- **Resumo**: o que foi feito, em 1-2 frases
+- **Motivação**: o que motivou a mudança
 - **Mudanças**: lista do que foi alterado
-- **Como testar**: passos para validar manualmente
+- **Como testar**: passos concretos e verificáveis (comando exato, não "teste a feature")
+- **Risco/Impacto**: muda contrato com o `aque-backend` ou adiciona variável de ambiente nova?
+- **Screenshot/GIF**: obrigatório quando o diff toca UI (`.html`/`.component.ts`)
 - **Checklist**: testes adicionados, docs atualizadas, breaking changes (sim/não)
 
 **Gap conhecido no aque-web**: não existe `.github/PULL_REQUEST_TEMPLATE.md` —

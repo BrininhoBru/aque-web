@@ -145,7 +145,14 @@
                       {{ t.amountPaid != null ? (t.amountPaid | brlCurrency) : '—' }}
                     </td>
                     <td>
-                      <span [class]="t.status === 'PAGO' ? 'badge-paid' : 'badge-pending'">{{ t.status }}</span>
+                      <button
+                        type="button"
+                        [class]="t.status === 'PAGO' ? 'badge-paid' : 'badge-pending'"
+                        style="cursor: pointer;"
+                        [disabled]="togglingId() === t.id"
+                        [title]="t.status === 'PAGO' ? 'Marcar como pendente' : 'Marcar como pago'"
+                        (click)="togglePayment(t)"
+                      >{{ t.status }}</button>
                     </td>
                     <td class="text-body-sm" style="color: var(--color-ledger-ink-md); white-space: nowrap;">
                       {{ t.dueDate ? (t.dueDate | date:'dd/MM/yyyy') : '—' }}
@@ -224,7 +231,14 @@
                 @if (t.dueDate) {
                   <span class="text-body-sm" style="color: var(--color-ledger-ink-lt);">venc. {{ t.dueDate | date:'dd/MM' }}</span>
                 }
-                <span [class]="t.status === 'PAGO' ? 'badge-paid' : 'badge-pending'">{{ t.status }}</span>
+                <button
+                  type="button"
+                  [class]="t.status === 'PAGO' ? 'badge-paid' : 'badge-pending'"
+                  style="cursor: pointer;"
+                  [disabled]="togglingId() === t.id"
+                  [title]="t.status === 'PAGO' ? 'Marcar como pendente' : 'Marcar como pago'"
+                  (click)="togglePayment(t)"
+                >{{ t.status }}</button>
               </div>
             </div>
 

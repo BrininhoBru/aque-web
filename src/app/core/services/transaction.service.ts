@@ -49,4 +49,8 @@ export class TransactionService {
   delete(id: string): Observable<void> {
     return this.http.delete<void>(`${this.base}/${id}`);
   }
+
+  updatePayment(id: string, amountPaid: number | null): Observable<Transaction> {
+    return this.http.patch<Transaction>(`${this.base}/${id}/payment`, { amountPaid });
+  }
 }

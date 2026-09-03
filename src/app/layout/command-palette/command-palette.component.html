@@ -1,0 +1,31 @@
+@if (open()) {
+  <div class="command-palette-backdrop" (click)="close()">
+    <div class="command-palette ledger-card" (click)="$event.stopPropagation()">
+      <input
+        #queryInput
+        type="text"
+        class="ledger-input command-palette-input"
+        placeholder="Ir para..."
+        [value]="query()"
+        (input)="setQuery($any($event.target).value)"
+      />
+      <div class="command-palette-list">
+        @for (item of items(); track item.path; let i = $index) {
+          <div
+            class="command-palette-item"
+            [class.active]="i === activeIndex()"
+            (click)="selectItem(item)"
+          >
+            <span [innerHTML]="item.icon"></span>
+            <span>{{ item.label }}</span>
+          </div>
+        }
+        @if (items().length === 0) {
+          <div class="command-palette-item" style="color: var(--color-ledger-ink-lt); cursor: default;">
+            Nenhuma tela encontrada.
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+}

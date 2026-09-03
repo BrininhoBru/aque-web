@@ -102,6 +102,7 @@ export class TransactionsComponent implements OnInit {
   readonly deletingId = signal<string | null>(null);
   readonly confirmDeleteId = signal<string | null>(null);
   readonly generating = signal(false);
+  readonly togglingId = signal<string | null>(null);
 
   // Filtros
   readonly filterCategoryId = signal<string>('');
@@ -242,6 +243,20 @@ export class TransactionsComponent implements OnInit {
         this.confirmDeleteId.set(null);
         this.deletingId.set(null);
       },
+    });
+  }
+
+  togglePayment(t: Transaction): void {
+    const amountPaid = t.status === 'PAGO' ? null : t.amountExpected;
+    this.togglingId.set(t.id);
+
+    this.transactionService.updatePayment(t.id, amountPaid).subscribe({
+      next: () => {
+        this.toast.success(amountPaid ? 'Lançamento marcado como pago.' : 'Lançamento marcado como pendente.');
+        this.togglingId.set(null);
+        this.load();
+      },
+      error: () => this.togglingId.set(null),
     });
   }
 }

@@ -147,6 +147,51 @@ describe('TransactionsComponent', () => {
     });
   });
 
+  describe('togglePayment()', () => {
+    it('marca como PAGO usando amountExpected quando o lançamento está PENDENTE', () => {
+      component.togglePayment(tx({ id: '1', status: 'PENDENTE', amountExpected: 250 }));
+
+      const req = httpMock.expectOne('/api/transactions/1/payment');
+      expect(req.request.method).toBe('PATCH');
+      expect(req.request.body).toEqual({ amountPaid: 250 });
+      req.flush(tx({ id: '1', status: 'PAGO', amountPaid: 250 }));
+
+      httpMock.expectOne((r) => r.url === '/api/transactions').flush([]);
+      expect(component.togglingId()).toBeNull();
+    });
+
+    it('marca como PENDENTE enviando amountPaid nulo quando o lançamento está PAGO', () => {
+      component.togglePayment(tx({ id: '1', status: 'PAGO', amountPaid: 250 }));
+
+      const req = httpMock.expectOne('/api/transactions/1/payment');
+      expect(req.request.body).toEqual({ amountPaid: null });
+      req.flush(tx({ id: '1', status: 'PENDENTE', amountPaid: null }));
+
+      httpMock.expectOne((r) => r.url === '/api/transactions').flush([]);
+    });
+
+    it('desabilita a linha (togglingId) enquanto a requisição está em voo', () => {
+      component.togglePayment(tx({ id: '1', status: 'PENDENTE' }));
+      expect(component.togglingId()).toBe('1');
+
+      const req = httpMock.expectOne('/api/transactions/1/payment');
+      req.flush(tx({ id: '1', status: 'PAGO' }));
+      httpMock.expectOne((r) => r.url === '/api/transactions').flush([]);
+
+      expect(component.togglingId()).toBeNull();
+    });
+
+    it('em caso de erro, limpa togglingId e não recarrega a lista', () => {
+      component.togglePayment(tx({ id: '1', status: 'PENDENTE' }));
+
+      const req = httpMock.expectOne('/api/transactions/1/payment');
+      req.flush('erro', { status: 500, statusText: 'Server Error' });
+
+      expect(component.togglingId()).toBeNull();
+      httpMock.expectNone((r) => r.url === '/api/transactions');
+    });
+  });
+
   describe('indicador de isOverride', () => {
     let httpMock: HttpTestingController;
 

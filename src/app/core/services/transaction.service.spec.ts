@@ -100,4 +100,23 @@ describe('TransactionService', () => {
       req.flush(null);
     });
   });
+
+  describe('updatePayment()', () => {
+    it('deve enviar PATCH pro endpoint de pagamento com o valor pago', () => {
+      service.updatePayment('t1', 1500).subscribe();
+
+      const req = http.expectOne('/api/transactions/t1/payment');
+      expect(req.request.method).toBe('PATCH');
+      expect(req.request.body).toEqual({ amountPaid: 1500 });
+      req.flush(transaction);
+    });
+
+    it('deve enviar amountPaid nulo ao marcar como pendente', () => {
+      service.updatePayment('t1', null).subscribe();
+
+      const req = http.expectOne('/api/transactions/t1/payment');
+      expect(req.request.body).toEqual({ amountPaid: null });
+      req.flush(transaction);
+    });
+  });
 });

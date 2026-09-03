@@ -64,6 +64,89 @@ describe('RecurringComponent', () => {
     });
   });
 
+  describe('busca por texto (searchText)', () => {
+    beforeEach(() => {
+      component.recurrings.set([
+        recurring({ id: '1', description: 'Aluguel', active: true }),
+        recurring({ id: '2', description: 'Internet', active: true }),
+      ]);
+    });
+
+    it('filtra por descrição, case-insensitive', () => {
+      component.searchText.set('aluguel');
+      expect(component.filtered().map((r) => r.id)).toEqual(['1']);
+    });
+
+    it('combina com o filtro de ativo/inativo já existente', () => {
+      component.recurrings.set([
+        recurring({ id: '1', description: 'Aluguel', active: false }),
+        recurring({ id: '2', description: 'Aluguel', active: true }),
+      ]);
+      component.searchText.set('aluguel');
+      expect(component.filtered().map((r) => r.id)).toEqual(['2']);
+    });
+  });
+
+  describe('ordenação de colunas (setSort)', () => {
+    it('ordena por descrição, ascendente', () => {
+      component.recurrings.set([
+        recurring({ id: '1', description: 'Internet' }),
+        recurring({ id: '2', description: 'Aluguel' }),
+      ]);
+      component.setSort('description');
+      expect(component.filtered().map((r) => r.id)).toEqual(['2', '1']);
+    });
+
+    it('clicar na mesma coluna de novo inverte a direção', () => {
+      component.recurrings.set([
+        recurring({ id: '1', description: 'Internet' }),
+        recurring({ id: '2', description: 'Aluguel' }),
+      ]);
+      component.setSort('description');
+      component.setSort('description');
+      expect(component.filtered().map((r) => r.id)).toEqual(['1', '2']);
+    });
+
+    it('trocar de coluna volta a ordenar ascendente', () => {
+      component.recurrings.set([
+        recurring({ id: '1', description: 'Internet', defaultAmount: 100 }),
+        recurring({ id: '2', description: 'Aluguel', defaultAmount: 300 }),
+      ]);
+      component.setSort('description');
+      component.setSort('description'); // desc: ['1', '2']
+      component.setSort('defaultAmount'); // troca de coluna: volta pra asc
+      expect(component.filtered().map((r) => r.id)).toEqual(['1', '2']);
+    });
+
+    it('ordena por categoria (nome)', () => {
+      component.recurrings.set([
+        recurring({ id: '1', category: receitaCategory }), // Salário
+        recurring({ id: '2', category: despesaCategory }), // Aluguel
+      ]);
+      component.setSort('category');
+      expect(component.filtered().map((r) => r.id)).toEqual(['2', '1']);
+    });
+
+    it('ordena por tipo', () => {
+      component.recurrings.set([
+        recurring({ id: '1', type: 'RECEITA' }),
+        recurring({ id: '2', type: 'DESPESA' }),
+      ]);
+      component.setSort('type');
+      expect(component.filtered().map((r) => r.id)).toEqual(['2', '1']);
+    });
+
+    it('ordena por valor padrão numericamente', () => {
+      component.recurrings.set([
+        recurring({ id: '1', defaultAmount: 300 }),
+        recurring({ id: '2', defaultAmount: 100 }),
+        recurring({ id: '3', defaultAmount: 200 }),
+      ]);
+      component.setSort('defaultAmount');
+      expect(component.filtered().map((r) => r.id)).toEqual(['2', '3', '1']);
+    });
+  });
+
   describe('categoriesByType()', () => {
     beforeEach(() => {
       component.categories.set([despesaCategory, receitaCategory]);

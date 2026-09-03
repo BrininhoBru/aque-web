@@ -7,6 +7,20 @@ import { ToastService } from '../../shared/services/toast.service';
 import { RecurringTransaction, Category } from '../../core/models';
 
 type FilterActive = 'TODOS' | 'ATIVOS' | 'INATIVOS';
+type SortColumn = 'description' | 'category' | 'type' | 'defaultAmount';
+
+function compareByColumn(a: RecurringTransaction, b: RecurringTransaction, column: SortColumn): number {
+  switch (column) {
+    case 'description':
+      return a.description.localeCompare(b.description);
+    case 'category':
+      return a.category.name.localeCompare(b.category.name);
+    case 'type':
+      return a.type.localeCompare(b.type);
+    case 'defaultAmount':
+      return a.defaultAmount - b.defaultAmount;
+  }
+}
 
 @Component({
   selector: 'app-recurring',
@@ -62,6 +76,9 @@ export class RecurringComponent implements OnInit {
   readonly editingId = signal<string | null>(null);
   readonly confirmDeactivateId = signal<string | null>(null);
   readonly filterActive = signal<FilterActive>('ATIVOS');
+  readonly searchText = signal<string>('');
+  readonly sortColumn = signal<SortColumn | null>(null);
+  readonly sortDirection = signal<'asc' | 'desc'>('asc');
 
   private readonly model = signal<RecurringPayload>({
     description: '',
@@ -94,11 +111,21 @@ export class RecurringComponent implements OnInit {
 
   readonly filtered = computed(() => {
     const f = this.filterActive();
-    return this.recurrings().filter((r) => {
-      if (f === 'ATIVOS') return r.active;
-      if (f === 'INATIVOS') return !r.active;
-      return true;
+    const search = this.searchText().trim().toLowerCase();
+
+    let list = this.recurrings().filter((r) => {
+      const activeOk = f === 'TODOS' || (f === 'ATIVOS' ? r.active : !r.active);
+      const searchOk = !search || r.description.toLowerCase().includes(search);
+      return activeOk && searchOk;
     });
+
+    const column = this.sortColumn();
+    if (column) {
+      const dir = this.sortDirection() === 'asc' ? 1 : -1;
+      list = [...list].sort((a, b) => dir * compareByColumn(a, b, column));
+    }
+
+    return list;
   });
 
   readonly categoriesByType = computed(() => {
@@ -130,6 +157,15 @@ export class RecurringComponent implements OnInit {
 
   setFilter(f: string): void {
     this.filterActive.set(f as FilterActive);
+  }
+
+  setSort(column: SortColumn): void {
+    if (this.sortColumn() === column) {
+      this.sortDirection.update((d) => (d === 'asc' ? 'desc' : 'asc'));
+    } else {
+      this.sortColumn.set(column);
+      this.sortDirection.set('asc');
+    }
   }
 
   setType(type: string): void {

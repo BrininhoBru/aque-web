@@ -1,7 +1,7 @@
 import { TestBed, ComponentFixture } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
+import { ActivatedRoute, Router, convertToParamMap, provideRouter } from '@angular/router';
 import { TransactionFormComponent } from './transaction-form.component';
 import { MonthYearService } from '../../../core/services/month-year.service';
 import { ToastService } from '../../../shared/services/toast.service';
@@ -190,6 +190,35 @@ describe('TransactionFormComponent', () => {
 
       expect(component.saving()).toBeFalse();
       expect(toast.error).not.toHaveBeenCalled();
+    });
+  });
+
+  // aque-web#35 (gap encontrado pelo /spec-verify): critério de aceite "abrir o formulário de
+  // edição com um id inexistente continua mostrando 'Lançamento não encontrado.' e voltando pra
+  // tela anterior" nunca tinha teste de regressão, antes ou depois da Fase 1.
+  describe('loadTransaction() — lançamento não encontrado na listagem', () => {
+    let http: HttpTestingController;
+
+    beforeEach(() => {
+      http = TestBed.inject(HttpTestingController);
+    });
+
+    afterEach(() => http.verify());
+
+    it('mostra "Lançamento não encontrado." e volta pra tela de lançamentos', () => {
+      const toast = TestBed.inject(ToastService);
+      const router = TestBed.inject(Router);
+      spyOn(toast, 'error');
+      spyOn(router, 'navigate');
+
+      http.expectOne((req) => req.url.includes('/api/categories')).flush([]);
+
+      component.loadTransaction('id-inexistente');
+      http.expectOne((req) => req.url.includes('/api/transactions')).flush([]);
+
+      expect(toast.error).toHaveBeenCalledWith('Lançamento não encontrado.');
+      expect(router.navigate).toHaveBeenCalledWith(['/transactions']);
+      expect(component.loading()).toBeFalse();
     });
   });
 

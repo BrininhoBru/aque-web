@@ -1,6 +1,6 @@
 import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { form, FormField, required, min } from '@angular/forms/signals';
+import { form, FormField, required, min, validate } from '@angular/forms/signals';
 import { RecurringService, RecurringPayload } from '../../core/services/recurring.service';
 import { CategoryService } from '../../core/services/category.service';
 import { ToastService } from '../../shared/services/toast.service';
@@ -68,6 +68,7 @@ export class RecurringComponent implements OnInit {
     categoryId: '',
     type: 'DESPESA',
     defaultAmount: 0,
+    dueDay: null,
   });
 
   readonly recurringForm = form(this.model, (f) => {
@@ -75,13 +76,20 @@ export class RecurringComponent implements OnInit {
     required(f.categoryId, { message: 'Categoria obrigatória' });
     required(f.defaultAmount, { message: 'Valor obrigatório' });
     min(f.defaultAmount, 0.01, { message: 'Valor deve ser positivo' });
+    validate(f.dueDay, ({ value }) => {
+      const v = value();
+      return v != null && (v < 1 || v > 31)
+        ? { kind: 'range', message: 'Dia do vencimento deve ser entre 1 e 31' }
+        : undefined;
+    });
   });
 
   readonly formValid = computed(
     () =>
       this.recurringForm.description().valid() &&
       this.recurringForm.categoryId().valid() &&
-      this.recurringForm.defaultAmount().valid(),
+      this.recurringForm.defaultAmount().valid() &&
+      this.recurringForm.dueDay().valid(),
   );
 
   readonly filtered = computed(() => {
@@ -131,7 +139,7 @@ export class RecurringComponent implements OnInit {
 
   openCreate(): void {
     this.editingId.set(null);
-    this.model.set({ description: '', categoryId: '', type: 'DESPESA', defaultAmount: 0 });
+    this.model.set({ description: '', categoryId: '', type: 'DESPESA', defaultAmount: 0, dueDay: null });
     this.showForm.set(true);
   }
 
@@ -142,6 +150,7 @@ export class RecurringComponent implements OnInit {
       categoryId: r.category.id,
       type: r.type,
       defaultAmount: r.defaultAmount,
+      dueDay: r.dueDay ?? null,
     });
     this.showForm.set(true);
   }

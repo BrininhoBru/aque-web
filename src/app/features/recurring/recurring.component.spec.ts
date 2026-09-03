@@ -1,6 +1,6 @@
 import { TestBed, ComponentFixture } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
-import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideRouter } from '@angular/router';
 import { RecurringComponent } from './recurring.component';
 import { RecurringTransaction, Category } from '../../core/models';
@@ -16,6 +16,7 @@ function recurring(overrides: Partial<RecurringTransaction>): RecurringTransacti
     type: 'DESPESA',
     defaultAmount: 1500,
     active: true,
+    dueDay: null,
     ...overrides,
   };
 }
@@ -23,6 +24,7 @@ function recurring(overrides: Partial<RecurringTransaction>): RecurringTransacti
 describe('RecurringComponent', () => {
   let component: RecurringComponent;
   let fixture: ComponentFixture<RecurringComponent>;
+  let httpMock: HttpTestingController;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -32,6 +34,7 @@ describe('RecurringComponent', () => {
 
     fixture = TestBed.createComponent(RecurringComponent);
     component = fixture.componentInstance;
+    httpMock = TestBed.inject(HttpTestingController);
   });
 
   it('deve criar o componente', () => {
@@ -114,6 +117,51 @@ describe('RecurringComponent', () => {
 
       expect(component.editingId()).toBeNull();
       expect(component.recurringForm.description().value()).toBe('');
+    });
+  });
+
+  describe('dueDay', () => {
+    it('openEdit() carrega o dueDay do recorrente quando presente', () => {
+      component.openEdit(recurring({ id: '42', dueDay: 15 }));
+      expect(component.recurringForm.dueDay().value()).toBe(15);
+    });
+
+    it('openEdit() carrega null quando o recorrente não tem dueDay', () => {
+      component.openEdit(recurring({ id: '42', dueDay: null }));
+      expect(component.recurringForm.dueDay().value()).toBeNull();
+    });
+
+    it('openCreate() reseta o dueDay para null', () => {
+      component.openEdit(recurring({ id: '42', dueDay: 15 }));
+      component.openCreate();
+      expect(component.recurringForm.dueDay().value()).toBeNull();
+    });
+
+    it('rejeita valor fora de 1-31', () => {
+      component.recurringForm.description().value.set('Aluguel');
+      component.recurringForm.categoryId().value.set(despesaCategory.id);
+      component.recurringForm.defaultAmount().value.set(1500);
+      component.recurringForm.dueDay().value.set(32);
+      expect(component.formValid()).toBeFalse();
+
+      component.recurringForm.dueDay().value.set(0);
+      expect(component.formValid()).toBeFalse();
+
+      component.recurringForm.dueDay().value.set(15);
+      expect(component.formValid()).toBeTrue();
+    });
+
+    it('save() envia o dueDay no payload', () => {
+      component.recurringForm.description().value.set('Aluguel');
+      component.recurringForm.categoryId().value.set(despesaCategory.id);
+      component.recurringForm.defaultAmount().value.set(1500);
+      component.recurringForm.dueDay().value.set(5);
+
+      component.save();
+
+      const req = httpMock.expectOne('/api/recurring');
+      expect(req.request.body.dueDay).toBe(5);
+      req.flush(recurring({ dueDay: 5 }));
     });
   });
 });

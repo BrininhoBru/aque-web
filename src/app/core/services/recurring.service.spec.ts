@@ -16,6 +16,7 @@ describe('RecurringService', () => {
     type: 'DESPESA',
     defaultAmount: 1500,
     active: true,
+    dueDay: null,
   };
 
   beforeEach(() => {
@@ -57,6 +58,7 @@ describe('RecurringService', () => {
         categoryId: 'c1',
         type: 'DESPESA',
         defaultAmount: 1500,
+        dueDay: null,
       };
 
       service.create(payload).subscribe((res) => expect(res).toEqual(recurring));

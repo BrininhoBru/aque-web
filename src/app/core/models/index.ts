@@ -32,6 +32,7 @@ export interface RecurringTransaction {
   type: 'RECEITA' | 'DESPESA';
   defaultAmount: number;
   active: boolean;
+  dueDay: number | null;
 }
 
 export interface SplitRuleItem {

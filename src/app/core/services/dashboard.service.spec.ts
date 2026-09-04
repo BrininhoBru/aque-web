@@ -43,6 +43,44 @@ describe('DashboardService', () => {
       expect(req.request.method).toBe('GET');
       req.flush(summary);
     });
+
+    // achado do /code-review na PR #43: SidebarComponent e DashboardComponent chamam
+    // getSummary independentemente pro mesmo year/month na rota /dashboard, dobrando
+    // a carga nesse endpoint a cada troca de mês.
+    it('deduplica chamadas concorrentes pro mesmo year/month — só 1 requisição HTTP', () => {
+      let first: DashboardSummary | undefined;
+      let second: DashboardSummary | undefined;
+      service.getSummary(2026, 3).subscribe((res) => (first = res));
+      service.getSummary(2026, 3).subscribe((res) => (second = res));
+
+      const req = http.expectOne('/api/dashboard/summary/2026/3');
+      req.flush(summary);
+
+      expect(first).toEqual(summary);
+      expect(second).toEqual(summary);
+    });
+
+    it('não reusa o cache pra year/month diferentes — 2 requisições HTTP', () => {
+      service.getSummary(2026, 3).subscribe();
+      service.getSummary(2026, 4).subscribe();
+
+      const req1 = http.expectOne('/api/dashboard/summary/2026/3');
+      const req2 = http.expectOne('/api/dashboard/summary/2026/4');
+      expect(req1).not.toBe(req2);
+      req1.flush(summary);
+      req2.flush(summary);
+    });
+
+    it('uma nova chamada após a anterior completar dispara uma nova requisição (sem cache permanente)', () => {
+      service.getSummary(2026, 3).subscribe();
+      http.expectOne('/api/dashboard/summary/2026/3').flush(summary);
+
+      let result: DashboardSummary | undefined;
+      service.getSummary(2026, 3).subscribe((res) => (result = res));
+      http.expectOne('/api/dashboard/summary/2026/3').flush(summary);
+
+      expect(result).toEqual(summary);
+    });
   });
 
   describe('getByCategory()', () => {

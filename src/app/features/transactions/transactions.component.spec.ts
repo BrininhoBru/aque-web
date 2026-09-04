@@ -551,6 +551,30 @@ describe('TransactionsComponent', () => {
       ]);
     });
 
+    // achado do /code-review na PR #44: o fix do checkbox invisível (0x0px, CSS
+    // appearance:none global) foi mergeado sem teste de regressão — standards.md
+    // exige teste antes de mexer em código legado sem cobertura.
+    //
+    // Usa getComputedStyle (não offsetWidth/offsetHeight): a tabela desktop tem
+    // "hidden md:block" e o viewport padrão do Karma/ChromeHeadless fica abaixo do
+    // breakpoint md, então offsetWidth zeraria por causa do display:none responsivo,
+    // não pela regra de appearance que é o que este teste precisa travar.
+    it('os checkboxes de seleção têm appearance nativa, não appearance:none', () => {
+      fixture.detectChanges();
+      httpMock.expectOne((r) => r.url === '/api/transactions').flush([
+        tx({ id: '1', status: 'PENDENTE' }),
+      ]);
+      fixture.detectChanges();
+
+      const checkboxes: NodeListOf<HTMLInputElement> = fixture.nativeElement.querySelectorAll(
+        'input[type="checkbox"]',
+      );
+      expect(checkboxes.length).toBeGreaterThan(0);
+      checkboxes.forEach((checkbox) => {
+        expect(getComputedStyle(checkbox).appearance).not.toBe('none');
+      });
+    });
+
     it('toggleSelect() adiciona e remove o id do conjunto selecionado', () => {
       component.toggleSelect('1');
       expect(component.isSelected('1')).toBeTrue();

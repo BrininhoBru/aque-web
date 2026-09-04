@@ -246,7 +246,7 @@
 
         <div class="ledger-form-group" style="margin-bottom: 0;">
           <label class="ledger-label">Dia do vencimento (opcional)</label>
-          <input class="ledger-input" type="number" min="1" max="31" [formField]="recurringForm.dueDay" placeholder="Ex: 10" />
+          <input class="ledger-input" type="number" [formField]="recurringForm.dueDay" placeholder="Ex: 10" />
           @if (recurringForm.dueDay().touched() && recurringForm.dueDay().invalid()) {
             <p class="ledger-error">{{ recurringForm.dueDay().errors()[0]?.message }}</p>
           }

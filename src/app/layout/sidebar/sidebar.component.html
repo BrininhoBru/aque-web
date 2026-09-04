@@ -25,9 +25,6 @@
       <a [routerLink]="item.path" routerLinkActive="nav-active" class="nav-link" (click)="onNavClick()">
         <span [innerHTML]="item.icon"></span>
         <span>{{ item.label }}</span>
-        @if (item.badgeKey === 'overdue' && overdueCount() > 0) {
-          <span class="sidebar-badge">{{ overdueCount() }}</span>
-        }
       </a>
     }
 

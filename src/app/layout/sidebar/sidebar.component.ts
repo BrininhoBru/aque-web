@@ -1,10 +1,7 @@
-import { Component, HostBinding, inject, signal, effect } from '@angular/core';
+import { Component, HostBinding, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { LayoutService } from '../layout.service';
 import { MAIN_NAV, SECONDARY_NAV } from '../nav-items';
-import { DashboardService } from '../../core/services/dashboard.service';
-import { MonthYearService } from '../../core/services/month-year.service';
-import { createLatestRequestGuard } from '../../core/rxjs/latest-request-guard';
 
 @Component({
   selector: 'app-sidebar',
@@ -109,20 +106,6 @@ import { createLatestRequestGuard } from '../../core/rxjs/latest-request-guard';
       background: var(--color-ledger-side-active);
       border-radius: 0 2px 2px 0;
     }
-    .sidebar-badge {
-      margin-left: auto;
-      min-width: 1.25rem;
-      height: 1.25rem;
-      padding: 0 0.375rem;
-      border-radius: 999px;
-      background: #ef4444;
-      color: white;
-      font-size: 0.7rem;
-      font-weight: 600;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
     .sidebar-footer {
       padding: 0.75rem;
       border-top: 1px solid rgba(255,255,255,0.08);
@@ -158,32 +141,12 @@ import { createLatestRequestGuard } from '../../core/rxjs/latest-request-guard';
 })
 export class SidebarComponent {
   private readonly layout = inject(LayoutService);
-  private readonly dashboardService = inject(DashboardService);
-  private readonly monthYear = inject(MonthYearService);
 
   readonly mainNav = MAIN_NAV;
   readonly secondaryNav = SECONDARY_NAV;
-  readonly overdueCount = signal(0);
-
-  private readonly requestGuard = createLatestRequestGuard();
 
   @HostBinding('class.sidebar-closed') get isClosed() {
     return !this.layout.sidebarOpen();
-  }
-
-  constructor() {
-    effect(() => {
-      const { month, year } = this.monthYear.selected();
-      const requestId = this.requestGuard.next();
-      this.dashboardService.getSummary(year, month).subscribe({
-        next: (data) => {
-          if (!this.requestGuard.isCurrent(requestId)) return;
-          this.overdueCount.set(data.totalOverdueCount);
-        },
-        // errorInterceptor já mostra o erro (Fase 1, #35)
-        error: () => {},
-      });
-    });
   }
 
   onNavClick(): void {

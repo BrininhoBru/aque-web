@@ -33,6 +33,15 @@ describe('LoginComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  // gap encontrado pelo /spec-verify (spec #38): a paleta de comando só é montada
+  // dentro do AppShellComponent (rotas autenticadas) — LoginComponent nunca a
+  // referencia, então ela nunca existe no DOM da tela de login. Era uma afirmação
+  // arquitetural sem teste; isso é unitariamente testável, não exige browser.
+  it('não monta a paleta de comando (Cmd/Ctrl+K) na tela de login', () => {
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('app-command-palette')).toBeNull();
+  });
+
   it('deve navegar pro dashboard após login bem-sucedido', () => {
     component.loginForm.username().value.set('admin');
     component.loginForm.password().value.set('123456');

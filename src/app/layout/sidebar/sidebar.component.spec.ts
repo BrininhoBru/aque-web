@@ -87,8 +87,13 @@ describe('SidebarComponent', () => {
       httpMock
         .expectOne((r) => r.url === `/api/dashboard/summary/${nextYear}/${nextMonth}`)
         .flush(summary({ totalOverdueCount: 5 }));
+      fixture.detectChanges();
 
       expect(component.overdueCount()).toBe(5);
+      // gap encontrado pelo /spec-verify: só o signal era reverificado, nunca o
+      // badge renderizado de fato no DOM após a troca de mês.
+      const badge = fixture.nativeElement.querySelector('.sidebar-badge');
+      expect(badge.textContent).toContain('5');
     });
   });
 });

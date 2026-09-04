@@ -1,10 +1,7 @@
 import { TestBed, ComponentFixture } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
 import { CommandPaletteComponent } from './command-palette.component';
-
-function press(key: string, opts: Partial<KeyboardEventInit> = {}): void {
-  window.dispatchEvent(new KeyboardEvent('keydown', { key, ...opts }));
-}
+import { press } from '../test-helpers';
 
 describe('CommandPaletteComponent', () => {
   let component: CommandPaletteComponent;
@@ -39,6 +36,20 @@ describe('CommandPaletteComponent', () => {
     press('k', { ctrlKey: true });
     fixture.detectChanges();
     expect(component.open()).toBeTrue();
+  });
+
+  // achado do /code-review na PR #43: (metaKey||ctrlKey)+'k' não distinguia
+  // Ctrl+Shift+K, sequestrando o atalho nativo do Firefox de abrir o Console.
+  it('Ctrl+Shift+K não abre a paleta', () => {
+    press('k', { ctrlKey: true, shiftKey: true });
+    fixture.detectChanges();
+    expect(component.open()).toBeFalse();
+  });
+
+  it('Cmd+Alt+K não abre a paleta', () => {
+    press('k', { metaKey: true, altKey: true });
+    fixture.detectChanges();
+    expect(component.open()).toBeFalse();
   });
 
   // gap encontrado pelo /spec-verify: nenhum teste provava que digitação normal
@@ -81,6 +92,70 @@ describe('CommandPaletteComponent', () => {
     });
   });
 
+  // achado do /code-review na PR #43: overlay sem role/aria-modal, sem devolver o
+  // foco ao elemento anterior ao fechar, sem focus trap.
+  describe('acessibilidade', () => {
+    it('o painel tem role="dialog" e aria-modal="true"', () => {
+      press('k', { metaKey: true });
+      fixture.detectChanges();
+
+      const panel: HTMLElement = fixture.nativeElement.querySelector('.command-palette');
+      expect(panel.getAttribute('role')).toBe('dialog');
+      expect(panel.getAttribute('aria-modal')).toBe('true');
+    });
+
+    it('devolve o foco ao elemento anterior quando fecha com Escape', () => {
+      const trigger = document.createElement('button');
+      document.body.appendChild(trigger);
+      trigger.focus();
+
+      try {
+        press('k', { metaKey: true });
+        fixture.detectChanges();
+        expect(document.activeElement).not.toBe(trigger);
+
+        press('Escape');
+        fixture.detectChanges();
+
+        expect(document.activeElement).toBe(trigger);
+      } finally {
+        document.body.removeChild(trigger);
+      }
+    });
+
+    it('devolve o foco ao elemento anterior quando fecha selecionando um item', () => {
+      const trigger = document.createElement('button');
+      document.body.appendChild(trigger);
+      trigger.focus();
+
+      try {
+        press('k', { metaKey: true });
+        fixture.detectChanges();
+
+        component.selectItem(component.items()[0]);
+        fixture.detectChanges();
+
+        expect(document.activeElement).toBe(trigger);
+      } finally {
+        document.body.removeChild(trigger);
+      }
+    });
+
+    it('Tab não escapa a paleta — mantém o foco no input de busca', () => {
+      press('k', { metaKey: true });
+      fixture.detectChanges();
+
+      const tabEvent = new KeyboardEvent('keydown', { key: 'Tab', bubbles: true, cancelable: true });
+      const preventDefaultSpy = spyOn(tabEvent, 'preventDefault').and.callThrough();
+      window.dispatchEvent(tabEvent);
+      fixture.detectChanges();
+
+      expect(preventDefaultSpy).toHaveBeenCalled();
+      const input: HTMLInputElement = fixture.nativeElement.querySelector('.command-palette-input');
+      expect(document.activeElement).toBe(input);
+    });
+  });
+
   describe('com a paleta aberta', () => {
     beforeEach(() => {
       press('k', { metaKey: true });
@@ -99,6 +174,18 @@ describe('CommandPaletteComponent', () => {
     it('digitar filtra a lista por label, case-insensitive', () => {
       component.setQuery('lança');
       expect(component.items().map((i) => i.label)).toEqual(['Lançamentos']);
+    });
+
+    // achado do /code-review na PR #43: apertar Cmd/Ctrl+K de novo com a paleta já
+    // aberta rodava openPalette() incondicionalmente, zerando query/activeIndex em
+    // progresso.
+    it('apertar Cmd+K de novo com a paleta já aberta não reseta a busca em progresso', () => {
+      component.setQuery('cat');
+      press('k', { metaKey: true });
+      fixture.detectChanges();
+
+      expect(component.open()).toBeTrue();
+      expect(component.query()).toBe('cat');
     });
 
     it('ArrowDown/ArrowUp movem o item ativo sem passar dos limites', () => {

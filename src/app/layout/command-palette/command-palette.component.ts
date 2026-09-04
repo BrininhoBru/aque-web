@@ -20,8 +20,6 @@ const ALL_ITEMS: NavItem[] = [...MAIN_NAV, ...SECONDARY_NAV];
   templateUrl: './command-palette.component.html',
   styles: [`
     .command-palette-backdrop {
-      position: fixed;
-      inset: 0;
       z-index: 60;
       display: flex;
       align-items: flex-start;
@@ -74,6 +72,7 @@ export class CommandPaletteComponent {
   });
 
   private readonly queryInput = viewChild<ElementRef<HTMLInputElement>>('queryInput');
+  private previouslyFocused: HTMLElement | null = null;
 
   constructor() {
     afterRenderEffect(() => {
@@ -85,9 +84,14 @@ export class CommandPaletteComponent {
 
   @HostListener('window:keydown', ['$event'])
   onKeydown(event: KeyboardEvent): void {
-    if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
+    if (
+      (event.metaKey || event.ctrlKey) &&
+      !event.shiftKey &&
+      !event.altKey &&
+      event.key.toLowerCase() === 'k'
+    ) {
       event.preventDefault();
-      this.openPalette();
+      if (!this.open()) this.openPalette();
       return;
     }
 
@@ -95,6 +99,10 @@ export class CommandPaletteComponent {
 
     if (event.key === 'Escape') {
       this.close();
+    } else if (event.key === 'Tab') {
+      // único elemento focável hoje é o input de busca — "trap" é mantê-lo focado
+      event.preventDefault();
+      this.queryInput()?.nativeElement.focus();
     } else if (event.key === 'ArrowDown') {
       event.preventDefault();
       this.activeIndex.update((i) => Math.min(i + 1, this.items().length - 1));
@@ -118,6 +126,7 @@ export class CommandPaletteComponent {
   }
 
   private openPalette(): void {
+    this.previouslyFocused = document.activeElement as HTMLElement;
     this.query.set('');
     this.activeIndex.set(0);
     this.open.set(true);
@@ -125,5 +134,7 @@ export class CommandPaletteComponent {
 
   close(): void {
     this.open.set(false);
+    this.previouslyFocused?.focus();
+    this.previouslyFocused = null;
   }
 }

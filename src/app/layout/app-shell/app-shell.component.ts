@@ -53,8 +53,6 @@ import { LayoutService } from '../layout.service';
       }
       .sidebar-backdrop {
         display: block;
-        position: fixed;
-        inset: 0;
         z-index: 40;
         background: rgba(0, 0, 0, 0.5);
       }

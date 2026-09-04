@@ -2,6 +2,9 @@ export interface NavItem {
   path: string;
   label: string;
   icon: string;
+  // chave que a sidebar usa pra decidir qual badge (se algum) mostrar nesse item —
+  // evita comparar item.path por string literal fora deste arquivo
+  badgeKey?: string;
 }
 
 export const MAIN_NAV: NavItem[] = [
@@ -14,6 +17,7 @@ export const MAIN_NAV: NavItem[] = [
     path: '/transactions',
     label: 'Lançamentos',
     icon: `<svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M19 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2zm-7 14l-5-5 1.41-1.41L12 14.17l7.59-7.59L21 8l-9 9z"/></svg>`,
+    badgeKey: 'overdue',
   },
 ];
 

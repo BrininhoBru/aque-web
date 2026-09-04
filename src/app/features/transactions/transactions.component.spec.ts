@@ -143,6 +143,38 @@ describe('TransactionsComponent', () => {
       component.searchText.set('aluguel');
       expect(component.filtered().length).toBe(0);
     });
+
+    // gap encontrado pelo /spec-verify: os testes acima só chamavam searchText.set()
+    // direto, nunca o evento (input) real do campo de busca renderizado.
+    it('digitar no campo de busca (evento DOM real) filtra a tabela', () => {
+      fixture.detectChanges();
+      const input: HTMLInputElement = fixture.nativeElement.querySelector(
+        '.tx-filter-bar input[type="text"]',
+      );
+      input.value = 'supermercado';
+      input.dispatchEvent(new Event('input'));
+      fixture.detectChanges();
+
+      expect(component.filtered().map((t) => t.id)).toEqual(['2']);
+    });
+
+    // gap: busca/sort/filtros nunca eram verificados contra os cards mobile,
+    // que consomem o mesmo filtered() mas são um bloco de template separado.
+    it('filtra também os cards mobile (mesmo filtered())', () => {
+      component.searchText.set('aluguel');
+      fixture.detectChanges(); // dispara o effect() do construtor (load() inicial)
+      httpMock
+        .expectOne((r) => r.url === '/api/transactions')
+        .flush([
+          tx({ id: '1', description: 'Aluguel de março', type: 'DESPESA' }),
+          tx({ id: '2', description: 'Supermercado', type: 'DESPESA' }),
+        ]);
+      fixture.detectChanges();
+
+      const cards = fixture.nativeElement.querySelectorAll('.tx-card-title');
+      expect(cards.length).toBe(1);
+      expect(cards[0].textContent).toContain('Aluguel de março');
+    });
   });
 
   describe('ordenação de colunas (setSort)', () => {
@@ -194,6 +226,44 @@ describe('TransactionsComponent', () => {
       ]);
       component.setSort('dueDate');
       expect(component.filtered().map((t) => t.id)).toEqual(['2', '3', '1']);
+    });
+
+    // gap encontrado pelo /spec-verify: setSort() era só chamado direto, nunca via
+    // clique real no <th>, e o indicador ▲/▼ nunca era verificado no DOM.
+    it('clicar no <th> Descrição ordena e mostra o indicador ▲, clicar de novo mostra ▼', () => {
+      fixture.detectChanges(); // dispara o effect() do construtor (load() inicial)
+      httpMock
+        .expectOne((r) => r.url === '/api/transactions')
+        .flush([tx({ id: '1', description: 'Banana' }), tx({ id: '2', description: 'Abacaxi' })]);
+      fixture.detectChanges();
+
+      const descriptionHeader: HTMLElement = fixture.nativeElement.querySelectorAll('th')[1];
+      descriptionHeader.click();
+      fixture.detectChanges();
+
+      expect(component.filtered().map((t) => t.id)).toEqual(['2', '1']);
+      expect(descriptionHeader.textContent).toContain('▲');
+
+      descriptionHeader.click();
+      fixture.detectChanges();
+
+      expect(descriptionHeader.textContent).toContain('▼');
+    });
+
+    // gap: nenhum teste combinava sort com um filtro de categoria/status ativo —
+    // só busca+tipo tinha esse cruzamento coberto.
+    it('ordenação opera só sobre os itens já filtrados por categoria/status', () => {
+      component.transactions.set([
+        tx({ id: '1', description: 'Zebra', category: despesaCategory, status: 'PENDENTE' }),
+        tx({ id: '2', description: 'Abacaxi', category: despesaCategory, status: 'PAGO' }),
+        tx({ id: '3', description: 'Mesa', category: receitaCategory, status: 'PENDENTE' }),
+      ]);
+      component.setFilterStatus('PENDENTE');
+      component.setSort('description');
+
+      // '2' está fora por causa do filtro de status, mesmo sendo alfabeticamente
+      // o primeiro — a ordenação nunca deveria trazê-lo de volta
+      expect(component.filtered().map((t) => t.id)).toEqual(['3', '1']);
     });
   });
 
@@ -301,6 +371,97 @@ describe('TransactionsComponent', () => {
           }),
         );
       });
+
+      // gap encontrado pelo /spec-verify: "Limpar filtros" só era testado no estado
+      // dos signals, nunca que a limpeza também é escrita na URL.
+      it('clearFilters() reflete na URL — todos os params voltam a null', () => {
+        const router = TestBed.inject(Router);
+        component.setFilterType('RECEITA');
+        component.setFilterStatus('PAGO');
+        component.setFilterCategory('c2');
+        component.searchText.set('luz');
+        component.toggleOverdue();
+        component.setSort('description');
+        fixture.detectChanges();
+        spyOn(router, 'navigate');
+
+        component.clearFilters();
+        fixture.detectChanges();
+
+        expect(router.navigate).toHaveBeenCalledWith(
+          [],
+          jasmine.objectContaining({
+            queryParams: {
+              categoryId: null,
+              type: null,
+              status: null,
+              search: null,
+              overdue: null,
+              sortBy: null,
+              sortDir: null,
+            },
+          }),
+        );
+      });
+    });
+
+    // gap: a leitura inicial e a escrita eram testadas separadamente, sem provar que
+    // os mesmos nomes/formatos de query param usados na escrita são os que a leitura
+    // espera de volta — o round-trip nunca era exercitado ponta a ponta.
+    it('round-trip: os params escritos na URL restauram o mesmo estado numa nova instância', () => {
+      const router = TestBed.inject(Router);
+      spyOn(router, 'navigate');
+
+      component.setFilterCategory('c1');
+      component.setFilterType('DESPESA');
+      component.setFilterStatus('PENDENTE');
+      component.searchText.set('luz');
+      component.toggleOverdue();
+      component.setSort('description');
+      fixture.detectChanges();
+
+      const lastCall = (router.navigate as jasmine.Spy).calls.mostRecent();
+      const writtenParams = lastCall.args[1].queryParams as Record<string, string | null>;
+
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({
+        imports: [TransactionsComponent],
+        providers: [
+          provideHttpClient(),
+          provideHttpClientTesting(),
+          provideRouter([]),
+          {
+            provide: ActivatedRoute,
+            useValue: { snapshot: { queryParamMap: convertToParamMap(writtenParams as Record<string, string>) } },
+          },
+        ],
+      });
+      const restoredFixture = TestBed.createComponent(TransactionsComponent);
+      const restored = restoredFixture.componentInstance;
+
+      expect(restored.filterCategoryId()).toBe('c1');
+      expect(restored.filterType()).toBe('DESPESA');
+      expect(restored.filterStatus()).toBe('PENDENTE');
+      expect(restored.searchText()).toBe('luz');
+      expect(restored.filterOverdue()).toBeTrue();
+      expect(restored.sortColumn()).toBe('description');
+    });
+
+    // gap: nenhum teste provava que trocar de mês preserva os filtros — verdade hoje
+    // só porque o effect() de recarga só chama load(), mas sem regressão automatizada.
+    it('trocar de mês/ano mantém os filtros ativos', () => {
+      component.setFilterType('DESPESA');
+      component.searchText.set('luz');
+      component.setSort('description');
+
+      const { month, year } = component.monthYear.selected();
+      const nextMonth = month === 12 ? 1 : month + 1;
+      const nextYear = month === 12 ? year + 1 : year;
+      component.monthYear.setMonthYear(nextMonth, nextYear);
+
+      expect(component.filterType()).toBe('DESPESA');
+      expect(component.searchText()).toBe('luz');
+      expect(component.sortColumn()).toBe('description');
     });
   });
 

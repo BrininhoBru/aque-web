@@ -82,6 +82,16 @@ function compareByColumn(a: Transaction, b: Transaction, column: SortColumn): nu
     }
 
     /* ── Card layout ─────────────────────────────────────────── */
+    /* .ledger-table checkboxes: styles.css reseta appearance de todo input pra
+       permitir os inputs customizados (.ledger-input/.ledger-select) — um checkbox
+       sem aparência nativa e sem largura/altura própria fica invisível (0x0), então
+       precisa restaurar a aparência nativa aqui, escopado só a esses dois checkboxes. */
+    .ledger-table input[type="checkbox"] {
+      appearance: auto;
+      width: 16px;
+      height: 16px;
+      cursor: pointer;
+    }
     .tx-card {
       padding: 0.875rem 1rem;
       display: flex;

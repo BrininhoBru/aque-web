@@ -4,6 +4,7 @@ import { LayoutService } from '../layout.service';
 import { MAIN_NAV, SECONDARY_NAV } from '../nav-items';
 import { DashboardService } from '../../core/services/dashboard.service';
 import { MonthYearService } from '../../core/services/month-year.service';
+import { createLatestRequestGuard } from '../../core/rxjs/latest-request-guard';
 
 @Component({
   selector: 'app-sidebar',
@@ -164,7 +165,7 @@ export class SidebarComponent {
   readonly secondaryNav = SECONDARY_NAV;
   readonly overdueCount = signal(0);
 
-  private latestRequestId = 0;
+  private readonly requestGuard = createLatestRequestGuard();
 
   @HostBinding('class.sidebar-closed') get isClosed() {
     return !this.layout.sidebarOpen();
@@ -173,10 +174,10 @@ export class SidebarComponent {
   constructor() {
     effect(() => {
       const { month, year } = this.monthYear.selected();
-      const requestId = ++this.latestRequestId;
+      const requestId = this.requestGuard.next();
       this.dashboardService.getSummary(year, month).subscribe({
         next: (data) => {
-          if (requestId !== this.latestRequestId) return;
+          if (!this.requestGuard.isCurrent(requestId)) return;
           this.overdueCount.set(data.totalOverdueCount);
         },
         // errorInterceptor já mostra o erro (Fase 1, #35)

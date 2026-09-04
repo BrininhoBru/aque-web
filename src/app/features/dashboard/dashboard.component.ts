@@ -23,6 +23,7 @@ import { MonthYearService } from '../../core/services/month-year.service';
 import { BrlCurrencyPipe } from '../../shared/pipes/brl-currency.pipe';
 import { MonthYearPipe } from '../../shared/pipes/month-year.pipe';
 import { DashboardSummary, CategoryTotal, MonthEvolution, SplitResult } from '../../core/models';
+import { createLatestRequestGuard } from '../../core/rxjs/latest-request-guard';
 
 export type PieChartOptions = {
   series: ApexNonAxisChartSeries;
@@ -244,7 +245,7 @@ export class DashboardComponent {
     };
   });
 
-  private latestRequestId = 0;
+  private readonly requestGuard = createLatestRequestGuard();
 
   constructor() {
     effect(() => {
@@ -254,7 +255,7 @@ export class DashboardComponent {
   }
 
   load(year: number, month: number): void {
-    const requestId = ++this.latestRequestId;
+    const requestId = this.requestGuard.next();
     this.loading.set(true);
     this.splitError.set(false);
 
@@ -272,7 +273,7 @@ export class DashboardComponent {
       ),
     }).subscribe({
       next: (data) => {
-        if (requestId !== this.latestRequestId) return; // resposta obsoleta, ignora
+        if (!this.requestGuard.isCurrent(requestId)) return; // resposta obsoleta, ignora
         this.summary.set(data.summary);
         this.byCategory.set(data.byCategory);
         this.evolution.set(data.evolution);
@@ -280,7 +281,7 @@ export class DashboardComponent {
         this.loading.set(false);
       },
       error: () => {
-        if (requestId !== this.latestRequestId) return;
+        if (!this.requestGuard.isCurrent(requestId)) return;
         this.loading.set(false);
       },
     });

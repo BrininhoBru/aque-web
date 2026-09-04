@@ -10,6 +10,7 @@ import { ToastService } from '../../shared/services/toast.service';
 import { MonthYearService } from '../../core/services/month-year.service';
 import { Transaction, Category } from '../../core/models';
 import { BrlCurrencyPipe } from '../../shared/pipes/brl-currency.pipe';
+import { createLatestRequestGuard } from '../../core/rxjs/latest-request-guard';
 
 type FilterType = 'TODOS' | 'RECEITA' | 'DESPESA';
 type FilterStatus = 'TODOS' | 'PENDENTE' | 'PAGO';
@@ -177,7 +178,7 @@ export class TransactionsComponent implements OnInit {
     pickValid(this.route.snapshot.queryParamMap.get('sortDir'), ['asc', 'desc'], 'asc'),
   );
 
-  private latestRequestId = 0;
+  private readonly requestGuard = createLatestRequestGuard();
   private pendingDeleteTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor() {
@@ -221,16 +222,16 @@ export class TransactionsComponent implements OnInit {
     };
 
     this.selectedIds.set(new Set());
-    const requestId = ++this.latestRequestId;
+    const requestId = this.requestGuard.next();
     this.loading.set(true);
     this.transactionService.getAll(filters).subscribe({
       next: (data) => {
-        if (requestId !== this.latestRequestId) return; // resposta obsoleta, ignora
+        if (!this.requestGuard.isCurrent(requestId)) return; // resposta obsoleta, ignora
         this.transactions.set(data);
         this.loading.set(false);
       },
       error: () => {
-        if (requestId !== this.latestRequestId) return;
+        if (!this.requestGuard.isCurrent(requestId)) return;
         this.loading.set(false);
       },
     });

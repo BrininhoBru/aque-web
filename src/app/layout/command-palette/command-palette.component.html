@@ -1,6 +1,12 @@
 @if (open()) {
-  <div class="command-palette-backdrop" (click)="close()">
-    <div class="command-palette ledger-card" (click)="$event.stopPropagation()">
+  <div class="overlay-backdrop command-palette-backdrop" (click)="close()">
+    <div
+      class="command-palette ledger-card"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Ir para..."
+      (click)="$event.stopPropagation()"
+    >
       <input
         #queryInput
         type="text"

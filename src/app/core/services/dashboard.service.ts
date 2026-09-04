@@ -21,10 +21,14 @@ export class DashboardService {
     let summary$ = this.summaryCache.get(key);
     if (!summary$) {
       summary$ = this.http.get<DashboardSummary>(`${this.base}/summary/${year}/${month}`).pipe(
-        // shareReplay não reseta ao completar (só ao refCount zerar de forma "ativa"),
-        // então sem isso a entrada vira um cache permanente — finalize() evicta a
-        // chave assim que a requisição compartilhada termina (sucesso ou erro),
-        // garantindo que só concorre entre chamadas simultâneas, não entre navegações
+        // shareReplay's refCount:true reset é guardado por !hasCompleted internamente
+        // (rxjs/internal/operators/share.js) — como uma fonte que completa (toda
+        // requisição HTTP) já seta hasCompleted=true antes do teardown do subscriber
+        // rodar, o reset por refCount-zero nunca dispara sozinho aqui, e sem
+        // finalize() a entrada vira cache permanente (confirmado lendo o share.js e
+        // testando: sem isso, uma 2ª chamada sequencial não gera 2ª requisição HTTP).
+        // finalize() evicta a chave assim que a requisição compartilhada termina
+        // (sucesso ou erro), garantindo que só concorre entre chamadas simultâneas.
         finalize(() => this.summaryCache.delete(key)),
         shareReplay({ bufferSize: 1, refCount: true }),
       );

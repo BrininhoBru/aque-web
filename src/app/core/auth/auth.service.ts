@@ -5,11 +5,6 @@ import { tap } from 'rxjs/operators';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
-export interface LoginRequest {
-  username: string;
-  password: string;
-}
-
 export interface LoginResponse {
   token: string;
   expiresIn: number;

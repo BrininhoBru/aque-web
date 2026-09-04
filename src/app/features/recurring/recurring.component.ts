@@ -1,12 +1,26 @@
 import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { form, FormField, required, min } from '@angular/forms/signals';
+import { form, FormField, required, min, validate } from '@angular/forms/signals';
 import { RecurringService, RecurringPayload } from '../../core/services/recurring.service';
 import { CategoryService } from '../../core/services/category.service';
 import { ToastService } from '../../shared/services/toast.service';
 import { RecurringTransaction, Category } from '../../core/models';
 
 type FilterActive = 'TODOS' | 'ATIVOS' | 'INATIVOS';
+type SortColumn = 'description' | 'category' | 'type' | 'defaultAmount';
+
+function compareByColumn(a: RecurringTransaction, b: RecurringTransaction, column: SortColumn): number {
+  switch (column) {
+    case 'description':
+      return a.description.localeCompare(b.description);
+    case 'category':
+      return a.category.name.localeCompare(b.category.name);
+    case 'type':
+      return a.type.localeCompare(b.type);
+    case 'defaultAmount':
+      return a.defaultAmount - b.defaultAmount;
+  }
+}
 
 @Component({
   selector: 'app-recurring',
@@ -62,12 +76,16 @@ export class RecurringComponent implements OnInit {
   readonly editingId = signal<string | null>(null);
   readonly confirmDeactivateId = signal<string | null>(null);
   readonly filterActive = signal<FilterActive>('ATIVOS');
+  readonly searchText = signal<string>('');
+  readonly sortColumn = signal<SortColumn | null>(null);
+  readonly sortDirection = signal<'asc' | 'desc'>('asc');
 
   private readonly model = signal<RecurringPayload>({
     description: '',
     categoryId: '',
     type: 'DESPESA',
     defaultAmount: 0,
+    dueDay: null,
   });
 
   readonly recurringForm = form(this.model, (f) => {
@@ -75,22 +93,39 @@ export class RecurringComponent implements OnInit {
     required(f.categoryId, { message: 'Categoria obrigatória' });
     required(f.defaultAmount, { message: 'Valor obrigatório' });
     min(f.defaultAmount, 0.01, { message: 'Valor deve ser positivo' });
+    validate(f.dueDay, ({ value }) => {
+      const v = value();
+      return v != null && (v < 1 || v > 31)
+        ? { kind: 'range', message: 'Dia do vencimento deve ser entre 1 e 31' }
+        : undefined;
+    });
   });
 
   readonly formValid = computed(
     () =>
       this.recurringForm.description().valid() &&
       this.recurringForm.categoryId().valid() &&
-      this.recurringForm.defaultAmount().valid(),
+      this.recurringForm.defaultAmount().valid() &&
+      this.recurringForm.dueDay().valid(),
   );
 
   readonly filtered = computed(() => {
     const f = this.filterActive();
-    return this.recurrings().filter((r) => {
-      if (f === 'ATIVOS') return r.active;
-      if (f === 'INATIVOS') return !r.active;
-      return true;
+    const search = this.searchText().trim().toLowerCase();
+
+    let list = this.recurrings().filter((r) => {
+      const activeOk = f === 'TODOS' || (f === 'ATIVOS' ? r.active : !r.active);
+      const searchOk = !search || r.description.toLowerCase().includes(search);
+      return activeOk && searchOk;
     });
+
+    const column = this.sortColumn();
+    if (column) {
+      const dir = this.sortDirection() === 'asc' ? 1 : -1;
+      list = [...list].sort((a, b) => dir * compareByColumn(a, b, column));
+    }
+
+    return list;
   });
 
   readonly categoriesByType = computed(() => {
@@ -124,6 +159,15 @@ export class RecurringComponent implements OnInit {
     this.filterActive.set(f as FilterActive);
   }
 
+  setSort(column: SortColumn): void {
+    if (this.sortColumn() === column) {
+      this.sortDirection.update((d) => (d === 'asc' ? 'desc' : 'asc'));
+    } else {
+      this.sortColumn.set(column);
+      this.sortDirection.set('asc');
+    }
+  }
+
   setType(type: string): void {
     this.recurringForm.type().value.set(type as 'RECEITA' | 'DESPESA');
     this.recurringForm.categoryId().value.set('');
@@ -131,7 +175,7 @@ export class RecurringComponent implements OnInit {
 
   openCreate(): void {
     this.editingId.set(null);
-    this.model.set({ description: '', categoryId: '', type: 'DESPESA', defaultAmount: 0 });
+    this.model.set({ description: '', categoryId: '', type: 'DESPESA', defaultAmount: 0, dueDay: null });
     this.showForm.set(true);
   }
 
@@ -142,6 +186,7 @@ export class RecurringComponent implements OnInit {
       categoryId: r.category.id,
       type: r.type,
       defaultAmount: r.defaultAmount,
+      dueDay: r.dueDay ?? null,
     });
     this.showForm.set(true);
   }

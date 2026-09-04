@@ -1,7 +1,8 @@
 import { Component, inject, signal, computed, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
-import { forkJoin } from 'rxjs';
+import { forkJoin, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import {
   NgApexchartsModule,
   ApexNonAxisChartSeries,
@@ -19,10 +20,10 @@ import {
 } from 'ng-apexcharts';
 import { DashboardService } from '../../core/services/dashboard.service';
 import { MonthYearService } from '../../core/services/month-year.service';
-import { ToastService } from '../../shared/services/toast.service';
 import { BrlCurrencyPipe } from '../../shared/pipes/brl-currency.pipe';
 import { MonthYearPipe } from '../../shared/pipes/month-year.pipe';
 import { DashboardSummary, CategoryTotal, MonthEvolution, SplitResult } from '../../core/models';
+import { createLatestRequestGuard } from '../../core/rxjs/latest-request-guard';
 
 export type PieChartOptions = {
   series: ApexNonAxisChartSeries;
@@ -75,7 +76,6 @@ const MONTH_LABELS = [
 })
 export class DashboardComponent {
   private readonly dashboardService = inject(DashboardService);
-  private readonly toast = inject(ToastService);
   readonly monthYear = inject(MonthYearService);
 
   readonly loading = signal(true);
@@ -245,6 +245,8 @@ export class DashboardComponent {
     };
   });
 
+  private readonly requestGuard = createLatestRequestGuard();
+
   constructor() {
     effect(() => {
       const { month, year } = this.monthYear.selected();
@@ -253,6 +255,7 @@ export class DashboardComponent {
   }
 
   load(year: number, month: number): void {
+    const requestId = this.requestGuard.next();
     this.loading.set(true);
     this.splitError.set(false);
 
@@ -260,42 +263,26 @@ export class DashboardComponent {
       summary: this.dashboardService.getSummary(year, month),
       byCategory: this.dashboardService.getByCategory(year, month),
       evolution: this.dashboardService.getEvolution(year),
-      split: this.dashboardService.getSplit(year, month),
+      // trata o próprio erro em vez de deixar derrubar o forkJoin inteiro — um mês sem
+      // split configurado (404) não pode invalidar summary/byCategory/evolution
+      split: this.dashboardService.getSplit(year, month).pipe(
+        catchError(() => {
+          this.splitError.set(true);
+          return of(null);
+        }),
+      ),
     }).subscribe({
       next: (data) => {
+        if (!this.requestGuard.isCurrent(requestId)) return; // resposta obsoleta, ignora
         this.summary.set(data.summary);
         this.byCategory.set(data.byCategory);
         this.evolution.set(data.evolution);
         this.split.set(data.split);
         this.loading.set(false);
       },
-      error: () => this.loadPartial(year, month),
-    });
-  }
-
-  private loadPartial(year: number, month: number): void {
-    forkJoin({
-      summary: this.dashboardService.getSummary(year, month),
-      byCategory: this.dashboardService.getByCategory(year, month),
-      evolution: this.dashboardService.getEvolution(year),
-    }).subscribe({
-      next: (data) => {
-        this.summary.set(data.summary);
-        this.byCategory.set(data.byCategory);
-        this.evolution.set(data.evolution);
-        this.loading.set(false);
-      },
       error: () => {
-        this.toast.error('Erro ao carregar dados do dashboard.');
+        if (!this.requestGuard.isCurrent(requestId)) return;
         this.loading.set(false);
-      },
-    });
-
-    this.dashboardService.getSplit(year, month).subscribe({
-      next: (data) => this.split.set(data),
-      error: () => {
-        this.split.set(null);
-        this.splitError.set(true);
       },
     });
   }

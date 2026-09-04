@@ -1,6 +1,6 @@
 import { TestBed, ComponentFixture } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
-import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideRouter } from '@angular/router';
 import { RecurringComponent } from './recurring.component';
 import { RecurringTransaction, Category } from '../../core/models';
@@ -16,6 +16,7 @@ function recurring(overrides: Partial<RecurringTransaction>): RecurringTransacti
     type: 'DESPESA',
     defaultAmount: 1500,
     active: true,
+    dueDay: null,
     ...overrides,
   };
 }
@@ -23,6 +24,7 @@ function recurring(overrides: Partial<RecurringTransaction>): RecurringTransacti
 describe('RecurringComponent', () => {
   let component: RecurringComponent;
   let fixture: ComponentFixture<RecurringComponent>;
+  let httpMock: HttpTestingController;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -32,6 +34,7 @@ describe('RecurringComponent', () => {
 
     fixture = TestBed.createComponent(RecurringComponent);
     component = fixture.componentInstance;
+    httpMock = TestBed.inject(HttpTestingController);
   });
 
   it('deve criar o componente', () => {
@@ -58,6 +61,89 @@ describe('RecurringComponent', () => {
     it('TODOS mostra os dois', () => {
       component.setFilter('TODOS');
       expect(component.filtered().length).toBe(2);
+    });
+  });
+
+  describe('busca por texto (searchText)', () => {
+    beforeEach(() => {
+      component.recurrings.set([
+        recurring({ id: '1', description: 'Aluguel', active: true }),
+        recurring({ id: '2', description: 'Internet', active: true }),
+      ]);
+    });
+
+    it('filtra por descrição, case-insensitive', () => {
+      component.searchText.set('aluguel');
+      expect(component.filtered().map((r) => r.id)).toEqual(['1']);
+    });
+
+    it('combina com o filtro de ativo/inativo já existente', () => {
+      component.recurrings.set([
+        recurring({ id: '1', description: 'Aluguel', active: false }),
+        recurring({ id: '2', description: 'Aluguel', active: true }),
+      ]);
+      component.searchText.set('aluguel');
+      expect(component.filtered().map((r) => r.id)).toEqual(['2']);
+    });
+  });
+
+  describe('ordenação de colunas (setSort)', () => {
+    it('ordena por descrição, ascendente', () => {
+      component.recurrings.set([
+        recurring({ id: '1', description: 'Internet' }),
+        recurring({ id: '2', description: 'Aluguel' }),
+      ]);
+      component.setSort('description');
+      expect(component.filtered().map((r) => r.id)).toEqual(['2', '1']);
+    });
+
+    it('clicar na mesma coluna de novo inverte a direção', () => {
+      component.recurrings.set([
+        recurring({ id: '1', description: 'Internet' }),
+        recurring({ id: '2', description: 'Aluguel' }),
+      ]);
+      component.setSort('description');
+      component.setSort('description');
+      expect(component.filtered().map((r) => r.id)).toEqual(['1', '2']);
+    });
+
+    it('trocar de coluna volta a ordenar ascendente', () => {
+      component.recurrings.set([
+        recurring({ id: '1', description: 'Internet', defaultAmount: 100 }),
+        recurring({ id: '2', description: 'Aluguel', defaultAmount: 300 }),
+      ]);
+      component.setSort('description');
+      component.setSort('description'); // desc: ['1', '2']
+      component.setSort('defaultAmount'); // troca de coluna: volta pra asc
+      expect(component.filtered().map((r) => r.id)).toEqual(['1', '2']);
+    });
+
+    it('ordena por categoria (nome)', () => {
+      component.recurrings.set([
+        recurring({ id: '1', category: receitaCategory }), // Salário
+        recurring({ id: '2', category: despesaCategory }), // Aluguel
+      ]);
+      component.setSort('category');
+      expect(component.filtered().map((r) => r.id)).toEqual(['2', '1']);
+    });
+
+    it('ordena por tipo', () => {
+      component.recurrings.set([
+        recurring({ id: '1', type: 'RECEITA' }),
+        recurring({ id: '2', type: 'DESPESA' }),
+      ]);
+      component.setSort('type');
+      expect(component.filtered().map((r) => r.id)).toEqual(['2', '1']);
+    });
+
+    it('ordena por valor padrão numericamente', () => {
+      component.recurrings.set([
+        recurring({ id: '1', defaultAmount: 300 }),
+        recurring({ id: '2', defaultAmount: 100 }),
+        recurring({ id: '3', defaultAmount: 200 }),
+      ]);
+      component.setSort('defaultAmount');
+      expect(component.filtered().map((r) => r.id)).toEqual(['2', '3', '1']);
     });
   });
 
@@ -114,6 +200,51 @@ describe('RecurringComponent', () => {
 
       expect(component.editingId()).toBeNull();
       expect(component.recurringForm.description().value()).toBe('');
+    });
+  });
+
+  describe('dueDay', () => {
+    it('openEdit() carrega o dueDay do recorrente quando presente', () => {
+      component.openEdit(recurring({ id: '42', dueDay: 15 }));
+      expect(component.recurringForm.dueDay().value()).toBe(15);
+    });
+
+    it('openEdit() carrega null quando o recorrente não tem dueDay', () => {
+      component.openEdit(recurring({ id: '42', dueDay: null }));
+      expect(component.recurringForm.dueDay().value()).toBeNull();
+    });
+
+    it('openCreate() reseta o dueDay para null', () => {
+      component.openEdit(recurring({ id: '42', dueDay: 15 }));
+      component.openCreate();
+      expect(component.recurringForm.dueDay().value()).toBeNull();
+    });
+
+    it('rejeita valor fora de 1-31', () => {
+      component.recurringForm.description().value.set('Aluguel');
+      component.recurringForm.categoryId().value.set(despesaCategory.id);
+      component.recurringForm.defaultAmount().value.set(1500);
+      component.recurringForm.dueDay().value.set(32);
+      expect(component.formValid()).toBeFalse();
+
+      component.recurringForm.dueDay().value.set(0);
+      expect(component.formValid()).toBeFalse();
+
+      component.recurringForm.dueDay().value.set(15);
+      expect(component.formValid()).toBeTrue();
+    });
+
+    it('save() envia o dueDay no payload', () => {
+      component.recurringForm.description().value.set('Aluguel');
+      component.recurringForm.categoryId().value.set(despesaCategory.id);
+      component.recurringForm.defaultAmount().value.set(1500);
+      component.recurringForm.dueDay().value.set(5);
+
+      component.save();
+
+      const req = httpMock.expectOne('/api/recurring');
+      expect(req.request.body.dueDay).toBe(5);
+      req.flush(recurring({ dueDay: 5 }));
     });
   });
 });

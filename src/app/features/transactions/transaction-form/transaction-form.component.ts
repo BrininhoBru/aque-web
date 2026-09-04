@@ -1,18 +1,21 @@
-import { Component, inject, signal, computed, OnInit } from '@angular/core';
+import { Component, ElementRef, afterRenderEffect, inject, signal, computed, viewChild, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute } from '@angular/router';
-import { form, FormField, required, min } from '@angular/forms/signals';
+import { form, FormField, required, min, max, validate } from '@angular/forms/signals';
 import { TransactionService, TransactionPayload } from '../../../core/services/transaction.service';
 import { CategoryService } from '../../../core/services/category.service';
 import { ToastService } from '../../../shared/services/toast.service';
 import { MonthYearService } from '../../../core/services/month-year.service';
 import { Category } from '../../../core/models';
 
+const MIN_TRANSACTION_YEAR = 2000;
+const MAX_TRANSACTION_YEAR = new Date().getFullYear() + 10;
+
 interface TransactionModel {
   description: string;
   categoryId: string;
   type: 'RECEITA' | 'DESPESA';
-  referenceMonth: number;
+  referenceMonth: string;
   referenceYear: number;
   amountExpected: number;
   amountPaid: number | null;
@@ -62,7 +65,7 @@ export class TransactionFormComponent implements OnInit {
     description: '',
     categoryId: '',
     type: 'DESPESA',
-    referenceMonth: this.monthYear.month(),
+    referenceMonth: String(this.monthYear.month()),
     referenceYear: this.monthYear.year(),
     amountExpected: 0,
     amountPaid: null,
@@ -74,8 +77,20 @@ export class TransactionFormComponent implements OnInit {
     required(f.categoryId, { message: 'Categoria obrigatória' });
     required(f.referenceMonth, { message: 'Mês obrigatório' });
     required(f.referenceYear, { message: 'Ano obrigatório' });
+    min(f.referenceYear, MIN_TRANSACTION_YEAR, {
+      message: `Ano deve ser a partir de ${MIN_TRANSACTION_YEAR}`,
+    });
+    max(f.referenceYear, MAX_TRANSACTION_YEAR, {
+      message: `Ano não pode passar de ${MAX_TRANSACTION_YEAR}`,
+    });
     required(f.amountExpected, { message: 'Valor previsto obrigatório' });
     min(f.amountExpected, 0.01, { message: 'Valor previsto deve ser positivo' });
+    validate(f.amountPaid, ({ value }) => {
+      const v = value();
+      return v != null && v < 0
+        ? { kind: 'negative', message: 'Valor pago não pode ser negativo' }
+        : undefined;
+    });
   });
 
   readonly formValid = computed(
@@ -84,7 +99,8 @@ export class TransactionFormComponent implements OnInit {
       this.transactionForm.categoryId().valid() &&
       this.transactionForm.referenceMonth().valid() &&
       this.transactionForm.referenceYear().valid() &&
-      this.transactionForm.amountExpected().valid(),
+      this.transactionForm.amountExpected().valid() &&
+      this.transactionForm.amountPaid().valid(),
   );
 
   readonly months = [
@@ -102,10 +118,29 @@ export class TransactionFormComponent implements OnInit {
     { value: 12, label: 'Dezembro' },
   ];
 
+  private readonly monthSelect = viewChild<ElementRef<HTMLSelectElement>>('monthSelect');
+
+  constructor() {
+    // [formField]/[value] num <select> nativo só sincroniza de forma confiável quando as
+    // <option> do @for já existem no momento do binding — falha (mostra a primeira opção)
+    // quando o valor é setado programaticamente depois (ex.: carregar um lançamento pra
+    // editar) sem que a lista de opções mude junto. afterRenderEffect roda garantidamente
+    // depois que a view (incluindo as <option>) já está montada, então sempre acerta.
+    afterRenderEffect(() => {
+      const month = this.transactionForm.referenceMonth().value();
+      const select = this.monthSelect()?.nativeElement;
+      if (select && select.value !== month) {
+        select.value = month;
+      }
+    });
+  }
+
   ngOnInit(): void {
     this.categoryService.getAll().subscribe({
       next: (data) => this.categories.set(data),
-      error: () => this.toast.error('Erro ao carregar categorias.'),
+      // errorInterceptor já loga/avisa o erro; precisa de um handler aqui só pra evitar
+      // que o RxJS relance a HttpErrorResponse por falta de observer de erro.
+      error: () => {},
     });
 
     const id = this.route.snapshot.paramMap.get('id');
@@ -126,7 +161,7 @@ export class TransactionFormComponent implements OnInit {
             description: t.description,
             categoryId: t.category.id,
             type: t.type,
-            referenceMonth: t.referenceMonth,
+            referenceMonth: String(t.referenceMonth),
             referenceYear: t.referenceYear,
             amountExpected: t.amountExpected,
             amountPaid: t.amountPaid,
@@ -139,7 +174,6 @@ export class TransactionFormComponent implements OnInit {
         this.loading.set(false);
       },
       error: () => {
-        this.toast.error('Erro ao carregar lançamento.');
         this.loading.set(false);
       },
     });
@@ -165,7 +199,7 @@ export class TransactionFormComponent implements OnInit {
       description: data.description,
       categoryId: data.categoryId,
       type: data.type,
-      referenceMonth: data.referenceMonth,
+      referenceMonth: Number(data.referenceMonth),
       referenceYear: data.referenceYear,
       amountExpected: data.amountExpected,
       amountPaid,
@@ -183,7 +217,6 @@ export class TransactionFormComponent implements OnInit {
         this.goBack();
       },
       error: () => {
-        this.toast.error('Erro ao salvar lançamento.');
         this.saving.set(false);
       },
     });

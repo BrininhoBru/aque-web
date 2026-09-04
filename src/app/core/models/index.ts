@@ -1,5 +1,3 @@
-export * from './enums';
-
 export interface Category {
   id: string;
   name: string;
@@ -34,6 +32,7 @@ export interface RecurringTransaction {
   type: 'RECEITA' | 'DESPESA';
   defaultAmount: number;
   active: boolean;
+  dueDay: number | null;
 }
 
 export interface SplitRuleItem {
@@ -42,8 +41,7 @@ export interface SplitRuleItem {
 }
 
 export interface SplitRule {
-  year: number;
-  month: number;
+  effectiveFrom: string;
   items: SplitRuleItem[];
 }
 

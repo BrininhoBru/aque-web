@@ -37,12 +37,14 @@ Prettier (config embutida no `package.json`) + TypeScript strict.
   RxJS, Tailwind CSS v4 (PostCSS), ApexCharts/`ng-apexcharts`
 - **Testes**: Karma + Jasmine (`karma-coverage` instalado, sem threshold obrigatório)
 - **CI/CD**: GitHub Actions builda e publica a imagem Docker no push pra `main`
-  (`docker-publish.yml`) — não roda lint nem teste
+  (`docker-publish.yml`) — não roda lint nem teste. Deliberado: só `main` builda/deploya;
+  merge em `dev` não dispara nada
 - **Deploy**: Nginx servindo o build estático, Raspberry Pi 3B via Docker Compose
 
 ## Regras gerais
 
-- Nunca commitar direto na `main` — sempre via PR
+- Nunca commitar direto na `main` ou na `dev` — sempre via PR. PR mira `dev`; `main` só
+  se move via PR de release de `dev` pra `main`
 - Todo PR precisa passar lint + testes no CI antes do merge (hoje o CI só builda a imagem —
   gap conhecido, ver `.claude/rules/standards.md`)
 - Mensagens de commit no padrão Conventional Commits (`feat:`, `fix:`, `chore:`...)

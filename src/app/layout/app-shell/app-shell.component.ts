@@ -3,12 +3,13 @@ import { RouterOutlet } from '@angular/router';
 import { SidebarComponent } from '../sidebar/sidebar.component';
 import { HeaderComponent } from '../header/header.component';
 import { ToastComponent } from '../../shared/components/toast/toast.component';
+import { CommandPaletteComponent } from '../command-palette/command-palette.component';
 import { LayoutService } from '../layout.service';
 
 @Component({
   selector: 'app-shell',
   standalone: true,
-  imports: [RouterOutlet, SidebarComponent, HeaderComponent, ToastComponent],
+  imports: [RouterOutlet, SidebarComponent, HeaderComponent, ToastComponent, CommandPaletteComponent],
   templateUrl: './app-shell.component.html',
   styles: [`
     .app-shell-layout {
@@ -52,8 +53,6 @@ import { LayoutService } from '../layout.service';
       }
       .sidebar-backdrop {
         display: block;
-        position: fixed;
-        inset: 0;
         z-index: 40;
         background: rgba(0, 0, 0, 0.5);
       }

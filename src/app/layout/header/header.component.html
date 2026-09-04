@@ -7,11 +7,19 @@
 <div class="header-month">
   <button class="btn-nav" (click)="monthYear.previousMonth()">‹</button>
 
-  <span class="header-month-display">
-    {{ monthYear.selected() | monthYear }}
-  </span>
+  <input
+    type="month"
+    class="header-month-display"
+    [value]="monthValue()"
+    (change)="onMonthChange($event)"
+    title="Escolher mês e ano"
+  />
 
   <button class="btn-nav" (click)="monthYear.nextMonth()">›</button>
+
+  @if (!isCurrentMonth()) {
+    <button class="btn-nav btn-today" (click)="goToToday()" title="Voltar pro mês atual">Hoje</button>
+  }
 </div>
 
 <button class="btn-nav" (click)="theme.toggle()" [title]="theme.dark() ? 'Modo claro' : 'Modo escuro'">

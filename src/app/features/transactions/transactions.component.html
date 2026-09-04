@@ -23,6 +23,18 @@
 
   <!-- Filtros -->
   <div class="tx-filter-bar ledger-card">
+    <!-- Busca -->
+    <div class="tx-filter-category">
+      <label class="ledger-label">Busca</label>
+      <input
+        type="text"
+        class="ledger-input"
+        placeholder="Descrição..."
+        [value]="searchText()"
+        (input)="searchText.set($any($event.target).value)"
+      />
+    </div>
+
     <!-- Categoria -->
     <div class="tx-filter-category">
       <label class="ledger-label">Categoria</label>
@@ -68,10 +80,39 @@
       </div>
     </div>
 
+    <!-- Vencidos -->
+    <div style="display: flex; flex-direction: column;">
+      <label class="ledger-label">Vencimento</label>
+      <button
+        class="btn btn-sm"
+        [class.btn-primary]="filterOverdue()"
+        [class.btn-secondary]="!filterOverdue()"
+        (click)="toggleOverdue()"
+      >Vencidos</button>
+    </div>
+
     <button class="btn-ghost btn-sm" style="align-self: flex-end;" (click)="clearFilters()">
       Limpar filtros
     </button>
   </div>
+
+  <!-- Ação em lote (só desktop) -->
+  @if (selectedIds().size > 0) {
+    <div class="ledger-card hidden md:flex" style="padding: 0.75rem 1.25rem; align-items: center; gap: 0.75rem;">
+      <span class="text-body-sm" style="color: var(--color-ledger-ink-md)">
+        {{ selectedIds().size }} selecionado(s)
+      </span>
+      <button class="btn-secondary btn-sm" [disabled]="bulkUpdating()" (click)="bulkUpdatePayment(true)">
+        Marcar como pago
+      </button>
+      <button class="btn-secondary btn-sm" [disabled]="bulkUpdating()" (click)="bulkUpdatePayment(false)">
+        Marcar como pendente
+      </button>
+      <button class="btn-ghost btn-sm" style="margin-left: auto;" (click)="clearSelection()">
+        Cancelar seleção
+      </button>
+    </div>
+  }
 
   <!-- Loading -->
   @if (loading()) {
@@ -101,19 +142,39 @@
             <table class="ledger-table">
               <thead>
                 <tr>
-                  <th>Descrição</th>
-                  <th>Categoria</th>
+                  <th style="width: 2rem;">
+                    <input
+                      type="checkbox"
+                      [checked]="selectedIds().size > 0 && filtered().every((t) => isSelected(t.id))"
+                      (change)="toggleSelectAll()"
+                    />
+                  </th>
+                  <th style="cursor: pointer;" (click)="setSort('description')">
+                    Descrição @if (sortColumn() === 'description') { {{ sortDirection() === 'asc' ? '▲' : '▼' }} }
+                  </th>
+                  <th style="cursor: pointer;" (click)="setSort('category')">
+                    Categoria @if (sortColumn() === 'category') { {{ sortDirection() === 'asc' ? '▲' : '▼' }} }
+                  </th>
                   <th>Tipo</th>
-                  <th class="col-num">Previsto</th>
-                  <th class="col-num">Pago</th>
+                  <th class="col-num" style="cursor: pointer;" (click)="setSort('amountExpected')">
+                    Previsto @if (sortColumn() === 'amountExpected') { {{ sortDirection() === 'asc' ? '▲' : '▼' }} }
+                  </th>
+                  <th class="col-num" style="cursor: pointer;" (click)="setSort('amountPaid')">
+                    Pago @if (sortColumn() === 'amountPaid') { {{ sortDirection() === 'asc' ? '▲' : '▼' }} }
+                  </th>
                   <th>Status</th>
-                  <th>Vencimento</th>
+                  <th style="cursor: pointer;" (click)="setSort('dueDate')">
+                    Vencimento @if (sortColumn() === 'dueDate') { {{ sortDirection() === 'asc' ? '▲' : '▼' }} }
+                  </th>
                   <th></th>
                 </tr>
               </thead>
               <tbody>
                 @for (t of filtered(); track t.id) {
-                  <tr>
+                  <tr [style.opacity]="pendingDeleteId() === t.id ? 0.4 : 1">
+                    <td>
+                      <input type="checkbox" [checked]="isSelected(t.id)" (change)="toggleSelect(t.id)" />
+                    </td>
                     <td>
                       <div style="display: flex; align-items: center; gap: 0.5rem; min-width: 0;">
                         @if (t.recurringId) {
@@ -121,12 +182,19 @@
                             <path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/>
                           </svg>
                         }
+                        @if (t.recurringId && t.isOverride) {
+                          <svg width="11" height="11" fill="currentColor" viewBox="0 0 24 24" style="color: var(--color-ledger-ink-lt); flex-shrink: 0;" title="Editado manualmente">
+                            <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+                          </svg>
+                        }
                         <span class="font-medium truncate" [style.color]="t.status === 'PAGO' ? 'var(--color-ledger-ink-lt)' : 'var(--color-ledger-ink)'">
                           {{ t.description }}
                         </span>
                       </div>
                       @if (t.recurringId) {
-                        <p class="text-body-sm" style="color: var(--color-ledger-ink-lt)">↻ recorrente</p>
+                        <p class="text-body-sm" style="color: var(--color-ledger-ink-lt)">
+                          ↻ recorrente@if (t.isOverride) { · editado manualmente }
+                        </p>
                       }
                     </td>
                     <td class="text-body-sm" style="color: var(--color-ledger-ink-md)">{{ t.category.name }}</td>
@@ -138,19 +206,26 @@
                       {{ t.amountPaid != null ? (t.amountPaid | brlCurrency) : '—' }}
                     </td>
                     <td>
-                      <span [class]="t.status === 'PAGO' ? 'badge-paid' : 'badge-pending'">{{ t.status }}</span>
+                      <button
+                        type="button"
+                        [class]="t.status === 'PAGO' ? 'badge-paid' : 'badge-pending'"
+                        style="cursor: pointer;"
+                        [disabled]="togglingId() === t.id || pendingDeleteId() === t.id"
+                        [title]="t.status === 'PAGO' ? 'Marcar como pendente' : 'Marcar como pago'"
+                        (click)="togglePayment(t)"
+                      >{{ t.status }}</button>
                     </td>
                     <td class="text-body-sm" style="color: var(--color-ledger-ink-md); white-space: nowrap;">
                       {{ t.dueDate ? (t.dueDate | date:'dd/MM/yyyy') : '—' }}
                     </td>
                     <td>
                       <div style="display: flex; align-items: center; gap: 2px;">
-                        <button class="btn-ghost btn-icon" (click)="goToEdit(t.id)" title="Editar">
+                        <button class="btn-ghost btn-icon" [disabled]="pendingDeleteId() === t.id" (click)="goToEdit(t.id)" title="Editar">
                           <svg width="13" height="13" fill="currentColor" viewBox="0 0 24 24">
                             <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
                           </svg>
                         </button>
-                        <button class="btn-danger btn-icon" (click)="askDelete(t.id)" title="Excluir">
+                        <button class="btn-danger btn-icon" [disabled]="pendingDeleteId() === t.id" (click)="askDelete(t.id)" title="Excluir">
                           <svg width="13" height="13" fill="currentColor" viewBox="0 0 24 24">
                             <path d="M6 19c0 1.1.9 2 2 2h8a2 2 0 002-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
                           </svg>
@@ -162,7 +237,7 @@
               </tbody>
               <tfoot>
                 <tr>
-                  <td colspan="3" style="color: var(--color-ledger-ink-md);">Totais do mês</td>
+                  <td colspan="4" style="color: var(--color-ledger-ink-md);">Totais do mês</td>
                   <td class="col-num" style="color: var(--color-ledger-negative);">{{ totalExpected() | brlCurrency }}</td>
                   <td class="col-num" style="color: var(--color-ledger-positive);">{{ totalPaid() | brlCurrency }}</td>
                   <td colspan="3">
@@ -191,12 +266,17 @@
         </div>
       } @else {
         @for (t of filtered(); track t.id) {
-          <div class="tx-card ledger-card">
+          <div class="tx-card ledger-card" [style.opacity]="pendingDeleteId() === t.id ? 0.4 : 1">
             <div class="tx-card-top">
               <div class="tx-card-desc">
                 @if (t.recurringId) {
                   <svg width="11" height="11" fill="currentColor" viewBox="0 0 24 24" class="tx-card-recurring-icon" title="Gerado por recorrente">
                     <path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/>
+                  </svg>
+                }
+                @if (t.recurringId && t.isOverride) {
+                  <svg width="11" height="11" fill="currentColor" viewBox="0 0 24 24" class="tx-card-recurring-icon" title="Editado manualmente">
+                    <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
                   </svg>
                 }
                 <span class="tx-card-title" [style.color]="t.status === 'PAGO' ? 'var(--color-ledger-ink-lt)' : 'var(--color-ledger-ink)'">
@@ -212,7 +292,14 @@
                 @if (t.dueDate) {
                   <span class="text-body-sm" style="color: var(--color-ledger-ink-lt);">venc. {{ t.dueDate | date:'dd/MM' }}</span>
                 }
-                <span [class]="t.status === 'PAGO' ? 'badge-paid' : 'badge-pending'">{{ t.status }}</span>
+                <button
+                  type="button"
+                  [class]="t.status === 'PAGO' ? 'badge-paid' : 'badge-pending'"
+                  style="cursor: pointer;"
+                  [disabled]="togglingId() === t.id || pendingDeleteId() === t.id"
+                  [title]="t.status === 'PAGO' ? 'Marcar como pendente' : 'Marcar como pago'"
+                  (click)="togglePayment(t)"
+                >{{ t.status }}</button>
               </div>
             </div>
 
@@ -230,12 +317,12 @@
                 </div>
               </div>
               <div class="tx-card-actions">
-                <button class="btn-ghost btn-icon" (click)="goToEdit(t.id)" title="Editar">
+                <button class="btn-ghost btn-icon" [disabled]="pendingDeleteId() === t.id" (click)="goToEdit(t.id)" title="Editar">
                   <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
                   </svg>
                 </button>
-                <button class="btn-danger btn-icon" (click)="askDelete(t.id)" title="Excluir">
+                <button class="btn-danger btn-icon" [disabled]="pendingDeleteId() === t.id" (click)="askDelete(t.id)" title="Excluir">
                   <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M6 19c0 1.1.9 2 2 2h8a2 2 0 002-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
                   </svg>
@@ -274,25 +361,3 @@
   </svg>
 </button>
 
-<!-- Modal: Confirmação de exclusão -->
-@if (confirmDeleteId()) {
-  <div class="fixed inset-0 z-40 flex items-center justify-center p-4" style="background: rgba(44, 36, 22, 0.5); backdrop-filter: blur(4px)">
-    <div class="ledger-card w-full max-w-xs" style="display: flex; flex-direction: column; gap: 1.25rem; padding: 1.5rem;">
-      <div style="display: flex; flex-direction: column; align-items: center; gap: 0.75rem; text-align: center;">
-        <div style="width: 48px; height: 48px; border-radius: 50%; background: var(--color-ledger-negative-bg); border: 1px solid var(--color-ledger-negative-bd); display: flex; align-items: center; justify-content: center;">
-          <svg width="22" height="22" fill="currentColor" viewBox="0 0 24 24" style="color: var(--color-ledger-negative)">
-            <path d="M6 19c0 1.1.9 2 2 2h8a2 2 0 002-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
-          </svg>
-        </div>
-        <div>
-          <p class="ledger-h3">Excluir lançamento?</p>
-          <p class="text-body-sm mt-1" style="color: var(--color-ledger-ink-lt)">Esta ação não pode ser desfeita.</p>
-        </div>
-      </div>
-      <div style="display: flex; gap: 0.5rem;">
-        <button class="btn-secondary" style="flex: 1;" (click)="cancelDelete()">Cancelar</button>
-        <button class="btn-danger" style="flex: 1;" (click)="confirmDelete()">Excluir</button>
-      </div>
-    </div>
-  </div>
-}

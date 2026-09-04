@@ -78,14 +78,18 @@
           <div class="ledger-form-group" style="margin-bottom: 0;">
             <label class="ledger-label">Mês de referência *</label>
             <select
+              #monthSelect
               class="ledger-select"
               [value]="transactionForm.referenceMonth().value()"
-              (change)="transactionForm.referenceMonth().value.set(+$any($event.target).value)"
+              (change)="transactionForm.referenceMonth().value.set($any($event.target).value)"
             >
               @for (m of months; track m.value) {
                 <option [value]="m.value">{{ m.label }}</option>
               }
             </select>
+            @if (transactionForm.referenceMonth().touched() && transactionForm.referenceMonth().invalid()) {
+              <p class="ledger-error">{{ transactionForm.referenceMonth().errors()[0]?.message }}</p>
+            }
           </div>
           <div class="ledger-form-group" style="margin-bottom: 0;">
             <label class="ledger-label">Ano de referência *</label>
@@ -130,6 +134,9 @@
                 >✕</button>
               }
             </div>
+            @if (transactionForm.amountPaid().touched() && transactionForm.amountPaid().invalid()) {
+              <p class="ledger-error">{{ transactionForm.amountPaid().errors()[0]?.message }}</p>
+            }
           </div>
         </div>
 

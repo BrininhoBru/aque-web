@@ -9,6 +9,7 @@ export interface RecurringPayload {
   categoryId: string;
   type: 'RECEITA' | 'DESPESA';
   defaultAmount: number;
+  dueDay: number | null;
 }
 
 @Injectable({ providedIn: 'root' })

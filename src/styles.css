@@ -507,6 +507,15 @@ app-header {
     gap: 0.5rem;
     flex-wrap: wrap;
   }
+
+  /* ── Overlay backdrop ────────────────────────────────────── */
+  /* base compartilhada por .sidebar-backdrop e .command-palette-backdrop —
+     cada um combina com essa classe pra herdar position:fixed;inset:0 e define
+     z-index/cor/blur próprios, já que servem propósitos visuais diferentes */
+  .overlay-backdrop {
+    position: fixed;
+    inset: 0;
+  }
   .cards-grid {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));

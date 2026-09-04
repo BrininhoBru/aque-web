@@ -1,6 +1,8 @@
 import { Component, inject, signal, computed, OnInit, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
+import { forkJoin, of } from 'rxjs';
+import { map, catchError } from 'rxjs/operators';
 import { TransactionService, TransactionFilters } from '../../core/services/transaction.service';
 import { CategoryService } from '../../core/services/category.service';
 import { RecurringService } from '../../core/services/recurring.service';
@@ -8,9 +10,52 @@ import { ToastService } from '../../shared/services/toast.service';
 import { MonthYearService } from '../../core/services/month-year.service';
 import { Transaction, Category } from '../../core/models';
 import { BrlCurrencyPipe } from '../../shared/pipes/brl-currency.pipe';
+import { createLatestRequestGuard } from '../../core/rxjs/latest-request-guard';
 
 type FilterType = 'TODOS' | 'RECEITA' | 'DESPESA';
 type FilterStatus = 'TODOS' | 'PENDENTE' | 'PAGO';
+type SortColumn = 'description' | 'category' | 'amountExpected' | 'amountPaid' | 'dueDate';
+
+const SORT_COLUMNS: readonly SortColumn[] = [
+  'description',
+  'category',
+  'amountExpected',
+  'amountPaid',
+  'dueDate',
+];
+
+// mesma janela do auto-dismiss do ToastService (coincidência de valor, não acoplamento)
+const UNDO_DELETE_WINDOW_MS = 4000;
+
+// fronteira de confiança: o valor vem da URL, o usuário pode editá-la à mão
+function pickValid<T extends string>(value: string | null, allowed: readonly T[], fallback: T): T;
+function pickValid<T extends string>(value: string | null, allowed: readonly T[], fallback: null): T | null;
+function pickValid<T extends string>(
+  value: string | null,
+  allowed: readonly T[],
+  fallback: T | null,
+): T | null {
+  return value !== null && (allowed as readonly string[]).includes(value) ? (value as T) : fallback;
+}
+
+function toIsoDate(date: Date): string {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+}
+
+function compareByColumn(a: Transaction, b: Transaction, column: SortColumn): number {
+  switch (column) {
+    case 'description':
+      return a.description.localeCompare(b.description);
+    case 'category':
+      return a.category.name.localeCompare(b.category.name);
+    case 'amountExpected':
+      return a.amountExpected - b.amountExpected;
+    case 'amountPaid':
+      return (a.amountPaid ?? -1) - (b.amountPaid ?? -1);
+    case 'dueDate':
+      return (a.dueDate ?? '').localeCompare(b.dueDate ?? '');
+  }
+}
 
 @Component({
   selector: 'app-transactions',
@@ -38,6 +83,16 @@ type FilterStatus = 'TODOS' | 'PENDENTE' | 'PAGO';
     }
 
     /* ── Card layout ─────────────────────────────────────────── */
+    /* .ledger-table checkboxes: styles.css reseta appearance de todo input pra
+       permitir os inputs customizados (.ledger-input/.ledger-select) — um checkbox
+       sem aparência nativa e sem largura/altura própria fica invisível (0x0), então
+       precisa restaurar a aparência nativa aqui, escopado só a esses dois checkboxes. */
+    .ledger-table input[type="checkbox"] {
+      appearance: auto;
+      width: 16px;
+      height: 16px;
+      cursor: pointer;
+    }
     .tx-card {
       padding: 0.875rem 1rem;
       display: flex;
@@ -94,25 +149,62 @@ export class TransactionsComponent implements OnInit {
   private readonly recurringService = inject(RecurringService);
   private readonly toast = inject(ToastService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
   readonly monthYear = inject(MonthYearService);
 
   readonly transactions = signal<Transaction[]>([]);
   readonly categories = signal<Category[]>([]);
   readonly loading = signal(false);
-  readonly deletingId = signal<string | null>(null);
-  readonly confirmDeleteId = signal<string | null>(null);
+  readonly pendingDeleteId = signal<string | null>(null);
   readonly generating = signal(false);
+  readonly togglingId = signal<string | null>(null);
+  readonly selectedIds = signal<Set<string>>(new Set());
+  readonly bulkUpdating = signal(false);
 
-  // Filtros
-  readonly filterCategoryId = signal<string>('');
-  readonly filterType = signal<FilterType>('TODOS');
-  readonly filterStatus = signal<FilterStatus>('TODOS');
+  // Filtros — inicializados a partir dos query params da URL, pra sobreviver a navegação/reload
+  readonly filterCategoryId = signal<string>(this.route.snapshot.queryParamMap.get('categoryId') ?? '');
+  readonly filterType = signal<FilterType>(
+    pickValid(this.route.snapshot.queryParamMap.get('type'), ['TODOS', 'RECEITA', 'DESPESA'], 'TODOS'),
+  );
+  readonly filterStatus = signal<FilterStatus>(
+    pickValid(this.route.snapshot.queryParamMap.get('status'), ['TODOS', 'PENDENTE', 'PAGO'], 'TODOS'),
+  );
+  readonly searchText = signal<string>(this.route.snapshot.queryParamMap.get('search') ?? '');
+  readonly filterOverdue = signal<boolean>(this.route.snapshot.queryParamMap.get('overdue') === '1');
+  readonly sortColumn = signal<SortColumn | null>(
+    pickValid(this.route.snapshot.queryParamMap.get('sortBy'), SORT_COLUMNS, null),
+  );
+  readonly sortDirection = signal<'asc' | 'desc'>(
+    pickValid(this.route.snapshot.queryParamMap.get('sortDir'), ['asc', 'desc'], 'asc'),
+  );
 
-  // Recarrega ao mudar mês/ano global
+  private readonly requestGuard = createLatestRequestGuard();
+  private pendingDeleteTimer: ReturnType<typeof setTimeout> | null = null;
+
   constructor() {
+    // Recarrega ao mudar mês/ano global
     effect(() => {
       const { month, year } = this.monthYear.selected();
       this.load(month, year);
+    });
+
+    // Espelha os filtros na URL — sem debounce: volume de teclas de um app pessoal
+    // não justifica a complexidade extra
+    effect(() => {
+      this.router.navigate([], {
+        relativeTo: this.route,
+        queryParams: {
+          categoryId: this.filterCategoryId() || null,
+          type: this.filterType() === 'TODOS' ? null : this.filterType(),
+          status: this.filterStatus() === 'TODOS' ? null : this.filterStatus(),
+          search: this.searchText() || null,
+          overdue: this.filterOverdue() ? '1' : null,
+          sortBy: this.sortColumn(),
+          sortDir: this.sortColumn() ? this.sortDirection() : null,
+        },
+        queryParamsHandling: 'merge',
+        replaceUrl: true,
+      });
     });
   }
 
@@ -129,24 +221,45 @@ export class TransactionsComponent implements OnInit {
       year: year ?? y,
     };
 
+    this.selectedIds.set(new Set());
+    const requestId = this.requestGuard.next();
     this.loading.set(true);
     this.transactionService.getAll(filters).subscribe({
       next: (data) => {
+        if (!this.requestGuard.isCurrent(requestId)) return; // resposta obsoleta, ignora
         this.transactions.set(data);
         this.loading.set(false);
       },
-      error: () => this.loading.set(false),
+      error: () => {
+        if (!this.requestGuard.isCurrent(requestId)) return;
+        this.loading.set(false);
+      },
     });
   }
 
-  // Filtros aplicados localmente (evita múltiplas requisições)
+  // Filtros, busca, chip de vencidos e ordenação aplicados localmente (evita múltiplas requisições)
   readonly filtered = computed(() => {
-    return this.transactions().filter((t) => {
+    const search = this.searchText().trim().toLowerCase();
+    const overdueOnly = this.filterOverdue();
+    const todayIso = toIsoDate(new Date());
+
+    let list = this.transactions().filter((t) => {
       const catOk = !this.filterCategoryId() || t.category.id === this.filterCategoryId();
       const typeOk = this.filterType() === 'TODOS' || t.type === this.filterType();
       const statusOk = this.filterStatus() === 'TODOS' || t.status === this.filterStatus();
-      return catOk && typeOk && statusOk;
+      const searchOk = !search || t.description.toLowerCase().includes(search);
+      const overdueOk =
+        !overdueOnly || (t.status === 'PENDENTE' && !!t.dueDate && t.dueDate < todayIso);
+      return catOk && typeOk && statusOk && searchOk && overdueOk;
     });
+
+    const column = this.sortColumn();
+    if (column) {
+      const dir = this.sortDirection() === 'asc' ? 1 : -1;
+      list = [...list].sort((a, b) => dir * compareByColumn(a, b, column));
+    }
+
+    return list;
   });
 
   readonly totalExpected = computed(() =>
@@ -185,10 +298,27 @@ export class TransactionsComponent implements OnInit {
     this.filterCategoryId.set(id);
   }
 
+  setSort(column: SortColumn): void {
+    if (this.sortColumn() === column) {
+      this.sortDirection.update((d) => (d === 'asc' ? 'desc' : 'asc'));
+    } else {
+      this.sortColumn.set(column);
+      this.sortDirection.set('asc');
+    }
+  }
+
+  toggleOverdue(): void {
+    this.filterOverdue.update((v) => !v);
+  }
+
   clearFilters(): void {
     this.filterType.set('TODOS');
     this.filterStatus.set('TODOS');
     this.filterCategoryId.set('');
+    this.searchText.set('');
+    this.filterOverdue.set(false);
+    this.sortColumn.set(null);
+    this.sortDirection.set('asc');
   }
 
   generateRecurring(): void {
@@ -213,28 +343,97 @@ export class TransactionsComponent implements OnInit {
   }
 
   askDelete(id: string): void {
-    this.confirmDeleteId.set(id);
-  }
-  cancelDelete(): void {
-    this.confirmDeleteId.set(null);
+    this.pendingDeleteId.set(id);
+    this.pendingDeleteTimer = setTimeout(() => this.performDelete(id), UNDO_DELETE_WINDOW_MS);
+    this.toast.actionable('Lançamento excluído.', 'warning', {
+      label: 'Desfazer',
+      onClick: () => this.undoDelete(),
+    });
   }
 
-  confirmDelete(): void {
-    const id = this.confirmDeleteId();
-    if (!id) return;
-    this.deletingId.set(id);
+  undoDelete(): void {
+    if (this.pendingDeleteTimer) {
+      clearTimeout(this.pendingDeleteTimer);
+      this.pendingDeleteTimer = null;
+    }
+    this.pendingDeleteId.set(null);
+  }
+
+  private performDelete(id: string): void {
+    this.pendingDeleteTimer = null;
+    this.pendingDeleteId.set(null);
 
     this.transactionService.delete(id).subscribe({
+      next: () => this.load(),
+      // errorInterceptor já mostra o erro (Fase 1, #35) — handler vazio só pro RxJS
+      // não relançar por falta de observer
+      error: () => {},
+    });
+  }
+
+  togglePayment(t: Transaction): void {
+    const amountPaid = t.status === 'PAGO' ? null : t.amountExpected;
+    this.togglingId.set(t.id);
+
+    this.transactionService.updatePayment(t.id, amountPaid).subscribe({
       next: () => {
-        this.toast.success('Lançamento excluído.');
-        this.confirmDeleteId.set(null);
-        this.deletingId.set(null);
+        this.toast.success(amountPaid ? 'Lançamento marcado como pago.' : 'Lançamento marcado como pendente.');
+        this.togglingId.set(null);
         this.load();
       },
-      error: () => {
-        this.confirmDeleteId.set(null);
-        this.deletingId.set(null);
-      },
+      error: () => this.togglingId.set(null),
+    });
+  }
+
+  isSelected(id: string): boolean {
+    return this.selectedIds().has(id);
+  }
+
+  toggleSelect(id: string): void {
+    this.selectedIds.update((ids) => {
+      const next = new Set(ids);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  }
+
+  toggleSelectAll(): void {
+    const visibleIds = this.filtered().map((t) => t.id);
+    const allSelected = visibleIds.length > 0 && visibleIds.every((id) => this.selectedIds().has(id));
+    this.selectedIds.set(allSelected ? new Set() : new Set(visibleIds));
+  }
+
+  clearSelection(): void {
+    this.selectedIds.set(new Set());
+  }
+
+  bulkUpdatePayment(markAsPaid: boolean): void {
+    const targets = this.filtered().filter((t) => this.selectedIds().has(t.id));
+    if (targets.length === 0) return;
+
+    this.bulkUpdating.set(true);
+    const requests = targets.map((t) =>
+      this.transactionService.updatePayment(t.id, markAsPaid ? t.amountExpected : null).pipe(
+        map(() => ({ ok: true })),
+        catchError(() => of({ ok: false })),
+      ),
+    );
+
+    forkJoin(requests).subscribe((results) => {
+      this.bulkUpdating.set(false);
+      const failed = results.filter((r) => !r.ok).length;
+      const succeeded = results.length - failed;
+      if (failed === 0) {
+        this.toast.success(`${succeeded} lançamento(s) atualizado(s).`);
+      } else {
+        this.toast.warning(`${succeeded} atualizado(s), ${failed} falharam.`);
+      }
+      this.clearSelection();
+      this.load();
     });
   }
 }

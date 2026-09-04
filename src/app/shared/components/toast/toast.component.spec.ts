@@ -52,6 +52,31 @@ describe('ToastComponent', () => {
     expect(fixture.nativeElement.querySelectorAll('.animate-slide-in').length).toBe(0);
   });
 
+  it('deve renderizar um botão de ação quando o toast tem action, e chamar onClick + dismiss ao clicar', () => {
+    const onClick = jasmine.createSpy('onClick');
+    toastService.actionable('Excluído.', 'warning', { label: 'Desfazer', onClick });
+    fixture.detectChanges();
+
+    const actionButton: HTMLButtonElement = fixture.nativeElement.querySelector(
+      '.animate-slide-in button.toast-action',
+    );
+    expect(actionButton).not.toBeNull();
+    expect(actionButton.textContent).toContain('Desfazer');
+
+    actionButton.click();
+    fixture.detectChanges();
+
+    expect(onClick).toHaveBeenCalled();
+    expect(toastService.toasts().length).toBe(0);
+  });
+
+  it('não deve renderizar botão de ação quando o toast não tem action', () => {
+    toastService.success('Salvo!');
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('.animate-slide-in button.toast-action')).toBeNull();
+  });
+
   describe('toastClass()', () => {
     it('deve retornar uma classe distinta por tipo', () => {
       const success = component.toastClass({ id: 1, message: '', type: 'success' });

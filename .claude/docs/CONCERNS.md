@@ -28,7 +28,23 @@
 
 ## Known Bugs
 
-None identified through static analysis. No open bug-tracking comments (`TODO`/`FIXME`/`HACK`/`XXX`) — grep matches on `'TODOS'` are false positives from the filter-enum value, not the marker.
+None currently open. One class of bug worth flagging as a recurring risk, found and fixed twice
+in the same week (`recurring.component.html`, issues #43/#44 follow-up):
+
+**`min`/`max` native attributes on an `<input>` bound with `[formField]` break the production
+build, undetected by `npm test`:**
+- Risk: Angular's template compiler raises `NG8022` ("Setting the 'min'/'max' attribute is not
+  allowed on nodes using the '[formField]' directive") only during AOT compilation (`ng build`/
+  `ng serve`) — Karma's JIT-based test runner (`npm test`) never exercises this code path, so a
+  reintroduction of this pattern passes the full test suite while breaking `npm start` and the
+  production build.
+- Files: any Signal Forms field (`[formField]="..."`) — don't add `min`/`max`/other native
+  validation attributes alongside it; range validation belongs in the field's `validate()`/
+  `min()`/`max()` Signal Forms functions instead (see `recurring.component.ts`'s `dueDay`
+  handling for the correct pattern).
+- Recommendations: `docker-publish.yml` doesn't run `npm run build` today (documented gap,
+  `standards.md`), so this class of bug has no CI safety net — a manual `npm start`/`ng build`
+  check before merging any Signal Forms template change is the only current mitigation.
 
 ## Security Considerations
 

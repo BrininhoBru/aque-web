@@ -3,6 +3,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideRouter } from '@angular/router';
 import { SplitComponent } from './split.component';
+import { MonthYearService } from '../../core/services/month-year.service';
 
 describe('SplitComponent', () => {
   let component: SplitComponent;
@@ -36,6 +37,25 @@ describe('SplitComponent', () => {
     it('deve retornar 0 quando não há itens', () => {
       component['items'].set([]);
       expect(component.totalPercentage()).toBe(0);
+    });
+
+    it('deve considerar válida uma soma que bate 100 em decimal mas sofre ruído de ponto flutuante', () => {
+      component['items'].set([
+        { person: { id: '1', name: 'A' }, percentage: 5.95 },
+        { person: { id: '2', name: 'B' }, percentage: 7.41 },
+        { person: { id: '3', name: 'C' }, percentage: 8.04 },
+        { person: { id: '4', name: 'D' }, percentage: 5.82 },
+        { person: { id: '5', name: 'E' }, percentage: 4.79 },
+        { person: { id: '6', name: 'F' }, percentage: 8.96 },
+        { person: { id: '7', name: 'G' }, percentage: 4.25 },
+        { person: { id: '8', name: 'H' }, percentage: 10.9 },
+        { person: { id: '9', name: 'I' }, percentage: 6.29 },
+        { person: { id: '10', name: 'J' }, percentage: 11.79 },
+        { person: { id: '11', name: 'K' }, percentage: 7.32 },
+        { person: { id: '12', name: 'L' }, percentage: 18.48 },
+      ]);
+      expect(component.totalPercentage()).toBe(100);
+      expect(component.totalValid()).toBeTrue();
     });
   });
 
@@ -106,9 +126,10 @@ describe('SplitComponent', () => {
 
       component.save();
 
-      const req = httpMock.expectOne((r) => r.method === 'PUT' && r.url.startsWith('/api/split/'));
+      const req = httpMock.expectOne('/api/split');
+      expect(req.request.method).toBe('PUT');
       expect(req.request.body.items).toEqual([{ personId: '1', percentage: 100 }]);
-      req.flush({ year: 2026, month: 1, items: [] });
+      req.flush({ effectiveFrom: '2026-01-01', items: [] });
     });
 
     it('não deve salvar quando a soma dos percentuais não é 100%', () => {
@@ -118,6 +139,115 @@ describe('SplitComponent', () => {
 
       expect(component.saving()).toBeFalse();
       httpMock.expectNone((r) => r.method === 'PUT');
+    });
+  });
+
+  describe('reload ao trocar mês/ano', () => {
+    function flushInitialLoad(): void {
+      fixture.detectChanges();
+      httpMock.expectOne('/api/persons').flush([]);
+      httpMock.expectOne((r) => r.url.startsWith('/api/split/')).flush({
+        effectiveFrom: '2026-01-01',
+        items: [],
+      });
+      httpMock.expectOne((r) => r.url.startsWith('/api/dashboard/summary/')).flush({
+        totalIncomeExpected: 0,
+        totalIncomePaid: 0,
+        totalExpenseExpected: 0,
+        totalExpensePaid: 0,
+        balanceExpected: 0,
+        balancePaid: 0,
+        totalIncomePending: 0,
+        totalExpensePending: 0,
+        totalOverdueAmount: 0,
+        totalOverdueCount: 0,
+      });
+    }
+
+    it('deve buscar a regra de split apenas uma vez, mesmo trocando o mês selecionado', () => {
+      flushInitialLoad();
+
+      TestBed.inject(MonthYearService).nextMonth();
+      fixture.detectChanges();
+
+      // só o total de despesas acompanha a troca de mês
+      httpMock.expectOne((r) => r.url.startsWith('/api/dashboard/summary/')).flush({
+        totalIncomeExpected: 0,
+        totalIncomePaid: 0,
+        totalExpenseExpected: 0,
+        totalExpensePaid: 0,
+        balanceExpected: 0,
+        balancePaid: 0,
+        totalIncomePending: 0,
+        totalExpensePending: 0,
+        totalOverdueAmount: 0,
+        totalOverdueCount: 0,
+      });
+      const noSplitRequest = httpMock.match((r) => r.url.startsWith('/api/split/'));
+      expect(noSplitRequest.length).toBe(0);
+    });
+
+    it('mantém o total de despesas da carga mais recente, mesmo se a resposta antiga chegar depois', () => {
+      fixture.detectChanges();
+      httpMock.expectOne('/api/persons').flush([]);
+      httpMock.expectOne((r) => r.url.startsWith('/api/split/')).flush({
+        effectiveFrom: '2026-01-01',
+        items: [],
+      });
+
+      // requisição de despesas disparada pelo effect() do construtor — ainda não respondida
+      const req1 = httpMock.expectOne((r) => r.url.startsWith('/api/dashboard/summary/'));
+
+      component.loadExpenses(2026, 4);
+      const req2 = httpMock.expectOne(
+        (r) => r.url.startsWith('/api/dashboard/summary/') && r.url.endsWith('/2026/4'),
+      );
+
+      // resposta da 2ª (mais nova) chega primeiro, depois a da 1ª (obsoleta)
+      req2.flush({
+        totalIncomeExpected: 0,
+        totalIncomePaid: 0,
+        totalExpenseExpected: 999,
+        totalExpensePaid: 0,
+        balanceExpected: 0,
+        balancePaid: 0,
+        totalIncomePending: 0,
+        totalExpensePending: 0,
+        totalOverdueAmount: 0,
+        totalOverdueCount: 0,
+      });
+      req1.flush({
+        totalIncomeExpected: 0,
+        totalIncomePaid: 0,
+        totalExpenseExpected: 1,
+        totalExpensePaid: 0,
+        balanceExpected: 0,
+        balancePaid: 0,
+        totalIncomePending: 0,
+        totalExpensePending: 0,
+        totalOverdueAmount: 0,
+        totalOverdueCount: 0,
+      });
+
+      expect(component.totalExpenseExpected()).toBe(999);
+    });
+  });
+
+  describe('isViewingPastMonth()', () => {
+    it('deve ser true quando o mês/ano selecionado já passou', () => {
+      TestBed.inject(MonthYearService).setMonthYear(1, 2000);
+      expect(component.isViewingPastMonth()).toBeTrue();
+    });
+
+    it('deve ser false quando o mês/ano selecionado é o atual', () => {
+      const now = new Date();
+      TestBed.inject(MonthYearService).setMonthYear(now.getMonth() + 1, now.getFullYear());
+      expect(component.isViewingPastMonth()).toBeFalse();
+    });
+
+    it('deve ser false quando o mês/ano selecionado é futuro', () => {
+      TestBed.inject(MonthYearService).setMonthYear(1, 2999);
+      expect(component.isViewingPastMonth()).toBeFalse();
     });
   });
 });

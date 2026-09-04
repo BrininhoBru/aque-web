@@ -9,6 +9,7 @@ import { ToastService } from '../../shared/services/toast.service';
 import { BrlCurrencyPipe } from '../../shared/pipes/brl-currency.pipe';
 import { MonthYearPipe } from '../../shared/pipes/month-year.pipe';
 import { Person } from '../../core/models';
+import { createLatestRequestGuard } from '../../core/rxjs/latest-request-guard';
 
 interface PersonSplit {
   person: Person;
@@ -62,13 +63,27 @@ export class SplitComponent implements OnInit {
   readonly saving = signal(false);
   readonly totalExpenseExpected = signal<number>(0);
 
-  // Soma total dos percentuais em tempo real
-  readonly totalPercentage = computed(() =>
-    this.items().reduce((acc, i) => acc + (i.percentage || 0), 0),
-  );
+  private readonly expensesRequestGuard = createLatestRequestGuard();
+
+  // Soma total dos percentuais em tempo real — arredonda pra 2 casas decimais (mesma
+  // escala dos inputs) pra não deixar ruído de ponto flutuante rejeitar uma soma que já
+  // bate 100 em decimal (ex.: vários percentuais de 2 casas podem somar 99.99999999999999)
+  readonly totalPercentage = computed(() => {
+    const sum = this.items().reduce((acc, i) => acc + (i.percentage || 0), 0);
+    return Math.round(sum * 100) / 100;
+  });
 
   readonly totalValid = computed(() => this.totalPercentage() === 100);
   readonly totalDiff = computed(() => 100 - this.totalPercentage());
+
+  // A regra é onipresente (não varia por mês) — só o mês atual pode ser editado
+  // "a partir de agora"; visualizar um mês passado precisa deixar isso claro na tela
+  readonly isViewingPastMonth = computed(() => {
+    const { month, year } = this.monthYear.selected();
+    const now = new Date();
+    return year < now.getFullYear() ||
+      (year === now.getFullYear() && month < now.getMonth() + 1);
+  });
 
   // Valores calculados por pessoa com base no total de despesas
   readonly calculatedItems = computed(() =>
@@ -79,10 +94,9 @@ export class SplitComponent implements OnInit {
   );
 
   constructor() {
-    // Recarrega ao mudar mês/ano global
+    // A regra não varia por mês — só o total de despesas exibido acompanha a navegação
     effect(() => {
       const { month, year } = this.monthYear.selected();
-      this.loadSplit(year, month);
       this.loadExpenses(year, month);
     });
   }
@@ -91,11 +105,13 @@ export class SplitComponent implements OnInit {
     this.personService.getAll().subscribe({
       next: (data) => this.persons.set(data),
     });
+    this.loadSplit();
   }
 
-  loadSplit(year: number, month: number): void {
+  loadSplit(): void {
     this.loading.set(true);
-    this.splitService.getByMonth(year, month).subscribe({
+    const now = new Date();
+    this.splitService.getByMonth(now.getFullYear(), now.getMonth() + 1).subscribe({
       next: (rule) => {
         // Carrega percentuais existentes
         this.items.set(
@@ -117,9 +133,16 @@ export class SplitComponent implements OnInit {
   }
 
   loadExpenses(year: number, month: number): void {
+    const requestId = this.expensesRequestGuard.next();
     this.dashboardService.getSummary(year, month).subscribe({
-      next: (s) => this.totalExpenseExpected.set(s.totalExpenseExpected),
-      error: () => this.totalExpenseExpected.set(0),
+      next: (s) => {
+        if (!this.expensesRequestGuard.isCurrent(requestId)) return; // resposta obsoleta, ignora
+        this.totalExpenseExpected.set(s.totalExpenseExpected);
+      },
+      error: () => {
+        if (!this.expensesRequestGuard.isCurrent(requestId)) return;
+        this.totalExpenseExpected.set(0);
+      },
     });
   }
 
@@ -157,8 +180,6 @@ export class SplitComponent implements OnInit {
     if (!this.totalValid() || this.saving()) return;
     this.saving.set(true);
 
-    const { year, month } = this.monthYear.selected();
-
     const payload: SplitPayload = {
       // backend rejeita percentage <= 0 (regra: só quem tem participação real entra na divisão)
       items: this.items()
@@ -169,7 +190,7 @@ export class SplitComponent implements OnInit {
         })),
     };
 
-    this.splitService.save(year, month, payload).subscribe({
+    this.splitService.save(payload).subscribe({
       next: () => {
         this.toast.success('Regra de divisão salva!');
         this.saving.set(false);

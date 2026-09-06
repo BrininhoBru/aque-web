@@ -48,8 +48,8 @@ describe('AssetsComponent', () => {
       created: [],
       updated: [],
       errors: [
-        { sheet: 'Acoes', row: 3, message: 'Produto vazio (possível linha de total/rodapé)', informational: true },
-        { sheet: 'Renda Fixa', row: 5, message: 'Valor atualizado indisponível', informational: false },
+        { sheet: 'Acoes', row: 3, message: 'Produto vazio (possível linha de total/rodapé)', isInformational: true },
+        { sheet: 'Renda Fixa', row: 5, message: 'Valor atualizado indisponível', isInformational: false },
       ],
     };
     component.importResult.set(result);

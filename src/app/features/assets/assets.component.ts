@@ -82,8 +82,8 @@ export class AssetsComponent implements OnInit {
   );
 
   // Erros de verdade (acionáveis) vs. linhas de rodapé/subtotal esperadas da B3
-  readonly realErrors = computed(() => this.importResult()?.errors.filter((e) => !e.informational) ?? []);
-  readonly informationalErrors = computed(() => this.importResult()?.errors.filter((e) => e.informational) ?? []);
+  readonly realErrors = computed(() => this.importResult()?.errors.filter((e) => !e.isInformational) ?? []);
+  readonly informationalErrors = computed(() => this.importResult()?.errors.filter((e) => e.isInformational) ?? []);
 
   readonly allocationByType = computed(() => {
     const groups = new Map<AssetType, Asset[]>();

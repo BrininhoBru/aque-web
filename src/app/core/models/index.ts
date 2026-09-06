@@ -101,7 +101,7 @@ export interface AssetImportError {
   sheet: string;
   row: number;
   message: string;
-  informational: boolean;
+  isInformational: boolean;
 }
 
 export interface AssetImportResult {

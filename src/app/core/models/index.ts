@@ -82,3 +82,30 @@ export interface SplitResult {
   totalExpenseExpected: number;
   items: SplitResultItem[];
 }
+
+export type AssetType = 'RENDA_FIXA' | 'ACAO' | 'FUNDO' | 'CRIPTO' | 'IMOVEL' | 'OUTRO';
+
+export interface Asset {
+  id: string;
+  name: string;
+  type: AssetType;
+  currentValue: number;
+  person: Person | null;
+}
+
+export interface NetWorthSummary {
+  totalValue: number;
+}
+
+export interface AssetImportError {
+  sheet: string;
+  row: number;
+  message: string;
+  isInformational: boolean;
+}
+
+export interface AssetImportResult {
+  created: Asset[];
+  updated: Asset[];
+  errors: AssetImportError[];
+}

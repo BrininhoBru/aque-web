@@ -59,6 +59,11 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/split/split.component').then((m) => m.SplitComponent),
       },
+      {
+        path: 'assets',
+        loadComponent: () =>
+          import('./features/assets/assets.component').then((m) => m.AssetsComponent),
+      },
     ],
   },
   { path: '**', redirectTo: '' },

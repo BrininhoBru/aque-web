@@ -56,9 +56,14 @@
   }
 
   @if (informationalErrors().length > 0) {
-    <p class="text-body-sm" style="color: var(--color-ledger-ink-lt); padding: 0 0.25rem;">
-      {{ informationalErrors().length }} linha(s) de rodapé ignorada(s) automaticamente.
-    </p>
+    <div style="display: flex; align-items: center; justify-content: space-between; padding: 0 0.25rem;">
+      <p class="text-body-sm" style="color: var(--color-ledger-ink-lt); margin: 0;">
+        {{ informationalErrors().length }} linha(s) de rodapé ignorada(s) automaticamente.
+      </p>
+      @if (realErrors().length === 0) {
+        <button class="btn-ghost btn-icon" (click)="dismissImportResult()">✕</button>
+      }
+    </div>
   }
 
   <!-- Loading -->

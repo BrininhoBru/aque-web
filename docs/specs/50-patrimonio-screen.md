@@ -1,7 +1,7 @@
 # Patrimônio (net worth) screen with manual asset entry
 
 - **Issue:** #50 — https://github.com/BrininhoBru/aque-web/issues/50
-- **Status:** Draft
+- **Status:** Implemented
 - **Repo:** BrininhoBru/aque-web
 
 ## Problema
@@ -36,19 +36,19 @@ Novo feature module `features/assets/`, espelhando `features/categories/` (compo
 
 ## Critério de aceite
 
-- [ ] Tela `/assets` acessível só quando autenticado (mesma guarda `authGuard` das outras rotas)
-- [ ] Lista todos os ativos cadastrados com nome, tipo e valor atual
-- [ ] Exibe o patrimônio total (soma vinda de `GET /assets/net-worth`) com atualização após criar/editar/excluir/importar
-- [ ] Formulário cria um ativo novo e ele aparece na lista sem reload da página
-- [ ] Editar um ativo existente atualiza os campos exibidos na lista
-- [ ] Excluir um ativo remove ele da lista e do patrimônio total
-- [ ] Upload de um `.xlsx` de Posição da B3 válido importa os ativos e atualiza a lista e o total
-- [ ] Upload com linhas/abas que o backend não conseguiu importar mostra o motivo reportado por ele, sem descartar as que passaram
-- [ ] Reimportar o mesmo arquivo depois de já ter ativos cadastrados mostra `updated` > 0 e não duplica linhas na lista
-- [ ] Erros com `informational: true` (rodapé/subtotal) aparecem visualmente distintos dos erros com `informational: false` (erro de verdade)
-- [ ] Gráfico de composição por tipo aparece quando há pelo menos 1 ativo e some (ou mostra estado vazio) quando não há nenhum
-- [ ] Soma das fatias do gráfico bate com `netWorth()`
-- [ ] Novo item "Patrimônio" aparece na sidebar e navega pra `/assets`
+- [x] Tela `/assets` acessível só quando autenticado (mesma guarda `authGuard` das outras rotas)
+- [x] Lista todos os ativos cadastrados com nome, tipo e valor atual
+- [x] Exibe o patrimônio total (soma vinda de `GET /assets/net-worth`) com atualização após criar/editar/excluir/importar
+- [x] Formulário cria um ativo novo e ele aparece na lista sem reload da página
+- [x] Editar um ativo existente atualiza os campos exibidos na lista
+- [x] Excluir um ativo remove ele da lista e do patrimônio total
+- [x] Upload de um `.xlsx` de Posição da B3 válido importa os ativos e atualiza a lista e o total
+- [x] Upload com linhas/abas que o backend não conseguiu importar mostra o motivo reportado por ele, sem descartar as que passaram
+- [x] Reimportar o mesmo arquivo depois de já ter ativos cadastrados mostra `updated` > 0 e não duplica linhas na lista
+- [x] Erros com `informational: true` (rodapé/subtotal) aparecem visualmente distintos dos erros com `informational: false` (erro de verdade)
+- [x] Gráfico de composição por tipo aparece quando há pelo menos 1 ativo e some (ou mostra estado vazio) quando não há nenhum
+- [x] Soma das fatias do gráfico bate com `netWorth()`
+- [x] Novo item "Patrimônio" aparece na sidebar e navega pra `/assets`
 
 ## Questões em aberto
 

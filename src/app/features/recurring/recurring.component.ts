@@ -5,6 +5,7 @@ import { RecurringService, RecurringPayload } from '../../core/services/recurrin
 import { CategoryService } from '../../core/services/category.service';
 import { ToastService } from '../../shared/services/toast.service';
 import { RecurringTransaction, Category } from '../../core/models';
+import { CurrencyInputComponent } from '../../shared/components/currency-input/currency-input.component';
 
 type FilterActive = 'TODOS' | 'ATIVOS' | 'INATIVOS';
 type SortColumn = 'description' | 'category' | 'type' | 'defaultAmount';
@@ -25,7 +26,7 @@ function compareByColumn(a: RecurringTransaction, b: RecurringTransaction, colum
 @Component({
   selector: 'app-recurring',
   standalone: true,
-  imports: [CommonModule, FormField],
+  imports: [CommonModule, FormField, CurrencyInputComponent],
   templateUrl: './recurring.component.html',
   styles: [`
     /* ── Card layout ─────────────────────────────────────────── */

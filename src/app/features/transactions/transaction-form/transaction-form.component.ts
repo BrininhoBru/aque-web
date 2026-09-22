@@ -7,6 +7,7 @@ import { CategoryService } from '../../../core/services/category.service';
 import { ToastService } from '../../../shared/services/toast.service';
 import { MonthYearService } from '../../../core/services/month-year.service';
 import { Category } from '../../../core/models';
+import { CurrencyInputComponent } from '../../../shared/components/currency-input/currency-input.component';
 
 const MIN_TRANSACTION_YEAR = 2000;
 const MAX_TRANSACTION_YEAR = new Date().getFullYear() + 10;
@@ -25,7 +26,7 @@ interface TransactionModel {
 @Component({
   selector: 'app-transaction-form',
   standalone: true,
-  imports: [CommonModule, FormField],
+  imports: [CommonModule, FormField, CurrencyInputComponent],
   templateUrl: './transaction-form.component.html',
   styles: [`
     .loader {

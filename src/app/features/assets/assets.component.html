@@ -209,7 +209,7 @@
 
         <div class="ledger-form-group">
           <label class="ledger-label">Valor Atual</label>
-          <input class="ledger-input" type="number" step="0.01" [formField]="assetForm.currentValue" />
+          <app-currency-input [formField]="assetForm.currentValue" />
           @if (assetForm.currentValue().touched() && assetForm.currentValue().invalid()) {
             <p class="ledger-error">{{ assetForm.currentValue().errors()[0]?.message }}</p>
           }

@@ -16,10 +16,12 @@ import { ThemeService } from '../../core/services/theme.service';
     .header-month {
       display: flex;
       align-items: center;
+      justify-content: center;
       gap: 4px;
-      position: absolute;
-      left: 50%;
-      transform: translateX(-50%);
+      /* item de flex que cresce e centraliza o próprio conteúdo. Era position absolute
+         centrado na viewport, o que o tirava do fluxo e fazia ele pintar por cima do
+         toggle de tema — invisível e inclicável (#57) */
+      flex: 1;
     }
     .header-month-display {
       font-family: var(--font-serif);

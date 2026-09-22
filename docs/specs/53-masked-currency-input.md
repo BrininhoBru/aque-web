@@ -1,7 +1,7 @@
 # Input de valor em reais com máscara
 
 - **Issue:** #53 — https://github.com/BrininhoBru/aque-web/issues/53
-- **Status:** Implemented
+- **Status:** Draft
 - **Repo:** BrininhoBru/aque-web
 
 ## Problema

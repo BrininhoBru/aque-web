@@ -1,7 +1,7 @@
 # Gráficos seguindo o modo escuro
 
 - **Issue:** #54 — https://github.com/BrininhoBru/aque-web/issues/54
-- **Status:** Implemented
+- **Status:** Draft
 - **Repo:** BrininhoBru/aque-web
 
 ## Problema
@@ -59,17 +59,14 @@ semânticas em `.dark` (`--color-ledger-positive: #6FBF83`, `--color-ledger-nega
 #E08A72`) — a paleta de séries escura segue essas, e as neutras vêm de
 `--color-ledger-ink-lt` / `--color-ledger-border-md` na versão `.dark`.
 
-## Verificação manual pendente
-
-Os testes cobrem que as opções mudam; não cobrem que o ApexCharts **repinta** ao receber
-opções novas — ele nem sempre reaplica tema em `updateOptions`. Isso só se vê no navegador:
-alternar o tema pelo header no Dashboard e no Patrimônio. Se algum gráfico não redesenhar,
-a saída é forçar remount, não insistir no binding.
-
 ## Critério de aceite
 
 - [x] Alternar o tema faz os `computed()` dos três gráficos reemitirem opções novas
       (`assets.component.spec.ts`: cores, `foreColor` e `tooltip.theme` mudam)
+- [x] Alternar o tema **redesenha** os gráficos, sem recarregar a página. Verificado no
+      navegador: o `fill` das fatias vai de `#6FBF83`/`#E08A72` (escuro) para
+      `#2C6B3D`/`#8B3122` (claro) e o texto do eixo de `#8F836A` para `#8A7A62` — batendo
+      exatamente com `chartTheme(true)`/`chartTheme(false)`. O ApexCharts reaplica
 - [x] `foreColor`, a cor do "Total" no centro do donut e a da legenda saem todas do tema
 - [x] No modo escuro `tooltip.theme` é `'dark'`
 - [x] A grade do gráfico de evolução usa `gridBorder` do tema, não `#E0D8C8` fixo

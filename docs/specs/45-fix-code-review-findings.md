@@ -1,7 +1,7 @@
 # Corrige achados das revisões de código das PRs #43 e #44
 
 - **Issue:** #45 — https://github.com/BrininhoBru/aque-web/issues/45
-- **Status:** Draft
+- **Status:** Implemented
 - **Repo:** BrininhoBru/aque-web
 
 ## Problema

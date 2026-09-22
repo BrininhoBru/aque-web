@@ -24,6 +24,8 @@ import { BrlCurrencyPipe } from '../../shared/pipes/brl-currency.pipe';
 import { MonthYearPipe } from '../../shared/pipes/month-year.pipe';
 import { DashboardSummary, CategoryTotal, MonthEvolution, SplitResult } from '../../core/models';
 import { createLatestRequestGuard } from '../../core/rxjs/latest-request-guard';
+import { chartTheme } from '../../shared/chart-theme';
+import { ThemeService } from '../../core/services/theme.service';
 
 export type PieChartOptions = {
   series: ApexNonAxisChartSeries;
@@ -76,6 +78,7 @@ const MONTH_LABELS = [
 })
 export class DashboardComponent {
   private readonly dashboardService = inject(DashboardService);
+  private readonly theme = inject(ThemeService);
   readonly monthYear = inject(MonthYearService);
 
   readonly loading = signal(true);
@@ -99,6 +102,7 @@ export class DashboardComponent {
 
   // Opções do gráfico de donut
   readonly pieChartOptions = computed<PieChartOptions>(() => {
+    const theme = chartTheme(this.theme.dark());
     const items = this.filteredByCategory();
     const series = items.map((i) => i.totalExpected);
     const labels = items.map((i) => i.category.name);
@@ -110,21 +114,12 @@ export class DashboardComponent {
         type: 'donut',
         height: 280,
         background: 'transparent',
-        foreColor: '#8A7A62',
+        foreColor: theme.foreColor,
         fontFamily: 'system-ui, sans-serif',
         toolbar: { show: false },
         animations: { enabled: true, speed: 400 },
       },
-      colors: [
-        '#2C6B3D',
-        '#8B3122',
-        '#7A5C1E',
-        '#3D5A7A',
-        '#5C3D5C',
-        '#2A6B5C',
-        '#7A4A1E',
-        '#3D4A6B',
-      ],
+      colors: theme.series,
       plotOptions: {
         pie: {
           donut: {
@@ -134,7 +129,7 @@ export class DashboardComponent {
               total: {
                 show: true,
                 label: 'Total',
-                color: '#8A7A62',
+                color: theme.foreColor,
                 fontSize: '12px',
                 formatter: (w: { globals: { seriesTotals: number[] } }) => {
                   const total = w.globals.seriesTotals.reduce((a: number, b: number) => a + b, 0);
@@ -155,12 +150,12 @@ export class DashboardComponent {
         position: 'bottom',
         fontSize: '12px',
         fontFamily: 'system-ui, sans-serif',
-        labels: { colors: '#8A7A62' },
+        labels: { colors: theme.foreColor },
         markers: { size: 6 },
         itemMargin: { horizontal: 8, vertical: 4 },
       },
       tooltip: {
-        theme: 'light',
+        theme: theme.tooltipTheme,
         y: {
           formatter: (val: number) =>
             'R$ ' + val.toLocaleString('pt-BR', { minimumFractionDigits: 2 }),
@@ -171,6 +166,7 @@ export class DashboardComponent {
 
   // Opções do gráfico de linha
   readonly lineChartOptions = computed<LineChartOptions>(() => {
+    const theme = chartTheme(this.theme.dark());
     const evo = this.evolution();
     const isPaid = this.lineFilter() === 'PAID';
     const currentMonth = this.monthYear.month();
@@ -187,12 +183,13 @@ export class DashboardComponent {
         type: 'line',
         height: 280,
         background: 'transparent',
-        foreColor: '#8A7A62',
+        foreColor: theme.foreColor,
         fontFamily: 'system-ui, sans-serif',
         toolbar: { show: false },
         animations: { enabled: true, speed: 400 },
       },
-      colors: ['#2C6B3D', '#8B3122'],
+      // receita e despesa, nessa ordem — as duas primeiras da paleta
+      colors: theme.series.slice(0, 2),
       stroke: {
         curve: 'smooth',
         width: 2.5,
@@ -205,7 +202,7 @@ export class DashboardComponent {
       xaxis: {
         categories: MONTH_LABELS,
         labels: {
-          style: { colors: '#8A7A62', fontSize: '11px' },
+          style: { colors: theme.foreColor, fontSize: '11px' },
         },
         axisBorder: { show: false },
         axisTicks: { show: false },
@@ -214,14 +211,14 @@ export class DashboardComponent {
       },
       yaxis: {
         labels: {
-          style: { colors: '#8A7A62', fontSize: '11px' },
+          style: { colors: theme.foreColor, fontSize: '11px' },
           formatter: (val: number) =>
             'R$ ' +
             val.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 }),
         },
       },
       grid: {
-        borderColor: '#E0D8C8',
+        borderColor: theme.gridBorder,
         strokeDashArray: 4,
         xaxis: { lines: { show: false } },
         yaxis: { lines: { show: true } },
@@ -231,11 +228,11 @@ export class DashboardComponent {
         position: 'top',
         fontSize: '12px',
         fontFamily: 'system-ui, sans-serif',
-        labels: { colors: '#8A7A62' },
+        labels: { colors: theme.foreColor },
         markers: { size: 6 },
       },
       tooltip: {
-        theme: 'light',
+        theme: theme.tooltipTheme,
         x: { show: true },
         y: {
           formatter: (val: number) =>

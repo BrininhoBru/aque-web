@@ -8,6 +8,9 @@ import { ToastService } from '../../shared/services/toast.service';
 import { Asset, AssetImportResult, AssetType, Person } from '../../core/models';
 import { notBlank } from '../../shared/validators/not-blank.validator';
 import { BrlCurrencyPipe } from '../../shared/pipes/brl-currency.pipe';
+import { CurrencyInputComponent } from '../../shared/components/currency-input/currency-input.component';
+import { chartTheme } from '../../shared/chart-theme';
+import { ThemeService } from '../../core/services/theme.service';
 
 interface AllocationChartOptions {
   series: ApexNonAxisChartSeries;
@@ -30,11 +33,12 @@ interface AssetModel {
 @Component({
   selector: 'app-assets',
   standalone: true,
-  imports: [CommonModule, FormField, BrlCurrencyPipe, NgApexchartsModule],
+  imports: [CommonModule, FormField, BrlCurrencyPipe, NgApexchartsModule, CurrencyInputComponent],
   templateUrl: './assets.component.html',
 })
 export class AssetsComponent implements OnInit {
   private readonly assetService = inject(AssetService);
+  private readonly theme = inject(ThemeService);
   private readonly personService = inject(PersonService);
   private readonly toast = inject(ToastService);
 
@@ -106,6 +110,7 @@ export class AssetsComponent implements OnInit {
   });
 
   readonly allocationChartOptions = computed<AllocationChartOptions>(() => {
+    const theme = chartTheme(this.theme.dark());
     const items = this.allocationByType();
 
     return {
@@ -115,19 +120,12 @@ export class AssetsComponent implements OnInit {
         type: 'donut',
         height: 280,
         background: 'transparent',
-        foreColor: '#8A7A62',
+        foreColor: theme.foreColor,
         fontFamily: 'system-ui, sans-serif',
         toolbar: { show: false },
         animations: { enabled: true, speed: 400 },
       },
-      colors: [
-        '#2C6B3D',
-        '#8B3122',
-        '#7A5C1E',
-        '#3D5A7A',
-        '#5C3D5C',
-        '#2A6B5C',
-      ],
+      colors: theme.series,
       plotOptions: {
         pie: {
           donut: {
@@ -137,7 +135,7 @@ export class AssetsComponent implements OnInit {
               total: {
                 show: true,
                 label: 'Total',
-                color: '#8A7A62',
+                color: theme.foreColor,
                 fontSize: '12px',
                 formatter: (w: { globals: { seriesTotals: number[] } }) => {
                   const total = w.globals.seriesTotals.reduce((a: number, b: number) => a + b, 0);
@@ -158,12 +156,12 @@ export class AssetsComponent implements OnInit {
         position: 'bottom',
         fontSize: '12px',
         fontFamily: 'system-ui, sans-serif',
-        labels: { colors: '#8A7A62' },
+        labels: { colors: theme.foreColor },
         markers: { size: 6 },
         itemMargin: { horizontal: 8, vertical: 4 },
       },
       tooltip: {
-        theme: 'light',
+        theme: theme.tooltipTheme,
         y: {
           formatter: (val: number) =>
             'R$ ' + val.toLocaleString('pt-BR', { minimumFractionDigits: 2 }),

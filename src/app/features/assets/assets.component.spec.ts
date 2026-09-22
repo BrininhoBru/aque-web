@@ -3,6 +3,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { AssetsComponent } from './assets.component';
 import { Asset, AssetImportResult } from '../../core/models';
+import { ThemeService } from '../../core/services/theme.service';
 
 describe('AssetsComponent', () => {
   let component: AssetsComponent;
@@ -25,6 +26,19 @@ describe('AssetsComponent', () => {
   });
 
   afterEach(() => http.verify());
+
+  it('deve repintar o gráfico de alocação quando o tema muda', () => {
+    const theme = TestBed.inject(ThemeService);
+    theme.dark.set(false);
+    const claro = component.allocationChartOptions();
+
+    theme.dark.set(true);
+    const escuro = component.allocationChartOptions();
+
+    expect(escuro.colors).not.toEqual(claro.colors);
+    expect(escuro.chart.foreColor).not.toEqual(claro.chart.foreColor);
+    expect(escuro.tooltip.theme).toBe('dark');
+  });
 
   it('marca inválido quando o nome é só espaços em branco', () => {
     component.assetForm.name().value.set('   ');

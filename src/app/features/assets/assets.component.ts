@@ -8,6 +8,9 @@ import { ToastService } from '../../shared/services/toast.service';
 import { Asset, AssetImportResult, AssetType, Person } from '../../core/models';
 import { notBlank } from '../../shared/validators/not-blank.validator';
 import { BrlCurrencyPipe } from '../../shared/pipes/brl-currency.pipe';
+import { CurrencyInputComponent } from '../../shared/components/currency-input/currency-input.component';
+import { chartTheme } from '../../shared/chart-theme';
+import { ThemeService } from '../../core/services/theme.service';
 
 interface AllocationChartOptions {
   series: ApexNonAxisChartSeries;
@@ -30,11 +33,12 @@ interface AssetModel {
 @Component({
   selector: 'app-assets',
   standalone: true,
-  imports: [CommonModule, FormField, BrlCurrencyPipe, NgApexchartsModule],
+  imports: [CommonModule, FormField, BrlCurrencyPipe, NgApexchartsModule, CurrencyInputComponent],
   templateUrl: './assets.component.html',
 })
 export class AssetsComponent implements OnInit {
   private readonly assetService = inject(AssetService);
+  private readonly theme = inject(ThemeService);
   private readonly personService = inject(PersonService);
   private readonly toast = inject(ToastService);
 
@@ -82,7 +86,38 @@ export class AssetsComponent implements OnInit {
   );
 
   // Erros de verdade (acionáveis) vs. linhas de rodapé/subtotal esperadas da B3
-  readonly realErrors = computed(() => this.importResult()?.errors.filter((e) => !e.isInformational) ?? []);
+  // O backend marca a divergência de reconciliação com `row: 0` de propósito: linha de
+  // dados usa rowIndex+1 (>= 2) e erro de cabeçalho usa 1, então 0 não colide. É um acordo
+  // implícito entre os dois repos — o certo seria o AssetImportError dizer o que ele é
+  // (ver "Questões em aberto" na spec 55)
+  private static readonly RECONCILIATION_ROW = 0;
+
+  readonly realErrors = computed(
+    () =>
+      this.importResult()?.errors.filter(
+        (e) => !e.isInformational && e.row !== AssetsComponent.RECONCILIATION_ROW,
+      ) ?? [],
+  );
+
+  readonly reconciliationWarnings = computed(
+    () =>
+      this.importResult()?.errors.filter(
+        (e) => !e.isInformational && e.row === AssetsComponent.RECONCILIATION_ROW,
+      ) ?? [],
+  );
+
+  readonly missingAssets = computed(() => this.importResult()?.missing ?? []);
+
+  /**
+   * Abas em que o lido não bate com o persistido — em import normal a lista é vazia.
+   *
+   * O `?.` em `sheets` não é redundante: o tipo promete o campo, mas quem responde é o
+   * backend. Com uma versão anterior à #37 no ar — deploy fora de ordem, rollback só do
+   * backend — o campo não vem e `undefined.filter` derruba o bloco inteiro do resultado.
+   */
+  readonly divergingSheets = computed(
+    () => this.importResult()?.sheets?.filter((s) => s.totalRead !== s.totalPersisted) ?? [],
+  );
   readonly informationalErrors = computed(() => this.importResult()?.errors.filter((e) => e.isInformational) ?? []);
 
   readonly allocationByType = computed(() => {
@@ -106,6 +141,7 @@ export class AssetsComponent implements OnInit {
   });
 
   readonly allocationChartOptions = computed<AllocationChartOptions>(() => {
+    const theme = chartTheme(this.theme.dark());
     const items = this.allocationByType();
 
     return {
@@ -115,19 +151,12 @@ export class AssetsComponent implements OnInit {
         type: 'donut',
         height: 280,
         background: 'transparent',
-        foreColor: '#8A7A62',
+        foreColor: theme.foreColor,
         fontFamily: 'system-ui, sans-serif',
         toolbar: { show: false },
         animations: { enabled: true, speed: 400 },
       },
-      colors: [
-        '#2C6B3D',
-        '#8B3122',
-        '#7A5C1E',
-        '#3D5A7A',
-        '#5C3D5C',
-        '#2A6B5C',
-      ],
+      colors: theme.series,
       plotOptions: {
         pie: {
           donut: {
@@ -137,7 +166,7 @@ export class AssetsComponent implements OnInit {
               total: {
                 show: true,
                 label: 'Total',
-                color: '#8A7A62',
+                color: theme.foreColor,
                 fontSize: '12px',
                 formatter: (w: { globals: { seriesTotals: number[] } }) => {
                   const total = w.globals.seriesTotals.reduce((a: number, b: number) => a + b, 0);
@@ -158,12 +187,12 @@ export class AssetsComponent implements OnInit {
         position: 'bottom',
         fontSize: '12px',
         fontFamily: 'system-ui, sans-serif',
-        labels: { colors: '#8A7A62' },
+        labels: { colors: theme.foreColor },
         markers: { size: 6 },
         itemMargin: { horizontal: 8, vertical: 4 },
       },
       tooltip: {
-        theme: 'light',
+        theme: theme.tooltipTheme,
         y: {
           formatter: (val: number) =>
             'R$ ' + val.toLocaleString('pt-BR', { minimumFractionDigits: 2 }),
@@ -278,6 +307,11 @@ export class AssetsComponent implements OnInit {
       next: () => {
         this.toast.success('Ativo excluído.');
         this.confirmDeleteId.set(null);
+        // o importResult é um retrato do import e não se atualiza com o load(); sem tirar
+        // daqui, o ativo recém-excluído seguiria listado como ausente
+        this.importResult.update((result) =>
+          result ? { ...result, missing: result.missing.filter((a) => a.id !== id) } : result,
+        );
         this.load();
         this.loadNetWorth();
       },

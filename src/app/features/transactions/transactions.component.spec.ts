@@ -640,6 +640,35 @@ describe('TransactionsComponent', () => {
       );
     });
 
+    it('bloqueia "Gerar Recorrentes" enquanto a exclusão aguarda a janela de desfazer', () => {
+      // sem isso, clicar em Gerar dentro dos 4s manda o backend gerar contra um lançamento
+      // que ele ainda enxerga — resposta 0, sem nada na tela explicando
+      jasmine.clock().install();
+      try {
+        expect(component.deletePending()).toBeFalse();
+
+        component.askDelete('1');
+        expect(component.deletePending()).toBeTrue();
+
+        jasmine.clock().tick(4000);
+        expect(component.deletePending()).toBeFalse();
+      } finally {
+        jasmine.clock().uninstall();
+      }
+    });
+
+    it('libera "Gerar Recorrentes" assim que a exclusão é desfeita', () => {
+      jasmine.clock().install();
+      try {
+        component.askDelete('1');
+        component.undoDelete();
+
+        expect(component.deletePending()).toBeFalse();
+      } finally {
+        jasmine.clock().uninstall();
+      }
+    });
+
     it('undoDelete() dentro da janela cancela a exclusão — nenhuma chamada DELETE é feita', () => {
       jasmine.clock().install();
       try {

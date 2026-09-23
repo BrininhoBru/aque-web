@@ -342,6 +342,13 @@ export class TransactionsComponent implements OnInit {
     this.router.navigate(['/transactions/form', id]);
   }
 
+  /**
+   * Há exclusão esperando a janela de desfazer. Enquanto for true, o `DELETE` ainda não
+   * saiu: o lançamento e a linha de `recurring_generations` continuam no banco, então
+   * "Gerar Recorrentes" responderia 0 sem que nada explicasse o porquê.
+   */
+  readonly deletePending = computed(() => this.pendingDeleteId() !== null);
+
   askDelete(id: string): void {
     this.pendingDeleteId.set(id);
     this.pendingDeleteTimer = setTimeout(() => this.performDelete(id), UNDO_DELETE_WINDOW_MS);

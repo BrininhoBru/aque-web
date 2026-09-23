@@ -13,7 +13,7 @@
     - `src/app/core/services/split.service.ts:13` → `/api/split`
     - `src/app/core/services/category.service.ts:9` → `/api/categories`
     - `src/app/core/auth/auth.service.ts` → `/api/auth/login`
-  - Routing: dev via `proxy.conf.json` (`/api` → `http://127.0.0.1:8080`), prod via `nginx.conf` (`/api/` → `http://aque-backend:8080/api/`, Docker Compose service name)
+  - Routing: dev via `proxy.conf.json` (`/api` → `http://127.0.0.1:8080`), prod via Traefik (routes `/api/` to the backend; the Nginx container only serves static files)
   - No API client SDK or generated OpenAPI client — plain `HttpClient` calls per service
 
 No other third-party APIs, SaaS integrations, or external SDKs (no Stripe, no analytics, no error-tracking SDK, no maps, no payment providers).
@@ -41,10 +41,9 @@ Self-hosted: Raspberry Pi 3B running Docker Compose (Nginx container serving thi
 
 ## Environment Configuration
 
-**Required env vars:** none in the frontend build itself (no Angular environment files, no `.env` usage). API target is configuration-file-driven (`proxy.conf.json` for dev, `nginx.conf` for prod), not env-var-driven.
+**Required env vars:** none in the frontend build itself (no Angular environment files, no `.env` usage). API target is configuration-driven (`proxy.conf.json` for dev, Traefik routing rules for prod), not env-var-driven.
 
 **Secrets location:**
-- TLS certs mounted at runtime in production (`/etc/nginx/certs/aque.crt`, `.key`) via Docker bind mounts — not present in this repo
 - JWT stored client-side in `localStorage` (not a "secret" in the backend sense, but security-relevant: no httpOnly cookie, standard XSS exposure tradeoff for SPA JWT storage)
 
 ## Webhooks & Callbacks

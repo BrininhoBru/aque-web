@@ -57,6 +57,6 @@
 
 **Production:**
 - Multi-stage Docker build: Node 22 Alpine build stage → Nginx Alpine runtime stage
-- Nginx serves static Angular build (`dist/aque-web/browser`) and reverse-proxies `/api/` to `aque-backend:8080` (`nginx.conf`)
-- HTTPS via mounted certs (`/etc/nginx/certs/aque.crt` / `.key`), HTTP→HTTPS redirect
+- Nginx serves the static Angular build (`dist/aque-web/browser`) on port 80 only (`nginx.conf`) — no TLS, no `/api/` proxy
+- Traefik sits in front and handles TLS termination and all routing (including `/api/` to the backend)
 - Deployed on Raspberry Pi 3B, images built via GitHub Actions

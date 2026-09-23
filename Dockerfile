@@ -18,7 +18,7 @@ COPY . .
 RUN npm run build -- --configuration production
 
 # -----------------------------------------------------------------------------
-# Stage 2: Runtime — Nginx serve os arquivos estáticos via HTTPS
+# Stage 2: Runtime — Nginx serve os arquivos estáticos (Traefik faz TLS/roteamento)
 # -----------------------------------------------------------------------------
 FROM nginx:alpine
 
@@ -31,7 +31,4 @@ COPY --from=build /app/dist/aque-web/browser /usr/share/nginx/html
 # Copia a configuração customizada do Nginx
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# nginx.conf e certs/ são bind mounts em produção (ver docker-compose.yml no
-# Rasp) — não há mais geração de certificado aqui, seria sempre sobrescrita
-
-EXPOSE 80 443
+EXPOSE 80

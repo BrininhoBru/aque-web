@@ -86,7 +86,32 @@ export class AssetsComponent implements OnInit {
   );
 
   // Erros de verdade (acionáveis) vs. linhas de rodapé/subtotal esperadas da B3
-  readonly realErrors = computed(() => this.importResult()?.errors.filter((e) => !e.isInformational) ?? []);
+  // O backend marca a divergência de reconciliação com `row: 0` de propósito: linha de
+  // dados usa rowIndex+1 (>= 2) e erro de cabeçalho usa 1, então 0 não colide. É um acordo
+  // implícito entre os dois repos — o certo seria o AssetImportError dizer o que ele é
+  // (ver "Questões em aberto" na spec 55)
+  private static readonly RECONCILIATION_ROW = 0;
+
+  readonly realErrors = computed(
+    () =>
+      this.importResult()?.errors.filter(
+        (e) => !e.isInformational && e.row !== AssetsComponent.RECONCILIATION_ROW,
+      ) ?? [],
+  );
+
+  readonly reconciliationWarnings = computed(
+    () =>
+      this.importResult()?.errors.filter(
+        (e) => !e.isInformational && e.row === AssetsComponent.RECONCILIATION_ROW,
+      ) ?? [],
+  );
+
+  readonly missingAssets = computed(() => this.importResult()?.missing ?? []);
+
+  /** abas em que o lido não bate com o persistido — em import normal a lista é vazia */
+  readonly divergingSheets = computed(
+    () => this.importResult()?.sheets.filter((s) => s.totalRead !== s.totalPersisted) ?? [],
+  );
   readonly informationalErrors = computed(() => this.importResult()?.errors.filter((e) => e.isInformational) ?? []);
 
   readonly allocationByType = computed(() => {
@@ -276,6 +301,11 @@ export class AssetsComponent implements OnInit {
       next: () => {
         this.toast.success('Ativo excluído.');
         this.confirmDeleteId.set(null);
+        // o importResult é um retrato do import e não se atualiza com o load(); sem tirar
+        // daqui, o ativo recém-excluído seguiria listado como ausente
+        this.importResult.update((result) =>
+          result ? { ...result, missing: result.missing.filter((a) => a.id !== id) } : result,
+        );
         this.load();
         this.loadNetWorth();
       },

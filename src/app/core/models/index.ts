@@ -90,6 +90,8 @@ export interface Asset {
   name: string;
   type: AssetType;
   currentValue: number;
+  /** código da posição no extrato da B3; nulo em ativo cadastrado à mão */
+  externalCode: string | null;
   person: Person | null;
 }
 
@@ -104,8 +106,21 @@ export interface AssetImportError {
   isInformational: boolean;
 }
 
+/** Reconciliação de uma aba do extrato: o que foi lido do arquivo vs. o que virou ativo. */
+export interface AssetImportSheetSummary {
+  sheet: string;
+  rows: number;
+  totalRead: number;
+  totalPersisted: number;
+}
+
 export interface AssetImportResult {
   created: Asset[];
   updated: Asset[];
+  /** ativos de um import anterior que não estão no arquivo — o import nunca os apaga */
+  missing: Asset[];
   errors: AssetImportError[];
+  sheets: AssetImportSheetSummary[];
+  totalRead: number;
+  totalPersisted: number;
 }

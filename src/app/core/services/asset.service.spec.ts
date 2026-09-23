@@ -13,6 +13,7 @@ describe('AssetService', () => {
     name: 'VALE3',
     type: 'ACAO',
     currentValue: 314.48,
+    externalCode: 'VALE3',
     person: null,
   };
 
@@ -97,7 +98,15 @@ describe('AssetService', () => {
   describe('importXlsx()', () => {
     it('deve enviar o arquivo como multipart/form-data', () => {
       const file = new File(['conteudo'], 'posicao.xlsx');
-      const result: AssetImportResult = { created: [asset], updated: [], errors: [] };
+      const result: AssetImportResult = {
+        created: [asset],
+        updated: [],
+        missing: [],
+        errors: [],
+        sheets: [],
+        totalRead: 314.48,
+        totalPersisted: 314.48,
+      };
 
       service.importXlsx(file).subscribe((res) => expect(res).toEqual(result));
 

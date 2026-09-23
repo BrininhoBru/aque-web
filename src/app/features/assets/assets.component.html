@@ -39,29 +39,91 @@
     <span [class.ledger-h2]="viewMode() === 'DASHBOARD'" [class.ledger-h3]="viewMode() === 'RELATORIO'" style="color: var(--color-ledger-ink)">{{ netWorth() | brlCurrency }}</span>
   </div>
 
-  @if (realErrors().length > 0) {
-    <div class="ledger-card" style="padding: 1rem 1.5rem; border-color: var(--color-ledger-negative-bd);">
-      <div style="display: flex; align-items: center; justify-content: space-between;">
-        <p class="font-medium" style="color: var(--color-ledger-negative)">{{ realErrors().length }} item(ns) não importado(s)</p>
+  <!-- Resultado do último import. Um dismiss só pro conjunto: antes ele era repetido em
+       cada bloco com condicional pra não duplicar, o que não escala com mais blocos. -->
+  @if (importResult(); as result) {
+    <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+      <div style="display: flex; align-items: center; justify-content: space-between; padding: 0 0.25rem;">
+        <p class="text-body-sm" style="color: var(--color-ledger-ink-lt); margin: 0;">
+          Import concluído: {{ result.created.length }} criado(s), {{ result.updated.length }} atualizado(s).
+          @if (informationalErrors().length > 0) {
+            {{ informationalErrors().length }} linha(s) de rodapé ignorada(s) automaticamente.
+          }
+        </p>
         <button class="btn-ghost btn-icon" (click)="dismissImportResult()">✕</button>
       </div>
-      <ul style="margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.25rem;">
-        @for (err of realErrors(); track err.sheet + '-' + err.row) {
-          <li class="text-body-sm" style="color: var(--color-ledger-ink-lt)">
-            {{ err.sheet }} (linha {{ err.row }}): {{ err.message }}
-          </li>
-        }
-      </ul>
-    </div>
-  }
 
-  @if (informationalErrors().length > 0) {
-    <div style="display: flex; align-items: center; justify-content: space-between; padding: 0 0.25rem;">
-      <p class="text-body-sm" style="color: var(--color-ledger-ink-lt); margin: 0;">
-        {{ informationalErrors().length }} linha(s) de rodapé ignorada(s) automaticamente.
-      </p>
-      @if (realErrors().length === 0) {
-        <button class="btn-ghost btn-icon" (click)="dismissImportResult()">✕</button>
+      @if (realErrors().length > 0) {
+        <div class="ledger-card" style="padding: 1rem 1.5rem; border-color: var(--color-ledger-negative-bd);">
+          <p class="font-medium" style="color: var(--color-ledger-negative)">{{ realErrors().length }} item(ns) não importado(s)</p>
+          <ul style="margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.25rem;">
+            @for (err of realErrors(); track err.sheet + '-' + err.row) {
+              <li class="text-body-sm" style="color: var(--color-ledger-ink-lt)">
+                {{ err.sheet }} (linha {{ err.row }}): {{ err.message }}
+              </li>
+            }
+          </ul>
+        </div>
+      }
+
+      <!-- Divergência entre lido e persistido: linhas distintas do arquivo colapsaram no
+           mesmo ativo. Não é item não importado, por isso fica fora daquela contagem. -->
+      @if (reconciliationWarnings().length > 0) {
+        <div class="ledger-card" style="padding: 1rem 1.5rem; border-color: var(--color-ledger-pending-bd);">
+          <p class="font-medium" style="color: var(--color-ledger-pending)">O total importado não fecha com o do arquivo</p>
+          <ul style="margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.25rem;">
+            @for (warn of reconciliationWarnings(); track warn.sheet) {
+              <li class="text-body-sm" style="color: var(--color-ledger-ink-lt)">{{ warn.sheet }}: {{ warn.message }}</li>
+            }
+          </ul>
+          @if (divergingSheets().length > 0) {
+            <table class="ledger-table" style="margin-top: 0.75rem;">
+              <thead>
+                <tr>
+                  <th>Aba</th>
+                  <th class="col-num">Lido do arquivo</th>
+                  <th class="col-num">Importado</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (sheet of divergingSheets(); track sheet.sheet) {
+                  <tr>
+                    <td>{{ sheet.sheet }}</td>
+                    <td class="col-num">{{ sheet.totalRead | brlCurrency }}</td>
+                    <td class="col-negative">{{ sheet.totalPersisted | brlCurrency }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          }
+        </div>
+      }
+
+      <!-- Não é erro: são ativos que continuam no banco e que o usuário pode remover. -->
+      @if (missingAssets().length > 0) {
+        <div class="ledger-card" style="padding: 1rem 1.5rem;">
+          <p class="font-medium" style="color: var(--color-ledger-ink)">
+            {{ missingAssets().length }} ativo(s) do banco não estão neste arquivo
+          </p>
+          <p class="ledger-hint" style="margin-top: 0.25rem;">
+            Vendidos, vencidos, ou o extrato veio parcial. O import não exclui nada — enquanto
+            estiverem aqui, seguem contando no patrimônio total.
+          </p>
+          <ul style="margin-top: 0.75rem; display: flex; flex-direction: column; gap: 0.5rem;">
+            @for (asset of missingAssets(); track asset.id) {
+              <li style="display: flex; align-items: center; justify-content: space-between; gap: 1rem;">
+                <span class="text-body-sm" style="color: var(--color-ledger-ink)">
+                  {{ asset.name }}
+                  <span style="color: var(--color-ledger-ink-lt)">· {{ typeLabel(asset.type) }}</span>
+                </span>
+                <span style="display: flex; align-items: center; gap: 0.75rem;">
+                  <span class="ledger-num" style="color: var(--color-ledger-ink-md)">{{ asset.currentValue | brlCurrency }}</span>
+                  <button class="btn-danger btn-sm" (click)="askDelete(asset.id)">Excluir</button>
+                </span>
+              </li>
+            }
+          </ul>
+        </div>
       }
     </div>
   }

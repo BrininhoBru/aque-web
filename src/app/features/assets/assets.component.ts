@@ -108,9 +108,15 @@ export class AssetsComponent implements OnInit {
 
   readonly missingAssets = computed(() => this.importResult()?.missing ?? []);
 
-  /** abas em que o lido não bate com o persistido — em import normal a lista é vazia */
+  /**
+   * Abas em que o lido não bate com o persistido — em import normal a lista é vazia.
+   *
+   * O `?.` em `sheets` não é redundante: o tipo promete o campo, mas quem responde é o
+   * backend. Com uma versão anterior à #37 no ar — deploy fora de ordem, rollback só do
+   * backend — o campo não vem e `undefined.filter` derruba o bloco inteiro do resultado.
+   */
   readonly divergingSheets = computed(
-    () => this.importResult()?.sheets.filter((s) => s.totalRead !== s.totalPersisted) ?? [],
+    () => this.importResult()?.sheets?.filter((s) => s.totalRead !== s.totalPersisted) ?? [],
   );
   readonly informationalErrors = computed(() => this.importResult()?.errors.filter((e) => e.isInformational) ?? []);
 

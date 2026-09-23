@@ -174,6 +174,21 @@ describe('AssetsComponent', () => {
       expect(component.divergingSheets().length).toBe(0);
     });
 
+    it('não deve quebrar quando o backend responde sem o campo sheets', () => {
+      // backend anterior à #37 no ar: deploy fora de ordem ou rollback só do backend.
+      // O cast é o ponto do teste — o tipo promete o campo, a resposta HTTP não garante
+      const respostaAntiga = {
+        created: [],
+        updated: [],
+        errors: [],
+      } as unknown as AssetImportResult;
+      component.importResult.set(respostaAntiga);
+
+      expect(() => component.divergingSheets()).not.toThrow();
+      expect(component.divergingSheets()).toEqual([]);
+      expect(component.missingAssets()).toEqual([]);
+    });
+
     it('deve mostrar apenas as abas que divergem', () => {
       component.importResult.set(
         resultado({
